@@ -1,0 +1,15 @@
+{
+  "name": "sg16-ai-engine",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SG16 AI Engine — full-stack deploy (React PWA + Express API)",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "npm ci --prefix project && npm run build --prefix project && npm ci --prefix backend --omit=dev",
+    "start": "node backend/server.js",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix project"
+  }
+}

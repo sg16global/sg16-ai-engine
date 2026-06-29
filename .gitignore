@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.env
+backend/.env
+project/.env
+backend/data/signup-ledger.json
+*.log
+
+# Vite dev PWA artifacts
+project/dev-dist/
+
+# Built frontend (generated on Railway during npm run build)
+backend/public/assets/
+backend/public/index.html
+backend/public/sw.js
+backend/public/workbox-*.js
+backend/public/manifest.webmanifest
+backend/public/manifest.json
+backend/public/*.mjs
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

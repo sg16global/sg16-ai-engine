@@ -1,0 +1,77 @@
+{
+  "name": "SG16 AI Engine",
+  "short_name": "SG16",
+  "description": "Most Powerful AI Platform by SaifTech Global Limited — coding, chat, images, documents & more.",
+  "start_url": "/",
+  "scope": "/",
+  "id": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "fullscreen", "minimal-ui"],
+  "orientation": "any",
+  "theme_color": "#10b981",
+  "background_color": "#050507",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["productivity", "utilities", "education"],
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1024x682",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "SG16 AI Engine - desktop dashboard with all workspaces"
+    },
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "474x1024",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "SG16 AI Engine - mobile home screen and navigation"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "SG16 Chatting",
+      "url": "/?workspace=general",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Image Studio",
+      "url": "/?workspace=image",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}
