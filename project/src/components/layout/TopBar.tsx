@@ -143,20 +143,34 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
               {isAuthenticated(authUser) ? 'Signed in' : 'Guest'}
             </div>
           </div>
-          {isAuthenticated(authUser) && authUser?.picture ? (
-            <img
-              src={authUser.picture}
-              alt=""
-              className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl object-cover"
-            />
+          {isAuthenticated(authUser) ? (
+            <button
+              type="button"
+              onClick={logout}
+              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-emerald-500/40 transition focus:outline-none focus-visible:ring-emerald-500/60"
+              title="Sign out"
+              aria-label="Sign out"
+            >
+              {authUser?.picture ? (
+                <img
+                  src={authUser.picture}
+                  alt=""
+                  className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl object-cover"
+                />
+              ) : (
+                <span className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-black">
+                  <LogOut className="w-4 h-4" />
+                </span>
+              )}
+            </button>
           ) : (
             <button
               type="button"
-              onClick={() => (isAuthenticated(authUser) ? logout() : openLoginModal())}
+              onClick={() => openLoginModal()}
               className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-black font-bold text-xs"
-              title={isAuthenticated(authUser) ? 'Sign out' : 'Sign in'}
+              title="Sign in"
             >
-              {isAuthenticated(authUser) ? <LogOut className="w-4 h-4" /> : settings.displayName.slice(0, 2).toUpperCase()}
+              {settings.displayName.slice(0, 2).toUpperCase()}
             </button>
           )}
         </div>
