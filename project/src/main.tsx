@@ -11,11 +11,14 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
 }
 
 if (import.meta.env.PROD) {
-  registerSW({
+  const updateSW = registerSW({
     immediate: true,
+    onNeedRefresh() {
+      void updateSW(true);
+    },
     onRegistered(registration) {
       if (registration) {
-        console.log('SG16 PWA service worker registered');
+        void registration.update();
       }
     },
     onRegisterError(error) {
