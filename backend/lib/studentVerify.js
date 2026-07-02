@@ -1,3 +1,5 @@
+import { getEntitlements, setStudentVerification } from './userLedger.js';
+
 const VISION_MODEL = process.env.SG16_AI_MODEL_VISION || 'meta-llama/llama-4-scout-17b-16e-instruct';
 
 function getApiKey() {
@@ -150,12 +152,41 @@ export async function verifyStudentPhoto(imageUrl) {
 
 export async function handleStudentVerifyRequest(req, res) {
   try {
+    const googleSub = req.auth?.sub;
+    if (!googleSub) {
+      return res.status(401).json({ error: 'Sign in to verify your Student ID.', code: 'AUTH_REQUIRED' });
+    }
+
+    const entitlements = getEntitlements(googleSub);
+    if (entitlements.planTier !== 'student') {
+      return res.status(403).json({
+        error: 'Subscribe to Student Shield ($4/mo) before verifying your Student ID.',
+        code: 'STUDENT_PLAN_REQUIRED',
+      });
+    }
+
     const { imageUrl } = req.body ?? {};
     if (!imageUrl?.trim()) {
       return res.status(400).json({ error: 'Please upload a selfie with your Student ID.' });
     }
+
+    setStudentVerification(googleSub, { status: 'pending', submittedAt: Date.now() });
+
     const result = await verifyStudentPhoto(imageUrl);
-    res.json(result);
+    const verification = {
+      status: result.approved ? 'approved' : 'rejected',
+      submittedAt: Date.now(),
+      reviewedAt: Date.now(),
+      reason: result.reason,
+      institutionName: result.institutionName,
+      expiryDate: result.expiryDate,
+    };
+    setStudentVerification(googleSub, verification);
+
+    res.json({
+      ...result,
+      subscription: getEntitlements(googleSub).subscription,
+    });
   } catch (err) {
     console.error('SG16 Student Verify:', err);
     res.status(500).json({

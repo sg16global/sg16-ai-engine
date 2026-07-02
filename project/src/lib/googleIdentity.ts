@@ -27,7 +27,6 @@ let scriptLoadPromise: Promise<void> | null = null;
 let loadedScriptClientId: string | null = null;
 let initializedClientId: string | null = null;
 let credentialHandler: ((credential: string) => void) | null = null;
-let buttonRendered = false;
 
 /** Google OAuth Web client IDs always end with this suffix. */
 export function isValidGoogleClientId(id: string): boolean {
@@ -154,24 +153,24 @@ export function initGoogleIdentity(clientId: string, onCredential: (credential: 
   initializedClientId = id;
 }
 
-export function renderGoogleSignInButton(container: HTMLElement): void {
+export function renderGoogleSignInButton(
+  container: HTMLElement,
+  options?: { width?: number; theme?: string },
+): void {
   const gsi = window.google?.accounts?.id;
   if (!gsi) {
     throw new Error('Google Identity Services is not loaded');
   }
 
-  if (buttonRendered) return;
-
   container.replaceChildren();
   gsi.renderButton(container, {
     type: 'standard',
-    theme: 'filled_black',
+    theme: options?.theme ?? 'filled_black',
     size: 'large',
     shape: 'pill',
     text: 'continue_with',
-    width: 280,
+    width: options?.width ?? 280,
   });
-  buttonRendered = true;
 }
 
 export function getGoogleOriginSetupHint(): string {
@@ -189,7 +188,6 @@ export function getGoogleOriginSetupHint(): string {
 if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     initializedClientId = null;
-    buttonRendered = false;
     scriptLoadPromise = null;
     loadedScriptClientId = null;
   });

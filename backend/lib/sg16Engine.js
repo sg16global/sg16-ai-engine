@@ -1,5 +1,6 @@
 import { createOrEditImage, getImageAction } from './imageEngine.js';
 import { serverCanAccessWorkspace, serverAccessDeniedMessage } from './access.js';
+import { getEntitlements } from './userLedger.js';
 import { needsWebSearch, searchAndAnswer } from './webSearch.js';
 import { callWithModelFallback, getTextModelChain, isRateLimitError } from './sg16Provider.js';
 
@@ -214,8 +215,6 @@ export async function handleChatRequest(req, res) {
     history,
     targetLanguage,
     memoryContext,
-    planTier,
-    studentVerified,
   } = req.body ?? {};
 
   const ws = workspaceId || 'general';
@@ -227,11 +226,14 @@ export async function handleChatRequest(req, res) {
     if (!isSafe(message)) {
       return res.status(403).json({ error: 'Blocked by SG16 Safety Shield' });
     }
+
+    const entitlements = getEntitlements(req.auth?.sub);
+
     if (
       !serverCanAccessWorkspace(ws, {
         signupDate: req.auth?.signupDate,
-        planTier: planTier || 'free',
-        studentVerified: Boolean(studentVerified),
+        planTier: entitlements.planTier,
+        studentVerified: entitlements.studentVerified,
       })
     ) {
       return res.status(403).json({ error: serverAccessDeniedMessage(ws, req.auth?.signupDate) });

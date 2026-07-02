@@ -1,4 +1,5 @@
-import { Check, Crown, GraduationCap } from 'lucide-react';
+import { useState } from 'react';
+import { Check, Crown, GraduationCap, Loader2 } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { verificationStatusLabel } from '../../core/access';
 import { PLANS, planLabel } from '../../core/plans';
@@ -18,24 +19,49 @@ interface PricingPanelProps {
 
 export function PricingPanel({ compact = false }: PricingPanelProps) {
   const subscription = useAppStore((s) => s.subscription);
+  const authUser = useAppStore((s) => s.authUser);
+  const loading = useAppStore((s) => s.loading);
+  const error = useAppStore((s) => s.error);
   const selectPlan = useAppStore((s) => s.selectPlan);
+  const startPaddleCheckout = useAppStore((s) => s.startPaddleCheckout);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
   const openPricing = useAppStore((s) => s.openPricing);
+  const requireAuth = useAppStore((s) => s.requireAuth);
+  const [checkoutPlan, setCheckoutPlan] = useState<PlanTier | null>(null);
 
-  const handleSelect = (plan: PlanTier) => {
-    if (plan === 'student') {
-      selectPlan('student');
-      if (compact) openPricing();
-      openStudentVerify();
-      return;
-    }
-    if (plan === 'pro') {
-      selectPlan('pro');
+  const handleSelect = async (plan: PlanTier) => {
+    if (plan === 'free') {
+      selectPlan('free');
       if (compact) openPricing();
       return;
     }
-    selectPlan('free');
-    if (compact) openPricing();
+
+    const runCheckout = async () => {
+      setCheckoutPlan(plan);
+      try {
+        if (plan === 'student') {
+          if (subscription.plan === 'student' && subscription.billingActive) {
+            if (compact) openPricing();
+            openStudentVerify();
+            return;
+          }
+          await startPaddleCheckout('student');
+          if (compact) openPricing();
+          return;
+        }
+
+        if (plan === 'pro') {
+          await startPaddleCheckout('pro');
+          if (compact) openPricing();
+        }
+      } finally {
+        setCheckoutPlan(null);
+      }
+    };
+
+    requireAuth(() => {
+      void runCheckout();
+    });
   };
 
   return (
@@ -56,23 +82,29 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
             ? `All plans include ${SG16_BRAND.chatName}. Premium unlocks every workspace.`
             : `Choose the plan that fits you — ${SG16_BRAND.chatName} on Free, full platform on Student & Pro.`}
         </p>
+        <p className="text-[11px] text-gray-500 mt-2">Secure checkout powered by Paddle</p>
         {!compact && (
           <p className="text-xs text-gray-400 mt-3">
             Current plan: <strong className="text-white">{planLabel(subscription.plan)}</strong>
             {subscription.plan === 'student' && (
               <> · Verification: {verificationStatusLabel(subscription.studentVerification.status)}</>
             )}
+            {!authUser && <> · Sign in to subscribe</>}
           </p>
+        )}
+        {error && (
+          <p className="text-xs text-red-400 mt-3 max-w-md mx-auto">{error}</p>
         )}
       </div>
 
       <div className={`grid grid-cols-1 ${compact ? 'md:grid-cols-3' : 'md:grid-cols-2 lg:grid-cols-3'} gap-4 sm:gap-5`}>
         {PLANS.map((plan) => {
           const Icon = icons[plan.id];
-          const isCurrent = subscription.plan === plan.id;
+          const isCurrent = subscription.plan === plan.id && (plan.id === 'free' || subscription.billingActive);
           const active =
             plan.id === 'pro' ||
             (plan.id === 'student' && subscription.studentVerification.status === 'approved');
+          const isLoading = loading && checkoutPlan === plan.id;
 
           return (
             <div
@@ -137,14 +169,15 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
 
               <button
                 type="button"
-                disabled={!compact && isCurrent && plan.id !== 'student'}
-                onClick={() => handleSelect(plan.id)}
-                className={`w-full py-2.5 rounded-xl text-sm font-medium transition touch-target ${
+                disabled={(!compact && isCurrent && plan.id !== 'student') || isLoading}
+                onClick={() => void handleSelect(plan.id)}
+                className={`w-full py-2.5 rounded-xl text-sm font-medium transition touch-target flex items-center justify-center gap-2 ${
                   plan.highlighted
                     ? 'bg-purple-600 hover:bg-purple-500 disabled:opacity-50'
                     : 'bg-emerald-600/90 hover:bg-emerald-500 disabled:opacity-50'
                 }`}
               >
+                {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {compact
                   ? isCurrent && plan.id === 'free'
                     ? 'Current — Free'
@@ -152,7 +185,9 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
                       ? 'Active — Pro'
                       : isCurrent && plan.id === 'student' && active
                         ? 'Active — Student'
-                        : plan.cta
+                        : plan.id === 'pro' || plan.id === 'student'
+                          ? `Subscribe ${plan.price}`
+                          : plan.cta
                   : isCurrent && plan.id === 'free'
                     ? 'Current plan'
                     : isCurrent && plan.id === 'pro'
@@ -161,7 +196,9 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
                         ? 'Active — Verified'
                         : isCurrent && plan.id === 'student'
                           ? 'Complete verification'
-                          : plan.cta}
+                          : plan.id === 'pro' || plan.id === 'student'
+                            ? `Subscribe ${plan.price}`
+                            : plan.cta}
               </button>
             </div>
           );

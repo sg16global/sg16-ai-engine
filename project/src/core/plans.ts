@@ -44,7 +44,7 @@ export const PLANS: PlanDefinition[] = [
       'Student Shield educational guard',
     ],
     limitations: ['Requires selfie + valid Student ID verification', 'ID expiry must be current'],
-    cta: 'Verify Student ID',
+    cta: 'Subscribe — $4/mo',
     badge: 'Students',
   },
   {
@@ -60,7 +60,7 @@ export const PLANS: PlanDefinition[] = [
       'Voice AI, Translate, Memory Vault',
       'Priority access to new features',
     ],
-    cta: 'Get Pro Premium',
+    cta: 'Subscribe — $10/mo',
     highlighted: true,
     badge: 'Most popular',
   },

@@ -58,11 +58,20 @@ export function HelpPanel() {
       <p className="text-sm text-gray-500 mb-6">Guides and policies for SG16 AI Engine.</p>
 
       <div className="flex flex-wrap gap-2 mb-8">
-        {sections.map((s) => (
-          <button
+        {sections.map((s) => {
+          const href =
+            s.id === 'terms' ? '/terms' :
+            s.id === 'privacy' ? '/privacy' :
+            s.id === 'contact' ? '/contact' :
+            '/help';
+          return (
+          <a
             key={s.id}
-            type="button"
-            onClick={() => openHelp(s.id)}
+            href={href}
+            onClick={(e) => {
+              e.preventDefault();
+              openHelp(s.id);
+            }}
             className={`text-xs px-4 py-2 rounded-xl border transition ${
               helpSection === s.id
                 ? 'bg-emerald-500/15 border-emerald-500/40 text-emerald-400'
@@ -70,8 +79,9 @@ export function HelpPanel() {
             }`}
           >
             {s.title}
-          </button>
-        ))}
+          </a>
+          );
+        })}
       </div>
 
       {sections

@@ -139,7 +139,6 @@ export const HomePage = () => {
   const navigateToWorkspace = useAppStore((state) => state.navigateToWorkspace);
   const requireAuth = useAppStore((state) => state.requireAuth);
   const openHelp = useAppStore((state) => state.openHelp);
-  const openPricing = useAppStore((state) => state.openPricing);
   const [inputValue, setInputValue] = useState('');
   const [routing, setRouting] = useState(false);
   const [listening, setListening] = useState(false);
@@ -354,13 +353,12 @@ export const HomePage = () => {
       <section className="bg-zinc-900/50 border border-white/10 rounded-3xl p-4 sm:p-6 lg:p-8">
         <PricingPanel compact />
         <div className="text-center mt-4">
-          <button
-            type="button"
-            onClick={openPricing}
-            className="text-sm text-emerald-400 hover:text-emerald-300 font-medium"
+          <a
+            href="/pricing"
+            className="text-sm text-emerald-400 hover:text-emerald-300 font-medium inline-block"
           >
             View full pricing & plans →
-          </button>
+          </a>
         </div>
       </section>
 
@@ -402,9 +400,10 @@ export const HomePage = () => {
             ))}
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-            <button type="button" onClick={() => openHelp('privacy')} className="hover:text-white transition">Privacy Policy</button>
-            <button type="button" onClick={() => openHelp('terms')} className="hover:text-white transition">Terms of Service</button>
-            <button type="button" onClick={() => openHelp('contact')} className="hover:text-white transition">Contact Us</button>
+            <a href="/pricing" className="hover:text-white transition">Pricing</a>
+            <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
+            <a href="/terms" className="hover:text-white transition">Terms of Service</a>
+            <a href="/contact" className="hover:text-white transition">Contact Us</a>
           </div>
         </div>
       </footer>

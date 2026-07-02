@@ -32,14 +32,20 @@ export interface StudentVerification {
 export interface Subscription {
   plan: PlanTier;
   studentVerification: StudentVerification;
+  subscriptionStatus?: string | null;
+  paddleCustomerId?: string | null;
+  paddleSubscriptionId?: string | null;
+  billingActive?: boolean;
 }
 
 export interface AuthUser {
+  id?: string;
   signupDate: number;
   name: string;
   picture?: string;
   trialActive: boolean;
   trialDaysRemaining: number;
+  subscription?: Subscription;
 }
 
 export interface StudentVerifyResponse {

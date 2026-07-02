@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { ensureSignupDate } from './userLedger.js';
+import { buildSubscriptionPayload, ensureSignupDate } from './userLedger.js';
 import { trialDaysRemaining, trialIsActive, trialMsRemaining } from './access.js';
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -94,12 +94,14 @@ export function buildUserPayload(session) {
   const signupDate = session.signupDate;
   const trialActive = trialIsActive(signupDate);
   return {
+    id: session.sub,
     signupDate,
     name: session.name || 'SG16 User',
     picture: session.picture,
     trialActive,
     trialDaysRemaining: trialDaysRemaining(signupDate),
     trialMsRemaining: trialMsRemaining(signupDate),
+    subscription: buildSubscriptionPayload(session.sub),
   };
 }
 
@@ -143,7 +145,8 @@ export function handleAuthMe(req, res) {
   if (!req.auth) {
     return res.status(401).json({ error: 'Not signed in.', code: 'AUTH_REQUIRED' });
   }
-  res.json({ user: buildUserPayload(req.auth) });
+  const user = buildUserPayload(req.auth);
+  res.json({ user, subscription: user.subscription });
 }
 
 export function getGoogleClientIdForFrontend(_req, res) {

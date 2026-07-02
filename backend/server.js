@@ -14,6 +14,14 @@ import {
   handleDevAuth,
   requireAuth,
 } from './lib/auth.js';
+import {
+  handleBillingCheckout,
+  handleBillingConfig,
+  handleBillingEntitlements,
+  handleBillingPortal,
+  handleBillingWebhook,
+} from './lib/billing.js';
+import { isPaddleConfigured } from './lib/paddle.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
@@ -30,6 +38,14 @@ app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
 app.use(cors());
+
+// Paddle webhooks require the raw body for signature verification.
+app.post(
+  '/api/v1/billing/webhook',
+  express.raw({ type: 'application/json' }),
+  handleBillingWebhook,
+);
+
 app.use(express.json({ limit: '10mb' }));
 
 function isLocalHost(req) {
@@ -67,6 +83,11 @@ app.get('/api/v1/auth/config', getGoogleClientIdForFrontend);
 app.post('/api/v1/auth/google', handleGoogleAuth);
 app.post('/api/v1/auth/dev', handleDevAuth);
 app.get('/api/v1/auth/me', requireAuth, handleAuthMe);
+
+app.get('/api/v1/billing/config', handleBillingConfig);
+app.get('/api/v1/billing/entitlements', requireAuth, handleBillingEntitlements);
+app.post('/api/v1/billing/checkout', requireAuth, handleBillingCheckout);
+app.post('/api/v1/billing/portal', requireAuth, handleBillingPortal);
 
 app.post('/api/v1/route', requireAuth, handleRouteRequest);
 app.post('/api/v1/chat', requireAuth, handleChatRequest);
@@ -112,6 +133,7 @@ const server = app.listen(PORT, HOST, () => {
   const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID?.trim());
   console.log(`SG16 AI Engine running on http://${HOST}:${PORT} (${isProd ? 'production' : 'development'})`);
   console.log(`Google OAuth: ${googleReady ? 'configured' : 'MISSING — set GOOGLE_CLIENT_ID'}`);
+  console.log(`Paddle billing: ${isPaddleConfigured() ? 'configured' : 'MISSING — set PADDLE_* env vars'}`);
   if (process.env.SG16_APP_URL) {
     console.log(`Public URL: ${process.env.SG16_APP_URL}`);
   }

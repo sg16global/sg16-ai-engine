@@ -84,3 +84,24 @@
     -webkit-overflow-scrolling: touch;
   }
 }
+
+@keyframes landing-binary-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+.landing-binary-wave,
+.landing-binary-wave-reverse {
+  display: inline-block;
+  min-width: 200%;
+  animation: landing-binary-scroll 40s linear infinite;
+}
+
+.landing-binary-wave-reverse {
+  animation-direction: reverse;
+  animation-duration: 55s;
+}

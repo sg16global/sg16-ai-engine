@@ -30,13 +30,13 @@ export async function loginWithGoogle(credential: string): Promise<{ token: stri
   return data;
 }
 
-export async function fetchAuthMe(token: string): Promise<AuthUser> {
+export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subscription?: AuthUser['subscription'] }> {
   const res = await fetch('/api/v1/auth/me', {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Session expired');
-  return data.user as AuthUser;
+  return { user: data.user as AuthUser, subscription: data.subscription };
 }
 
 export function loadAuthToken(): string | null {

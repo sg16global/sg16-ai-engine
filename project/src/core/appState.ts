@@ -9,7 +9,7 @@ import type {
   WorkspaceId,
   WorkspaceType,
 } from './types';
-import { canAccessWorkspace, isAuthenticated } from './access';
+import { canAccessWorkspace, defaultSubscription, isAuthenticated } from './access';
 import { enrichAuthUser } from './authSession';
 import {
   clearSessionData,
@@ -21,6 +21,15 @@ import {
   type AppSettings,
 } from '../lib/utils';
 import { clearAuthToken, fetchAuthMe, loadAuthToken, saveAuthToken as persistToken } from '../lib/authApi';
+import {
+  createCheckoutSession,
+  fetchBillingConfig,
+  fetchBillingEntitlements,
+  subscriptionFromApi,
+  type PaddlePublicConfig,
+} from '../lib/billingApi';
+import { openPaddleCheckout } from '../lib/paddle';
+import { pushAppPath, routeToPath } from './routes';
 
 interface AppState {
   currentWorkspace: WorkspaceType;
@@ -56,6 +65,8 @@ interface AppState {
   wipeSession: () => void;
 
   selectPlan: (plan: PlanTier) => void;
+  startPaddleCheckout: (plan: 'student' | 'pro') => Promise<void>;
+  syncSubscriptionFromServer: () => Promise<void>;
   applyStudentVerification: (result: StudentVerifyResponse) => void;
 
   addMessage: (workspaceId: WorkspaceId, message: Message) => void;
@@ -137,26 +148,52 @@ export const useAppStore = create<AppState>((set, getState) => ({
   setAuthSession: (token, user) => {
     persistToken(token);
     const enriched = enrichAuthUser(user);
+    const subscription = user.subscription
+      ? { ...defaultSubscription(), ...user.subscription }
+      : getState().subscription;
+    saveSubscription(subscription);
     const settings = { ...getState().settings, displayName: enriched.name };
     saveSettings(settings);
     const pending = getState().pendingAuthAction;
     set({
       authToken: token,
       authUser: enriched,
+      subscription,
       settings,
       loginModalOpen: false,
       pendingAuthAction: null,
       error: null,
     });
-    queueMicrotask(() => pending?.());
+    queueMicrotask(() => {
+      pending?.();
+      void getState().syncSubscriptionFromServer();
+    });
+  },
+
+  syncSubscriptionFromServer: async () => {
+    const token = getState().authToken;
+    if (!token) return;
+    try {
+      const data = await fetchBillingEntitlements();
+      const subscription = subscriptionFromApi(data.subscription);
+      saveSubscription(subscription);
+      set({ subscription, error: null });
+    } catch {
+      /* billing may be offline or user not subscribed yet */
+    }
   },
 
   refreshAuthUser: async () => {
     const token = getState().authToken;
     if (!token) return;
     try {
-      const user = enrichAuthUser(await fetchAuthMe(token));
-      set({ authUser: user });
+      const me = await fetchAuthMe(token);
+      const user = enrichAuthUser(me.user);
+      const subscription = me.subscription
+        ? { ...defaultSubscription(), ...me.subscription }
+        : getState().subscription;
+      saveSubscription(subscription);
+      set({ authUser: user, subscription });
     } catch {
       getState().logout();
     }
@@ -167,8 +204,13 @@ export const useAppStore = create<AppState>((set, getState) => ({
     if (!token) return;
     set({ authToken: token });
     try {
-      const user = enrichAuthUser(await fetchAuthMe(token));
-      set({ authUser: user, settings: { ...getState().settings, displayName: user.name } });
+      const me = await fetchAuthMe(token);
+      const user = enrichAuthUser(me.user);
+      const subscription = me.subscription
+        ? { ...defaultSubscription(), ...me.subscription }
+        : getState().subscription;
+      saveSubscription(subscription);
+      set({ authUser: user, subscription, settings: { ...getState().settings, displayName: user.name } });
     } catch {
       clearAuthToken();
       set({ authToken: null, authUser: null });
@@ -178,6 +220,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
   logout: () => {
     clearAuthToken();
     getState().wipeSession();
+    pushAppPath('/', true);
     set({
       authUser: null,
       authToken: null,
@@ -196,6 +239,8 @@ export const useAppStore = create<AppState>((set, getState) => ({
     const { subscription, authUser } = getState();
     if (ws === 'pricing' || ws === 'student-verify' || ws === 'home' || ws === 'history' || ws === 'settings' || ws === 'help') {
       set({ currentWorkspace: ws, error: null });
+      const path = routeToPath(ws);
+      if (path) pushAppPath(path);
       return;
     }
     tryOpenWorkspace(ws, subscription, authUser, set, getState().openLoginModal, () =>
@@ -203,12 +248,23 @@ export const useAppStore = create<AppState>((set, getState) => ({
     );
   },
 
-  openHelp: (section = 'overview') =>
-    set({ currentWorkspace: 'help', helpSection: section, error: null }),
+  openHelp: (section = 'overview') => {
+    set({ currentWorkspace: 'help', helpSection: section, error: null });
+    const path = routeToPath('help', section);
+    if (path) pushAppPath(path);
+  },
 
-  openPricing: () => set({ currentWorkspace: 'pricing', error: null }),
+  openPricing: () => {
+    set({ currentWorkspace: 'pricing', error: null });
+    pushAppPath('/pricing');
+  },
 
   openStudentVerify: () => set({ currentWorkspace: 'student-verify', error: null }),
+
+  goToHome: () => {
+    set({ currentWorkspace: 'home', error: null });
+    pushAppPath('/');
+  },
 
   navigateToWorkspace: (workspace, prompt, imageUrl) => {
     const run = () => {
@@ -231,8 +287,6 @@ export const useAppStore = create<AppState>((set, getState) => ({
     getState().requireAuth(run);
   },
 
-  goToHome: () => set({ currentWorkspace: 'home', error: null }),
-
   consumePendingPrompt: () => {
     const prompt = getState().pendingPrompt;
     set({ pendingPrompt: null });
@@ -246,14 +300,46 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   selectPlan: (plan) => {
-    const subscription: Subscription =
-      plan === 'student'
-        ? { plan: 'student', studentVerification: { status: 'none' } }
-        : { plan, studentVerification: { status: 'none' } };
+    if (plan !== 'free') return;
+    const subscription = defaultSubscription();
     saveSubscription(subscription);
-    set({ subscription, error: null });
-    if (plan === 'student') set({ currentWorkspace: 'student-verify' });
-    else set({ currentWorkspace: 'home' });
+    set({ subscription, error: null, currentWorkspace: 'home' });
+  },
+
+  startPaddleCheckout: async (plan) => {
+    const { authUser, requireAuth } = getState();
+    if (!isAuthenticated(authUser)) {
+      requireAuth(() => void getState().startPaddleCheckout(plan));
+      return;
+    }
+
+    set({ loading: true, error: null });
+    try {
+      const config: PaddlePublicConfig = await fetchBillingConfig();
+      if (!config.enabled) {
+        throw new Error('Payments are not configured yet. Add Paddle keys on the server.');
+      }
+
+      const session = await createCheckoutSession(plan);
+      await openPaddleCheckout({
+        config,
+        priceId: session.priceId,
+        googleSub: session.googleSub,
+        onComplete: () => {
+          void getState().syncSubscriptionFromServer().then(() => {
+            if (plan === 'student') {
+              set({ currentWorkspace: 'student-verify' });
+            } else {
+              set({ currentWorkspace: 'home' });
+            }
+          });
+        },
+      });
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Checkout failed' });
+    } finally {
+      set({ loading: false });
+    }
   },
 
   applyStudentVerification: (result) => {
@@ -267,9 +353,12 @@ export const useAppStore = create<AppState>((set, getState) => ({
         institutionName: result.institutionName,
         expiryDate: result.expiryDate,
       },
+      billingActive: getState().subscription.billingActive,
+      subscriptionStatus: getState().subscription.subscriptionStatus,
     };
     saveSubscription(subscription);
     set({ subscription, error: result.approved ? null : result.reason });
+    void getState().syncSubscriptionFromServer();
     if (result.approved) set({ currentWorkspace: 'home' });
   },
 
