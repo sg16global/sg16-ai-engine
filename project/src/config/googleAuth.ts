@@ -23,6 +23,7 @@ export const GOOGLE_AUTHORIZED_ORIGINS = [
   'http://127.0.0.1:5173',
   'http://localhost:8000',
   'https://sg16engine.com',
+  'https://www.sg16engine.com',
 ] as const;
 
 export function getPageOrigin(): string {

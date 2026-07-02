@@ -57,8 +57,8 @@ export function validateGoogleAuthEnvironment(clientId: string): string | null {
 
   if (!originAllowedForGoogle(origin)) {
     return (
-      `Browser origin "${origin}" is not a registered dev origin. ` +
-      'Open http://localhost:5173 (not 127.0.0.1 or port 8000 unless those origins are in Google Console).'
+      `Browser origin "${origin}" is not allowed for Google sign-in. ` +
+      'Register it under Authorized JavaScript origins in Google Cloud Console (include both https://sg16engine.com and https://www.sg16engine.com).'
     );
   }
 
@@ -180,7 +180,8 @@ export function getGoogleOriginSetupHint(): string {
     `${GOOGLE_CLIENT_ID.slice(0, 12)}…:\n` +
     `• http://localhost\n` +
     `• http://localhost:5173\n` +
-    `• https://sg16engine.com\n\n` +
+    `• https://sg16engine.com\n` +
+    `• https://www.sg16engine.com\n\n` +
     `Your browser is currently on: ${origin}`
   );
 }

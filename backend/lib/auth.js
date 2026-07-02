@@ -159,9 +159,10 @@ export function getGoogleClientIdForFrontend(_req, res) {
       'http://127.0.0.1:5173',
       'http://localhost:8000',
       'https://sg16engine.com',
+      'https://www.sg16engine.com',
     ],
     currentOriginHint:
-      'Use http://localhost:5173 for Vite dev. Google requires http://localhost AND http://localhost:5173 in Authorized JavaScript origins.',
+      'Use http://localhost:5173 for Vite dev. In production, register both https://sg16engine.com and https://www.sg16engine.com as Authorized JavaScript origins.',
   });
 }
 
