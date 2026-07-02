@@ -1,7 +1,7 @@
-/* SG16 landing — matches ChatGPT reference (#050505, #00BFFF, #7CFC00) */
+/* SG16 landing — hero image + cyberpunk glass UI (#000, #00BFFF, #7CFC00) */
 
 .landing-page {
-  background-color: #050505;
+  background-color: #000000;
   color: #ffffff;
 }
 
@@ -23,62 +23,6 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
-.landing-neon-green {
-  color: #7cfc00;
-  text-shadow:
-    0 0 8px rgba(124, 252, 0, 0.95),
-    0 0 24px rgba(124, 252, 0, 0.65),
-    0 0 48px rgba(124, 252, 0, 0.35);
-}
-
-.landing-logo-text {
-  font-weight: 900;
-  letter-spacing: 0.06em;
-  color: #7cfc00;
-  -webkit-text-stroke: 1px rgba(124, 252, 0, 0.35);
-  text-shadow:
-    0 0 12px rgba(124, 252, 0, 1),
-    0 0 32px rgba(124, 252, 0, 0.75),
-    0 0 64px rgba(124, 252, 0, 0.45);
-  background: linear-gradient(180deg, #7cfc00 0%, #5adb00 45%, #2d6600 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 18px rgba(124, 252, 0, 0.85));
-}
-
-.landing-dna-wave {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  height: 120px;
-  pointer-events: none;
-  z-index: 1;
-  opacity: 0.85;
-}
-
-.landing-holo-floor {
-  position: absolute;
-  left: 50%;
-  bottom: -8px;
-  transform: translateX(-50%);
-  width: 140px;
-  height: 36px;
-  border-radius: 50%;
-  background: radial-gradient(ellipse, rgba(0, 191, 255, 0.55) 0%, rgba(0, 191, 255, 0.15) 45%, transparent 70%);
-  box-shadow: 0 0 40px rgba(0, 191, 255, 0.45);
-  filter: blur(1px);
-}
-
-.landing-globe-rim {
-  box-shadow:
-    0 0 60px rgba(0, 191, 255, 0.45),
-    0 0 120px rgba(0, 191, 255, 0.2),
-    inset 0 0 40px rgba(0, 191, 255, 0.15);
-}
-
 .landing-icon-blue {
   color: #00bfff;
   filter: drop-shadow(0 0 8px rgba(0, 191, 255, 0.65));
@@ -89,15 +33,116 @@
   filter: drop-shadow(0 0 6px rgba(124, 252, 0, 0.75));
 }
 
-@keyframes landing-dna-drift {
-  0% {
-    transform: translateY(-50%) translateX(0);
-  }
-  100% {
-    transform: translateY(-50%) translateX(-2%);
+/* Hero background image — globe, SG16, DNA, taglines baked in */
+.landing-hero-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.landing-hero-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  object-position: center top;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.landing-hero-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 80px;
+  background: linear-gradient(to bottom, transparent, #000000);
+  pointer-events: none;
+}
+
+/* Shield below hero */
+.landing-shield-wrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: -12px;
+  margin-bottom: 8px;
+  z-index: 3;
+}
+
+.landing-shield-glow {
+  filter: drop-shadow(0 0 28px rgba(0, 191, 255, 0.75));
+}
+
+.landing-holo-floor {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  width: 150px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(0, 191, 255, 0.55) 0%, rgba(0, 191, 255, 0.12) 50%, transparent 72%);
+  box-shadow: 0 0 48px rgba(0, 191, 255, 0.5);
+  pointer-events: none;
+}
+
+/* Feature cards flanking hero on desktop */
+.landing-feature-orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.landing-feature-orbit > * {
+  pointer-events: auto;
+}
+
+.landing-feature-tl {
+  position: absolute;
+  left: 0;
+  top: 14%;
+  width: min(240px, 22vw);
+}
+
+.landing-feature-tr {
+  position: absolute;
+  right: 0;
+  top: 14%;
+  width: min(240px, 22vw);
+}
+
+.landing-feature-bl {
+  position: absolute;
+  left: 0;
+  top: 38%;
+  width: min(240px, 22vw);
+}
+
+.landing-feature-br {
+  position: absolute;
+  right: 0;
+  top: 38%;
+  width: min(240px, 22vw);
+}
+
+@media (max-width: 1023px) {
+  .landing-feature-orbit {
+    display: none;
   }
 }
 
-.landing-dna-wave svg {
-  animation: landing-dna-drift 20s ease-in-out infinite alternate;
+@media (min-width: 1280px) {
+  .landing-feature-tl,
+  .landing-feature-tr {
+    top: 16%;
+  }
+
+  .landing-feature-bl,
+  .landing-feature-br {
+    top: 40%;
+  }
 }
