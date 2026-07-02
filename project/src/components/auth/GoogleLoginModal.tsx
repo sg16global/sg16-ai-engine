@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { X, Shield } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { loginWithGoogle } from '../../lib/authApi';
-import { hasGoogleClientId } from '../../config/googleAuth';
 import { SG16_BRAND } from '../../core/branding';
 import { Sg16Logo } from '../ui/Sg16Logo';
 import { GoogleSignInButton } from './GoogleSignInButton';
+import { isValidGoogleClientId, resolveGoogleClientId } from '../../lib/googleIdentity';
 
 export function GoogleLoginModal() {
   const open = useAppStore((s) => s.loginModalOpen);
@@ -13,6 +13,13 @@ export function GoogleLoginModal() {
   const setAuthSession = useAppStore((s) => s.setAuthSession);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [clientConfigured, setClientConfigured] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void resolveGoogleClientId().then((id) => {
+      setClientConfigured(isValidGoogleClientId(id));
+    });
+  }, []);
 
   const handleGoogleCredential = async (credential: string) => {
     setLoading(true);
@@ -64,25 +71,19 @@ export function GoogleLoginModal() {
         </div>
 
         <div className="flex flex-col items-center gap-3 min-h-[48px]">
-          {hasGoogleClientId ? (
+          {clientConfigured !== false ? (
             <GoogleSignInButton
               onCredential={handleGoogleCredential}
               onError={setError}
               disabled={loading || !open}
             />
-          ) : (
+          ) : clientConfigured === false ? (
             <div className="text-xs text-amber-400/95 text-center max-w-xs space-y-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
               <p className="font-medium">Google Client ID required</p>
-              <p>
-                Add to <strong className="text-white">project/.env</strong>:
-              </p>
-              <code className="block text-[10px] text-left bg-black/40 p-2 rounded-lg break-all">
-                VITE_GOOGLE_CLIENT_ID=your-id.apps.googleusercontent.com
-              </code>
-              <p className="text-[10px] text-gray-400">
-                Same value in <strong>backend/.env</strong> as GOOGLE_CLIENT_ID, then restart both servers.
-              </p>
+              <p>Add GOOGLE_CLIENT_ID in Railway environment variables, then redeploy.</p>
             </div>
+          ) : (
+            <p className="text-xs text-gray-400 animate-pulse">Loading Google sign-in…</p>
           )}
           {loading && <p className="text-xs text-emerald-400">Activating your account…</p>}
           {error && <p className="text-xs text-red-400 text-center max-w-xs">{error}</p>}
@@ -102,3 +103,4 @@ export function GoogleLoginModal() {
     </div>
   );
 }
+

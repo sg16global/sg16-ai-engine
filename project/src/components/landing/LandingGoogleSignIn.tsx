@@ -1,9 +1,5 @@
-import { useEffect, useState } from 'react';
 import { CheckCircle2, Zap } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
-import { loginWithGoogle } from '../../lib/authApi';
-import { GoogleSignInButton } from '../auth/GoogleSignInButton';
-import { resolveGoogleClientId, isValidGoogleClientId } from '../../lib/googleIdentity';
 
 function GoogleGIcon() {
   return (
@@ -29,76 +25,18 @@ function GoogleGIcon() {
 }
 
 export function LandingGoogleSignIn() {
-  const setAuthSession = useAppStore((s) => s.setAuthSession);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [googleReady, setGoogleReady] = useState(false);
-  const [clientConfigured, setClientConfigured] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    void resolveGoogleClientId().then((id) => {
-      setClientConfigured(isValidGoogleClientId(id));
-    });
-  }, []);
-
-  const handleGoogleCredential = async (credential: string) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await loginWithGoogle(credential);
-      setAuthSession(result.token, result.user);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Google sign-in failed');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const buttonLabel = loading
-    ? 'Signing in…'
-    : clientConfigured === false
-      ? 'Google sign-in unavailable'
-      : !googleReady
-        ? 'Loading Google…'
-        : 'Continue with Google';
+  const openLoginModal = useAppStore((s) => s.openLoginModal);
 
   return (
     <div className="flex flex-col items-center gap-4 w-full max-w-[420px] mx-auto">
-      <div className="relative w-full min-h-[56px]">
-        {/* Custom visual — must not capture clicks */}
-        <div
-          className="pointer-events-none flex w-full items-center justify-center gap-3 rounded-full border border-[#39FF14]/60 bg-black/50 px-8 py-4 text-base sm:text-lg font-semibold text-white shadow-[0_0_35px_rgba(57,255,20,0.35),inset_0_0_24px_rgba(57,255,20,0.06)] backdrop-blur-md"
-          aria-hidden
-        >
-          <GoogleGIcon />
-          <span>{buttonLabel}</span>
-        </div>
-
-        {/* Real Google button — invisible but clickable on top */}
-        {clientConfigured !== false && (
-          <div
-            className={`absolute inset-0 z-10 overflow-hidden rounded-full opacity-0 ${loading ? 'pointer-events-none' : 'cursor-pointer'} [&>div]:!h-full [&>div]:!w-full [&_div]:!w-full [&_iframe]:!w-full [&_iframe]:!min-h-[56px]`}
-            aria-label="Continue with Google"
-          >
-            <GoogleSignInButton
-              silent
-              onCredential={handleGoogleCredential}
-              onError={setError}
-              onReady={() => setGoogleReady(true)}
-              disabled={loading}
-              buttonWidth={420}
-            />
-          </div>
-        )}
-      </div>
-
-      {clientConfigured === false && (
-        <p className="text-xs text-amber-400/95 text-center max-w-sm">
-          Google sign-in is not configured on the server yet. Add GOOGLE_CLIENT_ID in Railway env vars.
-        </p>
-      )}
-
-      {error && <p className="text-xs text-red-400 text-center max-w-xs">{error}</p>}
+      <button
+        type="button"
+        onClick={() => openLoginModal()}
+        className="flex w-full items-center justify-center gap-3 rounded-full border border-[#39FF14]/60 bg-black/50 px-8 py-4 text-base sm:text-lg font-semibold text-white shadow-[0_0_35px_rgba(57,255,20,0.35),inset_0_0_24px_rgba(57,255,20,0.06)] backdrop-blur-md transition hover:border-[#39FF14] hover:shadow-[0_0_45px_rgba(57,255,20,0.5)]"
+      >
+        <GoogleGIcon />
+        <span>Continue with Google</span>
+      </button>
 
       <div className="flex flex-wrap items-center justify-center gap-5 text-xs sm:text-sm text-emerald-300/90">
         <span className="inline-flex items-center gap-1.5">

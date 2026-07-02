@@ -324,9 +324,12 @@ function App() {
 
 
   if (showLanding) {
-
-    return <LandingPage />;
-
+    return (
+      <>
+        <LandingPage />
+        <GoogleLoginModal />
+      </>
+    );
   }
 
 
