@@ -1,8 +1,28 @@
-/* SG16 landing — hero image + cyberpunk glass UI (#000, #00BFFF, #7CFC00) */
+/* SG16 landing — desktop + mobile reference layouts */
 
 .landing-page {
   background-color: #000000;
   color: #ffffff;
+}
+
+.landing-brand-glow {
+  text-shadow: 0 0 12px rgba(124, 252, 0, 0.65);
+}
+
+.landing-nav-active {
+  position: relative;
+}
+
+.landing-nav-active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -6px;
+  height: 2px;
+  background: #7cfc00;
+  border-radius: 999px;
+  box-shadow: 0 0 8px rgba(124, 252, 0, 0.6);
 }
 
 .landing-glass {
@@ -33,7 +53,6 @@
   filter: drop-shadow(0 0 6px rgba(124, 252, 0, 0.75));
 }
 
-/* Hero background image — globe, SG16, DNA, taglines baked in */
 .landing-hero-wrap {
   position: relative;
   width: 100%;
@@ -56,19 +75,18 @@
   left: 0;
   right: 0;
   bottom: 0;
-  height: 80px;
+  height: 72px;
   background: linear-gradient(to bottom, transparent, #000000);
   pointer-events: none;
 }
 
-/* Shield below hero */
 .landing-shield-wrap {
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: -12px;
-  margin-bottom: 8px;
+  margin-top: -10px;
+  margin-bottom: 4px;
   z-index: 3;
 }
 
@@ -89,7 +107,7 @@
   pointer-events: none;
 }
 
-/* Feature cards flanking hero on desktop */
+/* Desktop feature orbit */
 .landing-feature-orbit {
   position: absolute;
   inset: 0;
@@ -104,45 +122,149 @@
 .landing-feature-tl {
   position: absolute;
   left: 0;
-  top: 14%;
-  width: min(240px, 22vw);
+  top: 13%;
+  width: min(250px, 22vw);
 }
 
 .landing-feature-tr {
   position: absolute;
   right: 0;
-  top: 14%;
-  width: min(240px, 22vw);
+  top: 13%;
+  width: min(250px, 22vw);
 }
 
 .landing-feature-bl {
   position: absolute;
   left: 0;
-  top: 38%;
-  width: min(240px, 22vw);
+  top: 36%;
+  width: min(250px, 22vw);
 }
 
 .landing-feature-br {
   position: absolute;
   right: 0;
-  top: 38%;
-  width: min(240px, 22vw);
+  top: 36%;
+  width: min(250px, 22vw);
 }
 
-@media (max-width: 1023px) {
-  .landing-feature-orbit {
-    display: none;
+/* Mobile 2×2 orbit — matches mobile screenshot */
+.landing-mobile-orbit {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.landing-mobile-orbit > * {
+  pointer-events: auto;
+}
+
+.landing-mobile-tl {
+  position: absolute;
+  left: 0;
+  top: 6%;
+  width: 48%;
+  max-width: 168px;
+}
+
+.landing-mobile-tr {
+  position: absolute;
+  right: 0;
+  top: 6%;
+  width: 48%;
+  max-width: 168px;
+}
+
+.landing-mobile-bl {
+  position: absolute;
+  left: 0;
+  top: 28%;
+  width: 48%;
+  max-width: 168px;
+}
+
+.landing-mobile-br {
+  position: absolute;
+  right: 0;
+  top: 28%;
+  width: 48%;
+  max-width: 168px;
+}
+
+@media (min-width: 390px) and (max-width: 1023px) {
+  .landing-mobile-tl,
+  .landing-mobile-tr {
+    top: 8%;
   }
+
+  .landing-mobile-bl,
+  .landing-mobile-br {
+    top: 30%;
+  }
+}
+
+/* Trust grid — 2×2 mobile with dividers, 4-col desktop */
+.landing-trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0;
+  border: 1px solid rgba(124, 252, 0, 0.15);
+  border-radius: 22px;
+  overflow: hidden;
+}
+
+.landing-trust-cell {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+.landing-trust-cell:nth-child(1),
+.landing-trust-cell:nth-child(2) {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+.landing-trust-cell:nth-child(odd) {
+  border-right: 1px solid rgba(255, 255, 255, 0.06) !important;
+}
+
+@media (min-width: 1024px) {
+  .landing-trust-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    border: none;
+    overflow: visible;
+  }
+
+  .landing-trust-cell {
+    border-radius: 22px !important;
+    border: 1px solid rgba(124, 252, 0, 0.22) !important;
+    box-shadow:
+      0 0 20px rgba(124, 252, 0, 0.06),
+      inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+  }
+
+  .landing-trust-cell:nth-child(1),
+  .landing-trust-cell:nth-child(2),
+  .landing-trust-cell:nth-child(odd) {
+    border-bottom: none !important;
+    border-right: none !important;
+  }
+}
+
+.landing-footer-bar {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 @media (min-width: 1280px) {
   .landing-feature-tl,
   .landing-feature-tr {
-    top: 16%;
+    top: 15%;
   }
 
   .landing-feature-bl,
   .landing-feature-br {
-    top: 40%;
+    top: 38%;
   }
 }
