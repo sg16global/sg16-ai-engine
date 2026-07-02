@@ -105,20 +105,3 @@
   animation-direction: reverse;
   animation-duration: 55s;
 }
-
-.landing-glass-card {
-  @apply rounded-2xl border border-[#39FF14]/25 bg-black/40 backdrop-blur-md shadow-[0_0_28px_rgba(57,255,20,0.1)] transition;
-}
-
-.landing-glass-card:hover {
-  border-color: rgba(57, 255, 20, 0.45);
-  box-shadow: 0 0 36px rgba(57, 255, 20, 0.18);
-}
-
-.landing-neon-title {
-  text-shadow:
-    0 0 10px rgba(57, 255, 20, 0.9),
-    0 0 30px rgba(57, 255, 20, 0.7),
-    0 0 60px rgba(57, 255, 20, 0.45),
-    0 0 100px rgba(57, 255, 20, 0.25);
-}

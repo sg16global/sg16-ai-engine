@@ -8,95 +8,97 @@ import {
   Globe,
   Star,
   CheckCircle2,
-  ExternalLink,
+  Zap,
 } from 'lucide-react';
 import { SG16_BRAND } from '../../core/branding';
 import { SG16_PUBLIC_URL } from '../../core/routes';
 import { Sg16Logo } from '../ui/Sg16Logo';
 import { LandingGoogleSignIn } from './LandingGoogleSignIn';
+import './landingStyles.css';
 
-/** Optional ChatGPT exports — drop PNGs into project/public/landing/ */
 const LANDING_ASSETS = {
   heroGlobe: '/landing/hero-globe.png',
   heroGlobeFallback: '/hero.png',
-  heroGlobeSvg: '/hero-globe.svg',
   background: '/landing/background.png',
 } as const;
 
-const features = [
-  { icon: MessageSquare, title: 'AI Chat', desc: 'Smart conversations powered by SG16' },
-  { icon: ImageIcon, title: 'AI Image', desc: 'Create stunning AI generated images' },
-  { icon: Code2, title: 'AI Coding', desc: 'Generate, debug & optimize code' },
-  { icon: Play, title: 'AI Video', desc: 'Generate high quality AI videos' },
+const featureCards = [
+  { icon: MessageSquare, title: 'AI Chat', desc: 'Smart conversations powered by SG16', slot: 'tl' },
+  { icon: Code2, title: 'AI Coding', desc: 'Generate, debug & optimize code', slot: 'tr' },
+  { icon: ImageIcon, title: 'AI Image', desc: 'Create stunning AI generated images', slot: 'bl' },
+  { icon: Play, title: 'AI Video', desc: 'Generate high quality AI videos', slot: 'br' },
 ] as const;
 
-const trustBadges = [
+const trustCards = [
   { icon: Shield, title: 'Trusted Technology', desc: 'Reliable. Secure. Advanced.' },
   { icon: Star, title: 'Verified Platform', desc: 'Official. Verified. Trusted.' },
   { icon: Globe, title: 'Global Standard', desc: 'Built for everyone, everywhere.' },
   { icon: Lock, title: 'Secure Future', desc: 'Protecting your data, empowering tomorrow.' },
 ] as const;
 
-function FeatureCard({
-  icon: Icon,
-  title,
-  desc,
-}: {
-  icon: typeof MessageSquare;
-  title: string;
-  desc: string;
-}) {
+function DnaHelixWaves() {
   return (
-    <div className="landing-glass-card group p-4 sm:p-5">
-      <div className="flex items-start gap-3">
-        <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-cyan-400/40 bg-cyan-500/10 text-cyan-300 shadow-[0_0_20px_rgba(34,211,238,0.25)]">
-          <Icon className="h-5 w-5" strokeWidth={2} />
-        </div>
-        <div className="min-w-0">
-          <h3 className="text-sm sm:text-base font-bold text-white tracking-wide">{title}</h3>
-          <p className="mt-1 text-xs sm:text-sm text-gray-400 leading-relaxed">{desc}</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function BinaryWave() {
-  const binary =
-    '0101101010010110100101101001011010010110100101101001011010010110100101101001011010010110100101101001011010';
-  return (
-    <div className="pointer-events-none absolute inset-x-0 top-[42%] z-[1] -translate-y-1/2 overflow-hidden opacity-50 sm:opacity-70">
-      <div className="landing-binary-wave whitespace-nowrap text-[11px] sm:text-sm font-mono text-[#39FF14]/80 tracking-[0.4em]">
-        {binary}
-      </div>
-      <div className="landing-binary-wave-reverse mt-4 whitespace-nowrap text-[11px] sm:text-sm font-mono text-cyan-400/60 tracking-[0.4em]">
-        {binary.split('').reverse().join('')}
-      </div>
+    <div className="landing-dna-wave" aria-hidden>
+      <svg viewBox="0 0 1440 120" className="w-[200%] max-w-none" preserveAspectRatio="none">
+        <defs>
+          <linearGradient id="dnaBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#00BFFF" stopOpacity="0" />
+            <stop offset="20%" stopColor="#00BFFF" stopOpacity="0.9" />
+            <stop offset="50%" stopColor="#00BFFF" stopOpacity="1" />
+            <stop offset="80%" stopColor="#00BFFF" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#00BFFF" stopOpacity="0" />
+          </linearGradient>
+          <filter id="dnaGlow">
+            <feGaussianBlur stdDeviation="3" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        <path
+          d="M0,60 Q180,20 360,60 T720,60 T1080,60 T1440,60"
+          fill="none"
+          stroke="url(#dnaBlue)"
+          strokeWidth="2"
+          filter="url(#dnaGlow)"
+        />
+        <path
+          d="M0,60 Q180,100 360,60 T720,60 T1080,60 T1440,60"
+          fill="none"
+          stroke="url(#dnaBlue)"
+          strokeWidth="2"
+          opacity="0.75"
+          filter="url(#dnaGlow)"
+        />
+      </svg>
     </div>
   );
 }
 
 function StarField() {
-  const stars = Array.from({ length: 120 }, (_, i) => ({
+  const stars = Array.from({ length: 200 }, (_, i) => ({
     id: i,
-    left: `${(i * 17 + 7) % 100}%`,
-    top: `${(i * 23 + 11) % 100}%`,
-    size: i % 7 === 0 ? 2.5 : i % 3 === 0 ? 1.5 : 1,
-    delay: `${(i % 12) * 0.35}s`,
+    left: `${(i * 13.7 + 5) % 100}%`,
+    top: `${(i * 19.3 + 3) % 100}%`,
+    size: i % 11 === 0 ? 2 : i % 4 === 0 ? 1.5 : 1,
+    opacity: 0.3 + (i % 7) * 0.1,
+    delay: `${(i % 15) * 0.25}s`,
   }));
 
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
-      {stars.map((star) => (
+      {stars.map((s) => (
         <span
-          key={star.id}
+          key={s.id}
           className="absolute rounded-full bg-white animate-landing-twinkle"
           style={{
-            left: star.left,
-            top: star.top,
-            width: star.size,
-            height: star.size,
-            animationDelay: star.delay,
+            left: s.left,
+            top: s.top,
+            width: s.size,
+            height: s.size,
+            opacity: s.opacity,
+            animationDelay: s.delay,
           }}
         />
       ))}
@@ -104,205 +106,248 @@ function StarField() {
   );
 }
 
-function HeroGlobe() {
+function FeatureCard({
+  icon: Icon,
+  title,
+  desc,
+  className = '',
+}: {
+  icon: typeof MessageSquare;
+  title: string;
+  desc: string;
+  className?: string;
+}) {
   return (
-    <div className="relative mx-auto w-[min(92vw,560px)]">
-      <div className="absolute inset-0 scale-110 rounded-full bg-emerald-500/15 blur-[80px] animate-landing-pulse-glow" />
-      <div className="absolute inset-0 scale-90 rounded-full bg-cyan-500/10 blur-[60px]" />
-
-      <div className="relative aspect-square animate-landing-float">
-        <picture>
-          <source srcSet={LANDING_ASSETS.heroGlobe} type="image/png" />
-          <source srcSet={LANDING_ASSETS.heroGlobeFallback} type="image/png" />
-          <img
-            src={LANDING_ASSETS.heroGlobeSvg}
-            alt=""
-            className="absolute inset-0 h-full w-full object-contain drop-shadow-[0_0_60px_rgba(57,255,20,0.35)]"
-            aria-hidden
-          />
-        </picture>
-
-        <div className="absolute inset-0 flex flex-col items-center justify-center pt-6 sm:pt-10">
-          <h1 className="landing-neon-title text-5xl sm:text-7xl lg:text-8xl font-black tracking-[0.08em] text-[#39FF14]">
-            SG16
-          </h1>
+    <div className={`landing-glass p-4 sm:p-[18px] ${className}`}>
+      <div className="flex items-start gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-[#00BFFF]/35 bg-[#00BFFF]/8">
+          <Icon className="h-5 w-5 landing-icon-blue" strokeWidth={1.75} />
+        </div>
+        <div className="min-w-0 pt-0.5">
+          <h3 className="text-[15px] font-bold text-white leading-tight">{title}</h3>
+          <p className="mt-1 text-[12px] font-light text-white/55 leading-snug">{desc}</p>
         </div>
       </div>
     </div>
   );
 }
 
+function HeroSection() {
+  return (
+    <section className="relative mx-auto w-full max-w-[1100px] px-2 pt-4 sm:pt-6">
+      <DnaHelixWaves />
+
+      {/* Desktop: feature cards orbit the globe */}
+      <div className="relative z-[2] mx-auto min-h-[420px] sm:min-h-[480px] lg:min-h-[520px]">
+        <div className="hidden lg:block">
+          <FeatureCard
+            icon={featureCards[0].icon}
+            title={featureCards[0].title}
+            desc={featureCards[0].desc}
+            className="absolute left-0 top-[8%] w-[240px] xl:w-[260px]"
+          />
+          <FeatureCard
+            icon={featureCards[1].icon}
+            title={featureCards[1].title}
+            desc={featureCards[1].desc}
+            className="absolute right-0 top-[8%] w-[240px] xl:w-[260px]"
+          />
+          <FeatureCard
+            icon={featureCards[2].icon}
+            title={featureCards[2].title}
+            desc={featureCards[2].desc}
+            className="absolute left-0 bottom-[12%] w-[240px] xl:w-[260px]"
+          />
+          <FeatureCard
+            icon={featureCards[3].icon}
+            title={featureCards[3].title}
+            desc={featureCards[3].desc}
+            className="absolute right-0 bottom-[12%] w-[240px] xl:w-[260px]"
+          />
+        </div>
+
+        {/* Globe + logo */}
+        <div className="relative mx-auto flex w-[min(88vw,420px)] flex-col items-center sm:w-[min(72vw,480px)]">
+          <div className="relative w-full animate-landing-float">
+            <div className="absolute inset-0 rounded-full bg-[#00BFFF]/20 blur-[70px] landing-globe-rim" />
+            <div className="relative aspect-square w-full">
+              <img
+                src={LANDING_ASSETS.heroGlobe}
+                alt=""
+                className="absolute inset-0 h-full w-full object-contain"
+                onError={(e) => {
+                  const img = e.currentTarget;
+                  if (img.src.includes('hero-globe.png')) {
+                    img.src = LANDING_ASSETS.heroGlobeFallback;
+                  } else if (!img.src.includes('hero-globe.svg')) {
+                    img.src = '/hero-globe.svg';
+                  }
+                }}
+                aria-hidden
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="landing-logo-text text-[clamp(3.5rem,14vw,5.5rem)]">SG16</span>
+              </div>
+            </div>
+          </div>
+
+          <p className="mt-3 text-center text-lg font-bold landing-neon-green sm:text-xl">
+            Most Powerful AI Engine
+          </p>
+          <p className="mt-1 text-center text-sm font-medium landing-neon-green sm:text-base">
+            —Powered by SG16 Engine—
+          </p>
+          <span className="mt-3 inline-flex rounded-full border border-[#7CFC00]/50 bg-[#7CFC00]/10 px-5 py-1.5 text-sm font-medium text-[#7CFC00] shadow-[0_0_18px_rgba(124,252,0,0.25)]">
+            尊重与未来
+          </span>
+
+          {/* Shield + holographic floor */}
+          <div className="relative mt-6 mb-2">
+            <div className="relative flex h-[88px] w-[88px] items-center justify-center sm:h-[100px] sm:w-[100px]">
+              <Shield
+                className="h-full w-full text-[#00BFFF]/90"
+                strokeWidth={1.1}
+                fill="rgba(0,191,255,0.08)"
+                style={{ filter: 'drop-shadow(0 0 24px rgba(0,191,255,0.7))' }}
+              />
+              <Lock className="absolute h-9 w-9 text-[#7CFC00] landing-icon-green sm:h-10 sm:w-10" strokeWidth={2} />
+            </div>
+            <div className="landing-holo-floor" />
+          </div>
+        </div>
+
+        {/* Mobile / tablet feature grid */}
+        <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
+          {featureCards.map((f) => (
+            <FeatureCard key={f.title} icon={f.icon} title={f.title} desc={f.desc} />
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function WebsiteCard() {
   return (
-    <div className="landing-glass-card p-4 sm:p-5 h-full">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400">
-        <Globe className="h-4 w-4" />
+    <div className="landing-glass landing-glass-green flex h-full flex-col p-5">
+      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7CFC00]">
+        <Globe className="h-3.5 w-3.5 landing-icon-green" />
         Our Official Website
       </div>
-      <div className="mt-3 flex items-center gap-2 rounded-xl border border-white/10 bg-black/50 px-3 py-3">
-        <span className="flex-1 truncate text-sm text-gray-200">{SG16_PUBLIC_URL}/</span>
-        <CheckCircle2 className="h-4 w-4 shrink-0 text-[#39FF14]" />
+      <div className="mt-4 flex items-center gap-2 rounded-xl border border-white/10 bg-black/50 px-3 py-3">
+        <span className="flex-1 truncate text-[13px] text-white/85">{SG16_PUBLIC_URL}/</span>
+        <CheckCircle2 className="h-4 w-4 shrink-0 text-[#7CFC00] landing-icon-green" />
       </div>
-      <div className="mt-3 flex flex-wrap gap-4 text-xs text-gray-400">
+      <div className="mt-auto flex flex-wrap gap-4 pt-4 text-[11px] text-white/50">
         <span className="inline-flex items-center gap-1.5">
-          <Lock className="h-3.5 w-3.5 text-emerald-400" />
+          <Lock className="h-3.5 w-3.5 text-[#7CFC00]" />
           SSL Secured
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-400" />
+          <Shield className="h-3.5 w-3.5 text-[#7CFC00]" />
           Verified &amp; Protected
         </span>
       </div>
-      <a
-        href={SG16_PUBLIC_URL}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition"
-      >
-        Visit site
-        <ExternalLink className="h-3 w-3" />
-      </a>
+    </div>
+  );
+}
+
+function LoginCard() {
+  return (
+    <div className="landing-glass flex h-full flex-col items-center p-5 text-center">
+      <h2 className="text-lg font-bold text-white sm:text-xl">Your Security, Our Priority</h2>
+      <p className="mt-2 max-w-sm text-[13px] font-light leading-relaxed text-white/55">
+        Built with enterprise-grade security to protect you and your data.
+      </p>
+      <p className="mt-1 text-[13px] font-semibold text-[#7CFC00]">{SG16_BRAND.company}</p>
+      <div className="mt-5 w-full flex-1 flex flex-col justify-center">
+        <LandingGoogleSignIn compact />
+      </div>
     </div>
   );
 }
 
 function TwitterCard() {
   return (
-    <div className="landing-glass-card p-4 sm:p-5 h-full">
-      <div className="flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-400">
-        <span className="text-base font-black text-white">𝕏</span>
+    <div className="landing-glass landing-glass-green flex h-full flex-col p-5">
+      <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.2em] text-[#7CFC00]">
+        <span className="text-sm font-black text-[#7CFC00]">𝕏</span>
         (Twitter) Verified Account
       </div>
-      <div className="mt-3 flex items-start gap-3 rounded-xl border border-white/10 bg-black/50 p-3">
+      <div className="mt-4 flex items-start gap-3 rounded-xl border border-white/10 bg-black/50 p-3">
         <Sg16Logo className="h-11 w-11 shrink-0 rounded-full" />
-        <div className="min-w-0">
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="font-bold text-sm text-white">SG16_AIEngine</span>
-            <CheckCircle2 className="h-4 w-4 text-sky-400 fill-sky-400/20" />
+        <div className="min-w-0 text-left">
+          <div className="flex items-center gap-1.5">
+            <span className="text-[14px] font-bold text-white">SG16_AIEngine</span>
+            <CheckCircle2 className="h-4 w-4 text-[#00BFFF] fill-[#00BFFF]/20" />
           </div>
-          <p className="text-xs text-gray-500">@SG16_AIEngine</p>
-          <p className="mt-1 text-xs text-gray-400 leading-relaxed">
+          <p className="text-[11px] text-white/45">@SG16_AIEngine</p>
+          <p className="mt-1 text-[11px] font-light leading-relaxed text-white/55">
             Most Powerful AI Engine by {SG16_BRAND.company}
           </p>
         </div>
       </div>
-      <a
-        href="https://x.com/SG16_AIEngine"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition"
-      >
-        View on X
-        <ExternalLink className="h-3 w-3" />
-      </a>
     </div>
   );
 }
 
 export function LandingPage() {
   return (
-    <div className="relative min-h-[100dvh] overflow-x-hidden bg-black text-white">
+    <div className="landing-page relative min-h-[100dvh] overflow-x-hidden">
       <img
         src={LANDING_ASSETS.background}
         alt=""
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-35"
         aria-hidden
         onError={(e) => {
           e.currentTarget.style.display = 'none';
         }}
       />
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(57,255,20,0.14),transparent_50%),radial-gradient(ellipse_at_center,rgba(6,182,212,0.08),transparent_55%)]" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 50% at 50% 35%, rgba(0,191,255,0.08) 0%, transparent 55%), radial-gradient(ellipse 60% 40% at 50% 80%, rgba(124,252,0,0.04) 0%, transparent 50%)',
+        }}
+      />
       <StarField />
-      <BinaryWave />
 
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1400px] flex-col px-4 pb-10 pt-5 sm:px-6 lg:px-10">
-        {/* Hero */}
-        <section className="flex flex-col items-center text-center">
-          <HeroGlobe />
+      <div className="relative z-10 mx-auto max-w-[1200px] px-4 pb-8 pt-3 sm:px-6 lg:px-8">
+        <HeroSection />
 
-          <p className="mt-2 text-xl sm:text-2xl font-bold text-white">Most Powerful AI Engine</p>
-          <p className="mt-1 text-sm sm:text-base font-medium text-[#39FF14] tracking-[0.12em]">
-            —Powered by SG16 Engine—
-          </p>
-          <span className="mt-3 inline-flex rounded-full border border-[#39FF14]/50 bg-[#39FF14]/10 px-5 py-1.5 text-sm text-[#39FF14] shadow-[0_0_20px_rgba(57,255,20,0.25)]">
-            尊重与未来
-          </span>
-
-          <div className="relative mt-6 mb-2">
-            <div className="absolute inset-0 scale-150 rounded-full bg-cyan-400/25 blur-3xl" />
-            <div className="relative flex h-24 w-24 sm:h-28 sm:w-28 items-center justify-center">
-              <Shield
-                className="h-full w-full text-cyan-300 drop-shadow-[0_0_30px_rgba(34,211,238,0.7)]"
-                strokeWidth={1.2}
-                fill="rgba(6,182,212,0.12)"
-              />
-              <Lock className="absolute h-8 w-8 sm:h-9 sm:w-9 text-[#39FF14] drop-shadow-[0_0_12px_rgba(57,255,20,0.9)]" />
-            </div>
-          </div>
-        </section>
-
-        {/* Features + login — desktop side layout like ChatGPT design */}
-        <section className="relative mt-2 lg:mt-0 lg:grid lg:grid-cols-[minmax(0,300px)_minmax(0,1fr)_minmax(0,300px)] lg:items-center lg:gap-8 xl:gap-12">
-          <div className="hidden lg:flex flex-col gap-5 xl:gap-8">
-            <FeatureCard icon={features[0].icon} title={features[0].title} desc={features[0].desc} />
-            <FeatureCard icon={features[1].icon} title={features[1].title} desc={features[1].desc} />
-          </div>
-
-          <div className="flex flex-col items-center gap-6 py-4 lg:py-8">
-            <div className="grid w-full max-w-xl grid-cols-1 gap-3 sm:grid-cols-2 lg:hidden">
-              {features.map((f) => (
-                <FeatureCard key={f.title} icon={f.icon} title={f.title} desc={f.desc} />
-              ))}
-            </div>
-
-            <div className="w-full max-w-lg space-y-2 px-2 text-center">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Your Security, Our Priority</h2>
-              <p className="text-sm sm:text-base text-gray-400 leading-relaxed">
-                Built with enterprise-grade security to protect you and your data.
-              </p>
-              <p className="text-sm font-semibold text-[#39FF14]">{SG16_BRAND.company}</p>
-            </div>
-
-            <LandingGoogleSignIn />
-          </div>
-
-          <div className="hidden lg:flex flex-col gap-5 xl:gap-8">
-            <FeatureCard icon={features[2].icon} title={features[2].title} desc={features[2].desc} />
-            <FeatureCard icon={features[3].icon} title={features[3].title} desc={features[3].desc} />
-          </div>
-        </section>
-
-        {/* Bottom info cards — 3 columns like design */}
-        <section className="mt-6 grid gap-4 lg:grid-cols-3 lg:gap-6 lg:mt-10">
+        {/* Three bottom glass cards — Website | Login | Twitter */}
+        <section className="mt-8 grid gap-4 lg:mt-10 lg:grid-cols-3 lg:gap-5">
           <WebsiteCard />
-          <div className="hidden lg:block" aria-hidden />
+          <LoginCard />
           <TwitterCard />
         </section>
 
-        <section className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:mt-8">
-          {trustBadges.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="landing-glass-card px-4 py-4 text-center sm:text-left">
-              <Icon className="mx-auto sm:mx-0 mb-2 h-5 w-5 text-[#39FF14]" />
-              <p className="text-sm font-bold text-white">{title}</p>
-              <p className="mt-0.5 text-xs text-gray-500">{desc}</p>
+        {/* Four slim trust cards */}
+        <section className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {trustCards.map(({ icon: Icon, title, desc }) => (
+            <div key={title} className="landing-glass landing-glass-green px-4 py-3.5">
+              <Icon className="mb-2 h-[18px] w-[18px] text-[#7CFC00] landing-icon-green" strokeWidth={1.75} />
+              <p className="text-[13px] font-bold text-white">{title}</p>
+              <p className="mt-0.5 text-[11px] font-light text-white/50">{desc}</p>
             </div>
           ))}
         </section>
 
-        <footer className="mt-8 border-t border-white/10 pt-5">
-          <div className="flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-xs text-gray-500">
+        {/* Slim footer status bar */}
+        <footer className="mt-6 border-t border-white/[0.08] pt-4">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[11px] text-white/45">
             <span className="inline-flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-emerald-500/80" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#00BFFF]" />
               Trusted by users worldwide
             </span>
-            <span className="hidden sm:inline text-white/15">|</span>
+            <span className="hidden text-white/15 sm:inline">|</span>
             <span className="inline-flex items-center gap-1.5">
-              <Lock className="h-3.5 w-3.5 text-emerald-500/80" />
+              <Lock className="h-3.5 w-3.5 text-[#00BFFF]" />
               100% Secure
             </span>
-            <span className="hidden sm:inline text-white/15">|</span>
+            <span className="hidden text-white/15 sm:inline">|</span>
             <span className="inline-flex items-center gap-1.5">
-              <Shield className="h-3.5 w-3.5 text-emerald-500/80" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-[#00BFFF]" />
               Privacy First
             </span>
           </div>
