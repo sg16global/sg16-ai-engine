@@ -48,6 +48,7 @@ export function ChatPanel({
 
   const [input, setInput] = useState('');
   const [imageUrl, setImageUrl] = useState<string | undefined>();
+  const [pendingDoc, setPendingDoc] = useState<{ name: string; text: string } | null>(null);
   const [listening, setListening] = useState(false);
   const [activeLoadingLabel, setActiveLoadingLabel] = useState(loadingLabel);
   const bottomRef = useRef<HTMLDivElement>(null);
@@ -63,13 +64,22 @@ export function ChatPanel({
     async (text?: string, image?: string) => {
       const raw = (text ?? input).trim();
       const img = image ?? imageUrl;
-      const content = raw || (img ? 'Analyze this image' : '');
-      if (!content || loading) return;
+      const docBlock = pendingDoc
+        ? `Document (${pendingDoc.name}):\n\n${pendingDoc.text}`
+        : '';
+      const content = raw || (img ? 'Analyze this image' : '') || (docBlock ? 'Analyze this document' : '');
+      if (loading || (!content && !docBlock)) return;
+
+      const messageText = docBlock
+        ? raw
+          ? `${raw}\n\n---\n\n${docBlock}`
+          : `Analyze this document (${pendingDoc!.name}):\n\n${pendingDoc!.text}`
+        : content;
 
       const userMsg: Message = {
         id: uid(),
         role: 'user',
-        content,
+        content: messageText,
         timestamp: Date.now(),
         imageUrl: img,
       };
@@ -77,8 +87,9 @@ export function ChatPanel({
       addMessage(workspaceId, userMsg);
       setInput('');
       setImageUrl(undefined);
+      setPendingDoc(null);
       setActiveLoadingLabel(
-        /\b(news|today|latest|weather|headlines|breaking|current|happening|forecast)\b/i.test(content)
+        /\b(news|today|latest|weather|headlines|breaking|current|happening|forecast)\b/i.test(messageText)
           ? 'SG16 AI is searching the web...'
           : loadingLabel,
       );
@@ -94,7 +105,7 @@ export function ChatPanel({
         const extra = getExtraPayload?.() ?? {};
 
         const result = await sendChat({
-          message: content,
+          message: messageText,
           workspaceId,
           imageUrl: img,
           history,
@@ -137,7 +148,7 @@ export function ChatPanel({
       }
     },
     [
-      input, imageUrl, loading, messages, workspaceId,
+      input, imageUrl, pendingDoc, loading, messages, workspaceId,
       addMessage, setLoading, setError, getExtraPayload, allowVoice, settings.autoSendVoice, subscription,
     ],
   );
@@ -197,7 +208,8 @@ export function ChatPanel({
     if (!file) return;
     try {
       const text = await readDocumentFile(file);
-      await sendMessage(`Analyze this document (${file.name}):\n\n${text}`);
+      setPendingDoc({ name: file.name, text });
+      setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Document upload failed');
     }
@@ -299,6 +311,18 @@ export function ChatPanel({
           </div>
         )}
 
+        {pendingDoc && (
+          <div className="mb-2 flex items-center gap-2 text-xs bg-purple-500/10 border border-purple-500/20 rounded-xl px-3 py-2">
+            <Upload className="w-4 h-4 text-purple-400 shrink-0" />
+            <span className="text-purple-200 truncate flex-1">
+              {pendingDoc.name} · {Math.round(pendingDoc.text.length / 1000)}K chars — type your question, then send
+            </span>
+            <button type="button" onClick={() => setPendingDoc(null)} className="text-gray-500 hover:text-red-400 shrink-0">
+              Remove
+            </button>
+          </div>
+        )}
+
         <div className="flex gap-2 items-end flex-wrap sm:flex-nowrap">
           {allowImage && (
             <>
@@ -345,7 +369,7 @@ export function ChatPanel({
           <button
             type="button"
             onClick={() => requireAuth(() => sendMessage())}
-            disabled={loading || (!input.trim() && !imageUrl)}
+            disabled={loading || (!input.trim() && !imageUrl && !pendingDoc)}
             className="p-3 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl disabled:opacity-40 shrink-0"
           >
             <Send className="w-5 h-5" />

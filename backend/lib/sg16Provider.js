@@ -162,6 +162,31 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
   return [...new Set([primary, provider.models.reasoning, ...fallbacks].filter(Boolean))];
 }
 
+export function getVisionModelChain(provider = getPrimaryProvider()) {
+  if (!provider) return [];
+
+  const visionModels = [];
+  if (provider.models?.vision) visionModels.push(provider.models.vision);
+
+  if (provider.id === 'groq' || provider.id === 'custom') {
+    visionModels.push(
+      ...(process.env.SG16_AI_MODEL_VISION_FALLBACKS || 'llama-3.2-11b-vision-preview')
+        .split(',')
+        .map((m) => m.trim())
+        .filter(Boolean),
+    );
+  }
+
+  if (provider.id === 'openrouter' || provider.id === 'backup') {
+    const backupVision =
+      process.env.SG16_BACKUP_MODEL_VISION ||
+      'google/gemini-2.0-flash-exp:free';
+    visionModels.push(backupVision);
+  }
+
+  return [...new Set(visionModels.filter(Boolean))];
+}
+
 function getProviderChain() {
   const chain = [];
   const primary = getPrimaryProvider();
@@ -276,6 +301,53 @@ export async function callWithModelFallback({
   throw lastError || new Error('SG16 AI capacity reached. Please try again shortly.');
 }
 
+export async function callWithVisionFallback({
+  messages,
+  temperature = 0.1,
+  maxTokens = 2048,
+}) {
+  const providers = getProviderChain();
+  if (!providers.length) {
+    throw new Error('SG16 AI is not configured');
+  }
+
+  let lastError = null;
+
+  for (const provider of providers) {
+    if (isProviderInCooldown(provider.id)) continue;
+
+    const modelChain = getVisionModelChain(provider);
+    if (!modelChain.length) continue;
+
+    for (const model of modelChain) {
+      const modelKey = `${provider.id}:vision:${model}`;
+      if (isProviderInCooldown(modelKey)) continue;
+
+      try {
+        const content = await callChatCompletion({
+          messages,
+          model,
+          temperature,
+          maxTokens,
+          provider,
+        });
+        return { content, model, provider: provider.id };
+      } catch (err) {
+        lastError = err;
+        if (isRateLimitError(err.message, err.status)) {
+          markProviderCooldown(modelKey);
+          markProviderCooldown(provider.id, 2 * 60 * 1000);
+          continue;
+        }
+        console.warn(`SG16 vision ${provider.id}/${model}:`, err.message);
+        continue;
+      }
+    }
+  }
+
+  throw lastError || new Error('SG16 AI vision is temporarily unavailable. Please try again.');
+}
+
 export function todayLabel() {
   return new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -293,6 +365,7 @@ export function getProviderStatus() {
     primary: primary ? primary.id : null,
     backup: backup ? backup.id : null,
     backupModel: backup?.models?.text || null,
+    backupVision: backup?.models?.vision || process.env.SG16_BACKUP_MODEL_VISION || null,
     openRouter: backup?.id === 'openrouter',
   };
 }

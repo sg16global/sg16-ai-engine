@@ -54,10 +54,12 @@ export async function routeIntent(query: string): Promise<RouteResponse> {
   return data;
 }
 
+const MAX_DOC_CHARS = 400_000;
+
 export async function readTextFile(file: File): Promise<string> {
   const text = await file.text();
-  if (text.length > 120_000) {
-    throw new Error('Document too large. Please use a file under 120KB.');
+  if (text.length > MAX_DOC_CHARS) {
+    throw new Error('Document too large. Please use a file under 400KB of text.');
   }
   return text;
 }
@@ -82,7 +84,7 @@ async function extractPdfText(file: File): Promise<string> {
   if (!text) {
     throw new Error('No readable text found in this PDF. Try a text-based PDF or paste the content.');
   }
-  if (text.length > 120_000) {
+  if (text.length > MAX_DOC_CHARS) {
     throw new Error('PDF text is too large. Please use a shorter document.');
   }
   return text;

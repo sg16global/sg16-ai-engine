@@ -1,25 +1,27 @@
 import { getEntitlements, setStudentVerification } from './userLedger.js';
+import { callWithVisionFallback } from './sg16Provider.js';
+import { callGeminiVision, hasGeminiKey } from './geminiProvider.js';
 
-const VISION_MODEL = process.env.SG16_AI_MODEL_VISION || 'meta-llama/llama-4-scout-17b-16e-instruct';
-
-function getApiKey() {
-  return (
-    process.env.SG16_AI_API_KEY ||
-    process.env.SG16_ROUTER_API_KEY ||
-    process.env.XAI_API_KEY
-  )?.trim();
+const VERIFY_SYSTEM = `You are SG16 AI Student Verification by SaifTech Global Limited.
+Analyze the uploaded photo for student ID verification. Never mention Groq, OpenAI, Gemini, or third-party providers.
+Return ONLY valid JSON with these fields:
+{
+  "selfieWithId": boolean,
+  "idVisible": boolean,
+  "institutionName": string or null,
+  "institutionLooksValid": boolean,
+  "expiryDate": "YYYY-MM-DD" or null,
+  "studentNameVisible": boolean,
+  "approved": boolean,
+  "reason": "short user-facing explanation"
 }
-
-function hasApiKey() {
-  const key = getApiKey();
-  return key && !key.startsWith('<your_');
-}
-
-function getApiUrl() {
-  if (process.env.SG16_AI_API_URL) return process.env.SG16_AI_API_URL;
-  if (process.env.XAI_API_KEY?.trim()) return 'https://api.x.ai/v1/chat/completions';
-  return 'https://api.groq.com/openai/v1/chat/completions';
-}
+Rules:
+- selfieWithId: person clearly holding ID near face in same photo
+- idVisible: school/college/university student ID card readable
+- institutionLooksValid: appears to be legitimate educational institution ID
+- expiryDate: read printed expiry if visible, ISO format
+- approved: true ONLY if selfieWithId AND idVisible AND institutionLooksValid AND expiry is not past today
+- If expiry missing but ID otherwise valid, set approved false with reason to show expiry clearly`;
 
 function extractJson(text) {
   const match = text.match(/\{[\s\S]*\}/);
@@ -46,63 +48,34 @@ function isExpiryValid(expiryStr) {
 }
 
 async function callVision(imageUrl) {
-  if (!hasApiKey()) {
-    throw new Error('SG16 AI verification service is not configured');
-  }
-
-  const system = `You are SG16 AI Student Verification by SaifTech Global Limited.
-Analyze the uploaded photo for student ID verification. Never mention Groq, OpenAI, or third-party providers.
-Return ONLY valid JSON with these fields:
-{
-  "selfieWithId": boolean,
-  "idVisible": boolean,
-  "institutionName": string or null,
-  "institutionLooksValid": boolean,
-  "expiryDate": "YYYY-MM-DD" or null,
-  "studentNameVisible": boolean,
-  "approved": boolean,
-  "reason": "short user-facing explanation"
-}
-Rules:
-- selfieWithId: person clearly holding ID near face in same photo
-- idVisible: school/college/university student ID card readable
-- institutionLooksValid: appears to be legitimate educational institution ID
-- expiryDate: read printed expiry if visible, ISO format
-- approved: true ONLY if selfieWithId AND idVisible AND institutionLooksValid AND expiry is not past today
-- If expiry missing but ID otherwise valid, set approved false with reason to show expiry clearly`;
-
-  const res = await fetch(getApiUrl(), {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${getApiKey()}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: VISION_MODEL,
-      messages: [
-        { role: 'system', content: system },
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'text',
-              text: 'Verify this student ID selfie. Return JSON only.',
-            },
-            { type: 'image_url', image_url: { url: imageUrl } },
-          ],
-        },
+  const messages = [
+    { role: 'system', content: VERIFY_SYSTEM },
+    {
+      role: 'user',
+      content: [
+        { type: 'text', text: 'Verify this student ID selfie. Return JSON only.' },
+        { type: 'image_url', image_url: { url: imageUrl } },
       ],
-      temperature: 0.1,
-    }),
-    signal: AbortSignal.timeout(120000),
-  });
+    },
+  ];
 
-  const data = await res.json();
-  if (!res.ok) {
-    throw new Error(data.error?.message || 'SG16 AI verification failed');
+  let content = '';
+
+  try {
+    const result = await callWithVisionFallback({ messages, temperature: 0.1 });
+    content = result.content;
+  } catch (groqErr) {
+    if (hasGeminiKey()) {
+      content = await callGeminiVision({
+        system: VERIFY_SYSTEM,
+        userText: 'Verify this student ID selfie. Return JSON only.',
+        imageUrl,
+      });
+    } else {
+      throw groqErr;
+    }
   }
 
-  const content = data.choices?.[0]?.message?.content || '';
   const parsed = extractJson(content);
   if (!parsed) {
     throw new Error('SG16 AI could not read verification data. Please upload a clearer photo.');

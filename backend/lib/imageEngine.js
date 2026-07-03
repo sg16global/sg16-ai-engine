@@ -24,9 +24,9 @@ function isBalanceError(message) {
 function userFacingEditError(errors) {
   const text = errors.join(' ');
   if (isBalanceError(text)) {
-    return 'SG16 AI photo editing credits are too low for this edit. Please add credits at enter.pollinations.ai (edits need about 0.04 pollen each), then try again.';
+    return 'SG16 AI photo editing is temporarily unavailable. Please try again later or ask SG16 to analyze your photo instead.';
   }
-  return 'SG16 AI could not edit this photo while preserving the original. Please try: "Remove the object, keep the face exactly the same."';
+  return 'SG16 AI could not edit this photo. Try: "Remove the object, keep the face exactly the same." Or ask "What do you see in this image?" to analyze it.';
 }
 
 export function hasImageApiKey() {
@@ -54,7 +54,7 @@ export function getImageAction(message, hasImage) {
   const lower = text.toLowerCase();
   if (EDIT_PATTERN.test(lower)) return 'edit';
   if (ANALYZE_PATTERN.test(lower) || text.endsWith('?')) return 'analyze';
-  return 'edit';
+  return 'analyze';
 }
 
 function dataUrlToBuffer(dataUrl) {

@@ -23,6 +23,7 @@ import {
 } from './lib/billing.js';
 import { isPaddleConfigured } from './lib/paddle.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
+import { hasGeminiKey } from './lib/geminiProvider.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
 
@@ -73,6 +74,7 @@ app.get('/health', (_req, res) => {
     status: 'ok',
     engine: 'SG16 AI Engine',
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
+    documentAnalysis: hasGeminiKey() ? 'gemini' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     providers: getProviderStatus(),
     modelFallbacks: getTextModelChain(),

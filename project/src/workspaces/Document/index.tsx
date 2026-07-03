@@ -4,7 +4,7 @@ import { ChatPanel } from '../../components/chat/ChatPanel';
 export const DocumentWorkspace = () => (
   <WorkspaceShell
     title="Document Lab"
-    subtitle="Summarize and analyze text files and PDFs with SG16 AI"
+    subtitle="Upload PDF or text files, type your question, then send — SG16 AI uses advanced document analysis for large files"
     badge="Analysis"
     badgeClass="text-purple-400"
   >

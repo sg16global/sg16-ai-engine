@@ -2,7 +2,8 @@ import { createOrEditImage, getImageAction } from './imageEngine.js';
 import { serverCanAccessWorkspace, serverAccessDeniedMessage } from './access.js';
 import { getEntitlements } from './userLedger.js';
 import { needsWebSearch, searchAndAnswer } from './webSearch.js';
-import { callWithModelFallback, getTextModelChain, isRateLimitError } from './sg16Provider.js';
+import { callWithModelFallback, callWithVisionFallback, getTextModelChain, isRateLimitError } from './sg16Provider.js';
+import { callGeminiChat, callGeminiVision, shouldPreferGeminiForDocument, hasGeminiKey } from './geminiProvider.js';
 
 const SG16_IDENTITY = `You are SG16 AI Engine by SaifTech Global Limited.
 Never mention Groq, Grok, xAI, OpenAI, Llama, or any third-party AI provider.
@@ -36,10 +37,6 @@ const MODELS = {
   vision: process.env.SG16_AI_MODEL_VISION || 'meta-llama/llama-4-scout-17b-16e-instruct',
   reasoning: process.env.SG16_AI_MODEL_REASONING || 'llama-3.3-70b-versatile',
 };
-
-function getVisionModelChain() {
-  return [MODELS.vision, 'llama-3.2-11b-vision-preview'].filter(Boolean);
-}
 
 function getApiKey() {
   return (
@@ -103,16 +100,38 @@ function detectIntent(message, workspaceId, hasImage) {
 }
 
 async function callSg16AI({ messages, model }) {
-  if (!hasApiKey()) {
+  if (!hasApiKey() && !hasGeminiKey()) {
     throw new Error('SG16 AI is not configured');
   }
 
+  if (model === MODELS.vision) {
+    try {
+      const { content } = await callWithVisionFallback({ messages, temperature: 0.7 });
+      return content;
+    } catch (visionErr) {
+      if (hasGeminiKey()) {
+        const userMsg = messages.find((m) => m.role === 'user');
+        const system = messages.find((m) => m.role === 'system')?.content || '';
+        let imageUrl;
+        let text = '';
+        if (Array.isArray(userMsg?.content)) {
+          for (const part of userMsg.content) {
+            if (part.type === 'text') text = part.text;
+            if (part.type === 'image_url') imageUrl = part.image_url.url;
+          }
+        }
+        if (imageUrl) {
+          return callGeminiVision({ system, userText: text || 'Analyze this image.', imageUrl });
+        }
+      }
+      throw visionErr;
+    }
+  }
+
   const chain =
-    model === MODELS.vision
-      ? getVisionModelChain()
-      : model === MODELS.reasoning
-        ? [MODELS.reasoning, ...getTextModelChain()]
-        : [model, ...getTextModelChain().filter((m) => m !== model)];
+    model === MODELS.reasoning
+      ? [MODELS.reasoning, ...getTextModelChain()]
+      : [model, ...getTextModelChain().filter((m) => m !== model)];
 
   const { content } = await callWithModelFallback({
     messages,
@@ -120,6 +139,31 @@ async function callSg16AI({ messages, model }) {
     temperature: 0.7,
   });
   return content;
+}
+
+async function callDocumentAI({ workspaceId, message, history, targetLanguage, memoryContext }) {
+  const messages = buildMessages({
+    workspaceId,
+    message,
+    history,
+    targetLanguage,
+    memoryContext,
+  });
+
+  if (shouldPreferGeminiForDocument(workspaceId)) {
+    try {
+      const { content } = await callGeminiChat({
+        messages,
+        temperature: 0.4,
+        maxTokens: 4096,
+      });
+      return content;
+    } catch (err) {
+      console.warn('SG16 Gemini document analysis failed — using Groq:', err.message);
+    }
+  }
+
+  return callSg16AI({ messages, model: MODELS.text });
 }
 
 function buildMessages({ workspaceId, message, imageUrl, history = [], targetLanguage, memoryContext }) {
@@ -199,7 +243,18 @@ export async function handleUserMessage({
     targetLanguage,
     memoryContext,
   });
-  const reply = await callSg16AI({ messages, model });
+
+  const reply =
+    workspaceId === 'document' && !imageUrl
+      ? await callDocumentAI({
+          workspaceId,
+          message,
+          history,
+          targetLanguage,
+          memoryContext,
+        })
+      : await callSg16AI({ messages, model });
+
   return { reply };
 }
 
