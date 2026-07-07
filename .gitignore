@@ -23,3 +23,12 @@ backend/public/*.mjs
 Thumbs.db
 .vscode/
 .idea/
+
+# Capacitor / Android Studio local files
+project/android/.gradle/
+project/android/local.properties
+project/android/app/build/
+project/android/build/
+project/android/.idea/
+project/android/capacitor-cordova-android-plugins/build/
+*.keystore

@@ -10,6 +10,8 @@
     "build": "npm ci --prefix project && npm run build --prefix project && npm ci --prefix backend --omit=dev",
     "start": "node backend/server.js",
     "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix project"
+    "dev:frontend": "npm run dev --prefix project",
+    "android:sync": "npm run build && npm run cap:sync --prefix project",
+    "android:open": "npm run cap:open --prefix project"
   }
 }
