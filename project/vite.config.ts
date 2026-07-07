@@ -93,7 +93,7 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
         navigateFallback: '/index.html',
-        navigateFallbackDenylist: [/^\/api\//, /^\/health$/],
+        navigateFallbackDenylist: [/^\/api\//, /^\/health$/, /^\/sitemap\.xml$/, /^\/robots\.txt$/],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {

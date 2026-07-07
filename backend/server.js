@@ -107,7 +107,13 @@ app.use(
     maxAge: isProd ? '1d' : 0,
     setHeaders(res, filePath) {
       const base = path.basename(filePath);
-      if (base === 'index.html' || base === 'sw.js' || base === 'manifest.json') {
+      if (
+        base === 'index.html' ||
+        base === 'sw.js' ||
+        base === 'manifest.json' ||
+        base === 'sitemap.xml' ||
+        base === 'robots.txt'
+      ) {
         res.setHeader('Cache-Control', 'no-cache');
       }
     },
