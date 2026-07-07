@@ -319,9 +319,9 @@ function App() {
 
 
 
-  const showLanding = authHydrated && !isAuthenticated(authUser) && isLandingRoute(pathname);
+  const showLanding = !isAuthenticated(authUser) && isLandingRoute(pathname);
 
-  const showPublicLegal = authHydrated && !isAuthenticated(authUser) && isPublicLegalPath(pathname);
+  const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
 
 
 
@@ -361,7 +361,7 @@ function App() {
 
 
 
-  if (!authHydrated && (isLandingRoute(pathname) || isPublicLegalPath(pathname))) {
+  if (!authHydrated && !isLandingRoute(pathname) && !isPublicLegalPath(pathname)) {
 
     return <AuthSplash />;
 

@@ -62,6 +62,18 @@ async function main() {
     .png()
     .toFile(path.join(publicDir, 'screenshot-mobile.png'));
   console.log('[pwa-assets] wrote screenshot-mobile.png');
+
+  const landingHero = path.join(publicDir, 'landing', 'hero-background.png');
+  if (fs.existsSync(landingHero)) {
+    const landingDir = path.join(publicDir, 'landing');
+    await sharp(landingHero).webp({ quality: 82 }).toFile(path.join(landingDir, 'hero-background.webp'));
+    console.log('[pwa-assets] wrote landing/hero-background.webp');
+    await sharp(landingHero)
+      .resize(720)
+      .webp({ quality: 80 })
+      .toFile(path.join(landingDir, 'hero-background-mobile.webp'));
+    console.log('[pwa-assets] wrote landing/hero-background-mobile.webp');
+  }
 }
 
 main().catch((err) => {
