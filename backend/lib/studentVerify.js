@@ -1,4 +1,5 @@
 import { getEntitlements, setStudentVerification } from './userLedger.js';
+import { isLaunchFree } from './launchMode.js';
 import { callWithVisionFallback } from './sg16Provider.js';
 import { callGeminiVision, hasGeminiKey } from './geminiProvider.js';
 
@@ -130,8 +131,8 @@ export async function handleStudentVerifyRequest(req, res) {
       return res.status(401).json({ error: 'Sign in to verify your Student ID.', code: 'AUTH_REQUIRED' });
     }
 
-    const entitlements = getEntitlements(googleSub);
-    if (entitlements.planTier !== 'student') {
+    const entitlements = await getEntitlements(googleSub);
+    if (!isLaunchFree() && entitlements.planTier !== 'student') {
       return res.status(403).json({
         error: 'Subscribe to Student Shield ($4/mo) before verifying your Student ID.',
         code: 'STUDENT_PLAN_REQUIRED',
@@ -143,7 +144,7 @@ export async function handleStudentVerifyRequest(req, res) {
       return res.status(400).json({ error: 'Please upload a selfie with your Student ID.' });
     }
 
-    setStudentVerification(googleSub, { status: 'pending', submittedAt: Date.now() });
+    await setStudentVerification(googleSub, { status: 'pending', submittedAt: Date.now() });
 
     const result = await verifyStudentPhoto(imageUrl);
     const verification = {
@@ -154,11 +155,11 @@ export async function handleStudentVerifyRequest(req, res) {
       institutionName: result.institutionName,
       expiryDate: result.expiryDate,
     };
-    setStudentVerification(googleSub, verification);
+    await setStudentVerification(googleSub, verification);
 
     res.json({
       ...result,
-      subscription: getEntitlements(googleSub).subscription,
+      subscription: (await getEntitlements(googleSub)).subscription,
     });
   } catch (err) {
     console.error('SG16 Student Verify:', err);

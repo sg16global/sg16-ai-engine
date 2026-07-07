@@ -1,11 +1,39 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { getPool, isDatabaseReady } from './db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const LEDGER_PATH = path.join(__dirname, '../data/signup-ledger.json');
 
 const ACTIVE_SUBSCRIPTION_STATUSES = new Set(['active', 'trialing', 'past_due']);
+
+function defaultRecord() {
+  return {
+    signup_date: Date.now(),
+    planTier: 'free',
+    subscriptionStatus: null,
+    paddleCustomerId: null,
+    paddleSubscriptionId: null,
+    studentVerification: { status: 'none' },
+  };
+}
+
+function rowToRecord(row) {
+  if (!row) return null;
+  return {
+    signup_date: Number(row.signup_date),
+    planTier: row.plan_tier,
+    subscriptionStatus: row.subscription_status,
+    paddleCustomerId: row.paddle_customer_id,
+    paddleSubscriptionId: row.paddle_subscription_id,
+    studentVerification: row.student_verification ?? { status: 'none' },
+    email: row.email ?? undefined,
+    name: row.name ?? undefined,
+  };
+}
+
+/* ---------- JSON fallback (dev only when DATABASE_URL unset) ---------- */
 
 function ensureLedgerFile() {
   const dir = path.dirname(LEDGER_PATH);
@@ -29,57 +57,163 @@ function writeLedger(ledger) {
   fs.writeFileSync(LEDGER_PATH, JSON.stringify(ledger, null, 2), 'utf8');
 }
 
-function defaultRecord() {
-  return {
-    signup_date: Date.now(),
-    planTier: 'free',
-    subscriptionStatus: null,
-    paddleCustomerId: null,
-    paddleSubscriptionId: null,
-    studentVerification: { status: 'none' },
-  };
-}
-
-function ensureRecord(ledger, googleSub) {
-  if (!ledger[googleSub]) {
-    ledger[googleSub] = defaultRecord();
-  }
+function ensureJsonRecord(ledger, googleSub) {
+  if (!ledger[googleSub]) ledger[googleSub] = defaultRecord();
   return ledger[googleSub];
 }
 
-/** Returns existing signup_date or creates a new ledger entry. */
-export function ensureSignupDate(googleSub) {
+async function ensureSignupDateJson(googleSub, profile = {}) {
   const ledger = readLedger();
-  const record = ensureRecord(ledger, googleSub);
-  if (!record.signup_date) {
-    record.signup_date = Date.now();
-  }
+  const record = ensureJsonRecord(ledger, googleSub);
+  if (!record.signup_date) record.signup_date = Date.now();
+  if (profile.email && !record.email) record.email = profile.email;
+  if (profile.name && !record.name) record.name = profile.name;
   writeLedger(ledger);
   return record.signup_date;
 }
 
-export function getSignupDate(googleSub) {
-  const ledger = readLedger();
-  return ledger[googleSub]?.signup_date ?? null;
-}
-
-export function getUserRecord(googleSub) {
+async function getUserRecordJson(googleSub) {
   const ledger = readLedger();
   return ledger[googleSub] ?? null;
 }
 
-export function updateUserRecord(googleSub, patch) {
+async function updateUserRecordJson(googleSub, patch) {
   const ledger = readLedger();
-  const record = ensureRecord(ledger, googleSub);
+  const record = ensureJsonRecord(ledger, googleSub);
   Object.assign(record, patch);
   writeLedger(ledger);
   return record;
 }
 
-export function setStudentVerification(googleSub, verification) {
-  return updateUserRecord(googleSub, {
-    studentVerification: verification,
-  });
+/* ---------- PostgreSQL ---------- */
+
+async function ensureSignupDatePg(googleSub, profile = {}) {
+  const pool = getPool();
+  const existing = await pool.query('SELECT signup_date FROM users WHERE google_sub = $1', [googleSub]);
+  if (existing.rows[0]) {
+    if (profile.email || profile.name) {
+      await pool.query(
+        `UPDATE users SET
+          email = COALESCE($2, email),
+          name = COALESCE($3, name),
+          updated_at = NOW()
+         WHERE google_sub = $1`,
+        [googleSub, profile.email ?? null, profile.name ?? null],
+      );
+    }
+    return Number(existing.rows[0].signup_date);
+  }
+
+  const signupDate = Date.now();
+  await pool.query(
+    `INSERT INTO users (google_sub, email, name, signup_date)
+     VALUES ($1, $2, $3, $4)`,
+    [googleSub, profile.email ?? null, profile.name ?? null, signupDate],
+  );
+  return signupDate;
+}
+
+async function getUserRecordPg(googleSub) {
+  const { rows } = await getPool().query('SELECT * FROM users WHERE google_sub = $1 LIMIT 1', [googleSub]);
+  return rowToRecord(rows[0]);
+}
+
+async function updateUserRecordPg(googleSub, patch) {
+  const pool = getPool();
+  const current = await getUserRecordPg(googleSub);
+  const base = current ?? defaultRecord();
+
+  const next = {
+    planTier: patch.planTier ?? base.planTier,
+    subscriptionStatus:
+      patch.subscriptionStatus !== undefined ? patch.subscriptionStatus : base.subscriptionStatus,
+    paddleCustomerId:
+      patch.paddleCustomerId !== undefined ? patch.paddleCustomerId : base.paddleCustomerId,
+    paddleSubscriptionId:
+      patch.paddleSubscriptionId !== undefined ? patch.paddleSubscriptionId : base.paddleSubscriptionId,
+    studentVerification: patch.studentVerification ?? base.studentVerification,
+    email: patch.email ?? base.email,
+    name: patch.name ?? base.name,
+  };
+
+  await pool.query(
+    `INSERT INTO users (
+      google_sub, signup_date, plan_tier, subscription_status,
+      paddle_customer_id, paddle_subscription_id, student_verification, email, name
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7::jsonb, $8, $9)
+    ON CONFLICT (google_sub) DO UPDATE SET
+      plan_tier = EXCLUDED.plan_tier,
+      subscription_status = EXCLUDED.subscription_status,
+      paddle_customer_id = EXCLUDED.paddle_customer_id,
+      paddle_subscription_id = EXCLUDED.paddle_subscription_id,
+      student_verification = EXCLUDED.student_verification,
+      email = COALESCE(EXCLUDED.email, users.email),
+      name = COALESCE(EXCLUDED.name, users.name),
+      updated_at = NOW()`,
+    [
+      googleSub,
+      base.signup_date ?? Date.now(),
+      next.planTier,
+      next.subscriptionStatus,
+      next.paddleCustomerId,
+      next.paddleSubscriptionId,
+      JSON.stringify(next.studentVerification ?? { status: 'none' }),
+      next.email ?? null,
+      next.name ?? null,
+    ],
+  );
+
+  return getUserRecordPg(googleSub);
+}
+
+async function syncSubscriptionRowPg(googleSub, record) {
+  if (!record?.subscriptionStatus) return;
+  const pool = getPool();
+  const user = await pool.query('SELECT id FROM users WHERE google_sub = $1', [googleSub]);
+  const userId = user.rows[0]?.id;
+  if (!userId) return;
+
+  await pool.query(
+    `INSERT INTO subscriptions (user_id, platform, status, plan, paddle_subscription_id, external_id)
+     VALUES ($1, 'paddle', $2, $3, $4, $5)`,
+    [
+      userId,
+      record.subscriptionStatus,
+      record.planTier ?? 'free',
+      record.paddleSubscriptionId ?? null,
+      record.paddleSubscriptionId ?? null,
+    ],
+  );
+}
+
+/* ---------- Public API ---------- */
+
+export async function ensureSignupDate(googleSub, profile = {}) {
+  if (isDatabaseReady()) return ensureSignupDatePg(googleSub, profile);
+  return ensureSignupDateJson(googleSub, profile);
+}
+
+export async function getSignupDate(googleSub) {
+  const record = await getUserRecord(googleSub);
+  return record?.signup_date ?? null;
+}
+
+export async function getUserRecord(googleSub) {
+  if (isDatabaseReady()) return getUserRecordPg(googleSub);
+  return getUserRecordJson(googleSub);
+}
+
+export async function updateUserRecord(googleSub, patch) {
+  if (isDatabaseReady()) {
+    const record = await updateUserRecordPg(googleSub, patch);
+    await syncSubscriptionRowPg(googleSub, record);
+    return record;
+  }
+  return updateUserRecordJson(googleSub, patch);
+}
+
+export async function setStudentVerification(googleSub, verification) {
+  return updateUserRecord(googleSub, { studentVerification: verification });
 }
 
 export function subscriptionIsActive(record) {
@@ -94,8 +228,8 @@ export function resolvePlanTier(record) {
   return 'free';
 }
 
-export function buildSubscriptionPayload(googleSub) {
-  const record = getUserRecord(googleSub);
+export async function buildSubscriptionPayload(googleSub) {
+  const record = await getUserRecord(googleSub);
   const plan = resolvePlanTier(record);
   const verification = record?.studentVerification ?? { status: 'none' };
 
@@ -109,19 +243,19 @@ export function buildSubscriptionPayload(googleSub) {
   };
 }
 
-export function getEntitlements(googleSub) {
-  const record = getUserRecord(googleSub);
+export async function getEntitlements(googleSub) {
+  const record = await getUserRecord(googleSub);
   const planTier = resolvePlanTier(record);
   const studentVerified = record?.studentVerification?.status === 'approved';
 
   return {
     planTier,
     studentVerified,
-    subscription: buildSubscriptionPayload(googleSub),
+    subscription: await buildSubscriptionPayload(googleSub),
   };
 }
 
-export function applyPaddleSubscription(googleSub, {
+export async function applyPaddleSubscription(googleSub, {
   planTier,
   status,
   paddleCustomerId,

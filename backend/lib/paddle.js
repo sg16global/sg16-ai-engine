@@ -121,7 +121,7 @@ function primaryPriceIdFromSubscription(data) {
   return item?.price?.id || item?.price_id || null;
 }
 
-function upsertSubscriptionFromWebhook(data) {
+async function upsertSubscriptionFromWebhook(data) {
   const googleSub = extractGoogleSub(data?.custom_data);
   if (!googleSub) {
     console.warn('[SG16 billing] Paddle webhook missing googleSub in custom_data');
@@ -140,7 +140,7 @@ function upsertSubscriptionFromWebhook(data) {
   });
 }
 
-export function handlePaddleWebhookEvent(event) {
+export async function handlePaddleWebhookEvent(event) {
   const type = event?.event_type;
   const data = event?.data;
 
@@ -161,7 +161,7 @@ export function handlePaddleWebhookEvent(event) {
 
       const subscriptionId = data?.subscription_id;
       if (subscriptionId) {
-        updateUserRecord(googleSub, {
+        await updateUserRecord(googleSub, {
           paddleSubscriptionId: subscriptionId,
           paddleCustomerId: data?.customer_id || undefined,
         });
@@ -175,7 +175,7 @@ export function handlePaddleWebhookEvent(event) {
 }
 
 export async function createCustomerPortalUrl(googleSub) {
-  const record = getUserRecord(googleSub);
+  const record = await getUserRecord(googleSub);
   const customerId = record?.paddleCustomerId;
   if (!customerId) {
     throw new Error('No Paddle billing account found for this user.');

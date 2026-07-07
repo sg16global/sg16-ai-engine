@@ -29,6 +29,7 @@ import { hasGeminiKey } from './lib/geminiProvider.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
 import { isLaunchFree } from './lib/launchMode.js';
+import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -105,10 +106,13 @@ app.use((req, res, next) => {
   next();
 });
 
-app.get('/health', (_req, res) => {
+app.get('/health', async (_req, res) => {
+  const db = await checkDatabaseHealth();
   res.json({
     status: 'ok',
     engine: 'SG16 AI Engine',
+    database: db,
+    launchFree: isLaunchFree(),
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
     documentAnalysis: hasGeminiKey() ? 'gemini' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
@@ -176,21 +180,35 @@ app.use((err, _req, res, _next) => {
   res.status(500).json({ error: 'Internal server error' });
 });
 
-const server = app.listen(PORT, HOST, () => {
-  const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID?.trim());
-  console.log(`SG16 AI Engine running on http://${HOST}:${PORT} (${isProd ? 'production' : 'development'})`);
-  console.log(`Google OAuth: ${googleReady ? 'configured' : 'MISSING — set GOOGLE_CLIENT_ID'}`);
-  console.log(`Launch mode: ${isLaunchFree() ? 'FREE UNLIMITED (checkout disabled)' : 'billing active'}`);
-  console.log(`Paddle billing: ${isPaddleConfigured() ? 'configured' : 'not configured'}`);
-  if (process.env.SG16_APP_URL) {
-    console.log(`Public URL: ${process.env.SG16_APP_URL}`);
+async function startServer() {
+  try {
+    await initDatabase();
+  } catch (err) {
+    console.error('[SG16 db] Startup failed:', err);
+    if (isProd && process.env.DATABASE_URL?.trim()) {
+      process.exit(1);
+    }
   }
-});
 
-function shutdown(signal) {
-  console.log(`[SG16] ${signal} received — shutting down`);
-  server.close(() => process.exit(0));
+  const server = app.listen(PORT, HOST, () => {
+    const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID?.trim());
+    console.log(`SG16 AI Engine running on http://${HOST}:${PORT} (${isProd ? 'production' : 'development'})`);
+    console.log(`Google OAuth: ${googleReady ? 'configured' : 'MISSING — set GOOGLE_CLIENT_ID'}`);
+    console.log(`Database: ${isDatabaseReady() ? 'PostgreSQL' : 'JSON fallback (set DATABASE_URL for production)'}`);
+    console.log(`Launch mode: ${isLaunchFree() ? 'FREE UNLIMITED (checkout disabled)' : 'billing active'}`);
+    console.log(`Paddle billing: ${isPaddleConfigured() ? 'configured' : 'not configured'}`);
+    if (process.env.SG16_APP_URL) {
+      console.log(`Public URL: ${process.env.SG16_APP_URL}`);
+    }
+  });
+
+  function shutdown(signal) {
+    console.log(`[SG16] ${signal} received — shutting down`);
+    server.close(() => process.exit(0));
+  }
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
-process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+startServer();

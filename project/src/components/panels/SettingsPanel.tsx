@@ -1,3 +1,4 @@
+import { Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../../core/appState';
 import { checkEngineHealth } from '../../lib/apiStatus';
@@ -12,6 +13,8 @@ export function SettingsPanel() {
   const updateSettings = useAppStore((s) => s.updateSettings);
   const authUser = useAppStore((s) => s.authUser);
   const launchFree = useAppStore((s) => s.launchFree);
+  const launchMessage = useAppStore((s) => s.launchMessage);
+  const openLaunchNotice = useAppStore((s) => s.openLaunchNotice);
   const logout = useAppStore((s) => s.logout);
   const openLoginModal = useAppStore((s) => s.openLoginModal);
   const wipeSession = useAppStore((s) => s.wipeSession);
@@ -107,53 +110,91 @@ export function SettingsPanel() {
 
       <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
         <h2 className="font-semibold">Subscription</h2>
-        <div className="text-sm text-gray-300">
-          <p>
-            Current plan: <strong className="text-emerald-400">{planLabel(subscription.plan)}</strong>
-          </p>
-          {subscription.plan === 'student' && (
-            <p className="text-xs text-gray-500 mt-1">
-              Verification: {verificationStatusLabel(subscription.studentVerification.status)}
-              {subscription.studentVerification.institutionName &&
-                ` · ${subscription.studentVerification.institutionName}`}
-            </p>
-          )}
-          {subscription.plan === 'free' && (
-            <p className="text-xs text-gray-500 mt-1">{SG16_BRAND.chatName} only. Upgrade for Image Studio, Coding Hub, and more.</p>
-          )}
-          {subscription.billingActive && (
-            <p className="text-xs text-emerald-400/80 mt-1">Billing active via Paddle</p>
-          )}
-        </div>
-        {portalError && <p className="text-xs text-red-400">{portalError}</p>}
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={openPricing}
-            className="text-xs bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded-lg font-medium"
-          >
-            View pricing
-          </button>
-          {subscription.billingActive && subscription.paddleCustomerId && (
-            <button
-              type="button"
-              onClick={() => void handleManageBilling()}
-              disabled={portalLoading}
-              className="text-xs border border-purple-500/30 text-purple-300 hover:bg-purple-500/10 px-3 py-2 rounded-lg disabled:opacity-50"
-            >
-              {portalLoading ? 'Opening…' : 'Manage billing'}
-            </button>
-          )}
-          {subscription.plan === 'student' && !isStudentVerified(subscription) && (
-            <button
-              type="button"
-              onClick={openStudentVerify}
-              className="text-xs border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 px-3 py-2 rounded-lg"
-            >
-              Complete Student ID verification
-            </button>
-          )}
-        </div>
+
+        {launchFree ? (
+          <>
+            <div className="rounded-xl border border-emerald-500/25 bg-gradient-to-br from-emerald-950/50 to-zinc-950/80 p-4 space-y-3">
+              <div className="flex items-center gap-2 text-emerald-300">
+                <Sparkles className="w-4 h-4 shrink-0" />
+                <span className="text-sm font-semibold">Launch — Full unlimited access</span>
+              </div>
+              <p className="text-xs text-gray-400 leading-relaxed">{launchMessage}</p>
+              <ul className="text-xs text-emerald-100/80 space-y-1">
+                <li>• All 8 SG16 AI workspaces included</li>
+                <li>• No payment during launch</li>
+                <li>• Student Shield & Pro pricing shown for reference only</li>
+              </ul>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={openLaunchNotice}
+                className="text-xs bg-emerald-600 hover:bg-emerald-500 px-3 py-2 rounded-lg font-medium"
+              >
+                Why is everything free?
+              </button>
+              <button
+                type="button"
+                onClick={openPricing}
+                className="text-xs border border-white/10 hover:border-emerald-500/30 text-gray-300 px-3 py-2 rounded-lg"
+              >
+                View future pricing
+              </button>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-sm text-gray-300">
+              <p>
+                Current plan: <strong className="text-emerald-400">{planLabel(subscription.plan)}</strong>
+              </p>
+              {subscription.plan === 'student' && (
+                <p className="text-xs text-gray-500 mt-1">
+                  Verification: {verificationStatusLabel(subscription.studentVerification.status)}
+                  {subscription.studentVerification.institutionName &&
+                    ` · ${subscription.studentVerification.institutionName}`}
+                </p>
+              )}
+              {subscription.plan === 'free' && (
+                <p className="text-xs text-gray-500 mt-1">
+                  {SG16_BRAND.chatName} only. Upgrade for Image Studio, Coding Hub, and more.
+                </p>
+              )}
+              {subscription.billingActive && (
+                <p className="text-xs text-emerald-400/80 mt-1">Billing active</p>
+              )}
+            </div>
+            {portalError && <p className="text-xs text-red-400">{portalError}</p>}
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={openPricing}
+                className="text-xs bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded-lg font-medium"
+              >
+                View pricing
+              </button>
+              {subscription.billingActive && subscription.paddleCustomerId && (
+                <button
+                  type="button"
+                  onClick={() => void handleManageBilling()}
+                  disabled={portalLoading}
+                  className="text-xs border border-purple-500/30 text-purple-300 hover:bg-purple-500/10 px-3 py-2 rounded-lg disabled:opacity-50"
+                >
+                  {portalLoading ? 'Opening…' : 'Manage billing'}
+                </button>
+              )}
+              {subscription.plan === 'student' && !isStudentVerified(subscription) && (
+                <button
+                  type="button"
+                  onClick={openStudentVerify}
+                  className="text-xs border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/10 px-3 py-2 rounded-lg"
+                >
+                  Complete Student ID verification
+                </button>
+              )}
+            </div>
+          </>
+        )}
       </section>
 
       <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-4">

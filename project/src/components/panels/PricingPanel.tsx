@@ -24,6 +24,7 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
   const error = useAppStore((s) => s.error);
   const launchFree = useAppStore((s) => s.launchFree);
   const launchMessage = useAppStore((s) => s.launchMessage);
+  const openLaunchNotice = useAppStore((s) => s.openLaunchNotice);
   const selectPlan = useAppStore((s) => s.selectPlan);
   const startPaddleCheckout = useAppStore((s) => s.startPaddleCheckout);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
@@ -39,6 +40,9 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
     }
 
     if (launchFree) {
+      if (plan === 'student' || plan === 'pro') {
+        openLaunchNotice();
+      }
       if (compact) openPricing();
       return;
     }
@@ -182,8 +186,7 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
                 type="button"
                 disabled={
                   (!compact && isCurrent && plan.id !== 'student') ||
-                  isLoading ||
-                  (launchFree && plan.id !== 'free')
+                  isLoading
                 }
                 onClick={() => void handleSelect(plan.id)}
                 className={`w-full py-2.5 rounded-xl text-sm font-medium transition touch-target flex items-center justify-center gap-2 ${

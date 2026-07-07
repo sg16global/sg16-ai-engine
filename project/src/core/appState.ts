@@ -48,11 +48,14 @@ interface AppState {
   launchFree: boolean;
   checkoutEnabled: boolean;
   launchMessage: string;
+  launchNoticeOpen: boolean;
 
   setWorkspace: (workspace: WorkspaceType) => void;
   openHelp: (section?: HelpSection) => void;
   openPricing: () => void;
   openStudentVerify: () => void;
+  openLaunchNotice: () => void;
+  closeLaunchNotice: () => void;
   navigateToWorkspace: (workspace: WorkspaceId, prompt?: string, imageUrl?: string) => void;
   goToHome: () => void;
   consumePendingPrompt: () => string | null;
@@ -136,6 +139,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
   checkoutEnabled: false,
   launchMessage:
     'Launch period — all features are free unlimited. We will notify you in the app before paid plans begin.',
+  launchNoticeOpen: false,
 
   openLoginModal: (action) =>
     set({
@@ -290,6 +294,9 @@ export const useAppStore = create<AppState>((set, getState) => ({
     pushAppPath('/pricing');
   },
 
+  openLaunchNotice: () => set({ launchNoticeOpen: true }),
+  closeLaunchNotice: () => set({ launchNoticeOpen: false }),
+
   openStudentVerify: () => set({ currentWorkspace: 'student-verify', error: null }),
 
   goToHome: () => {
@@ -344,7 +351,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
       return;
     }
     if (launchFree || !checkoutEnabled) {
-      set({ error: launchMessage });
+      set({ launchNoticeOpen: true, error: null });
       return;
     }
 

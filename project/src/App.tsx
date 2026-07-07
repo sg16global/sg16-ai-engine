@@ -6,6 +6,8 @@ import { TopBar } from './components/layout/TopBar';
 
 import { LaunchBanner } from './components/layout/LaunchBanner';
 
+import { LaunchSubscriptionModal } from './components/layout/LaunchSubscriptionModal';
+
 import { Sidebar } from './components/layout/Sidebar';
 
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
@@ -261,6 +263,8 @@ function AppShell() {
       <InstallPrompt />
 
       <GoogleLoginModal />
+
+      <LaunchSubscriptionModal />
 
     </div>
 

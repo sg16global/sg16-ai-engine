@@ -71,7 +71,10 @@ export async function verifyGoogleIdToken(credential) {
 
 export async function createAuthSessionFromGoogle(credential) {
   const profile = await verifyGoogleIdToken(credential);
-  const signupDate = ensureSignupDate(profile.sub);
+  const signupDate = await ensureSignupDate(profile.sub, {
+    email: profile.email,
+    name: profile.name,
+  });
 
   const token = signSession({
     sub: profile.sub,
@@ -82,7 +85,7 @@ export async function createAuthSessionFromGoogle(credential) {
 
   return {
     token,
-    user: buildUserPayload({
+    user: await buildUserPayload({
       sub: profile.sub,
       signupDate,
       name: profile.name,
@@ -91,7 +94,7 @@ export async function createAuthSessionFromGoogle(credential) {
   };
 }
 
-export function buildUserPayload(session) {
+export async function buildUserPayload(session) {
   const signupDate = session.signupDate;
   const launchFree = isLaunchFree();
   const trialActive = !launchFree && trialIsActive(signupDate);
@@ -104,7 +107,7 @@ export function buildUserPayload(session) {
     trialActive,
     trialDaysRemaining: launchFree ? 0 : trialDaysRemaining(signupDate),
     trialMsRemaining: launchFree ? 0 : trialMsRemaining(signupDate),
-    subscription: buildSubscriptionPayload(session.sub),
+    subscription: await buildSubscriptionPayload(session.sub),
   };
 }
 
@@ -144,12 +147,17 @@ export async function handleGoogleAuth(req, res) {
   }
 }
 
-export function handleAuthMe(req, res) {
+export async function handleAuthMe(req, res) {
   if (!req.auth) {
     return res.status(401).json({ error: 'Not signed in.', code: 'AUTH_REQUIRED' });
   }
-  const user = buildUserPayload(req.auth);
-  res.json({ user, subscription: user.subscription });
+  try {
+    const user = await buildUserPayload(req.auth);
+    res.json({ user, subscription: user.subscription });
+  } catch (err) {
+    console.error('[SG16 auth me]', err);
+    res.status(500).json({ error: 'Could not load account.' });
+  }
 }
 
 export function getGoogleClientIdForFrontend(_req, res) {
@@ -176,27 +184,32 @@ export function isDevAuthEnabled() {
   return process.env.SG16_DEV_AUTH !== '0';
 }
 
-export function handleDevAuth(_req, res) {
+export async function handleDevAuth(_req, res) {
   const clientId = googleClientId();
   if (!isDevAuthEnabled() || clientId) {
     return res.status(404).json({ error: 'Dev sign-in is not available.' });
   }
 
-  const signupDate = ensureSignupDate('dev-local-user');
-  const token = signSession({
-    sub: 'dev-local-user',
-    signupDate,
-    name: 'SG16 Dev User',
-    picture: undefined,
-  });
-
-  res.json({
-    token,
-    user: buildUserPayload({
+  try {
+    const signupDate = await ensureSignupDate('dev-local-user', { name: 'SG16 Dev User' });
+    const token = signSession({
       sub: 'dev-local-user',
       signupDate,
       name: 'SG16 Dev User',
       picture: undefined,
-    }),
-  });
+    });
+
+    res.json({
+      token,
+      user: await buildUserPayload({
+        sub: 'dev-local-user',
+        signupDate,
+        name: 'SG16 Dev User',
+        picture: undefined,
+      }),
+    });
+  } catch (err) {
+    console.error('[SG16 dev auth]', err);
+    res.status(500).json({ error: 'Dev sign-in failed.' });
+  }
 }

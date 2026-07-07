@@ -1,5 +1,6 @@
 import { buildSubscriptionPayload, getEntitlements } from './userLedger.js';
 import { getLaunchPublicConfig, isLaunchFree } from './launchMode.js';
+import { recordWebhookEvent } from './db/index.js';
 import {
   createCustomerPortalUrl,
   getCheckoutPriceId,
@@ -16,16 +17,21 @@ export function handleBillingConfig(_req, res) {
   });
 }
 
-export function handleBillingEntitlements(req, res) {
+export async function handleBillingEntitlements(req, res) {
   const googleSub = req.auth?.sub;
   if (!googleSub) {
     return res.status(401).json({ error: 'Sign in to view billing.', code: 'AUTH_REQUIRED' });
   }
 
-  res.json({
-    entitlements: getEntitlements(googleSub),
-    subscription: buildSubscriptionPayload(googleSub),
-  });
+  try {
+    res.json({
+      entitlements: await getEntitlements(googleSub),
+      subscription: await buildSubscriptionPayload(googleSub),
+    });
+  } catch (err) {
+    console.error('[SG16 billing entitlements]', err);
+    res.status(500).json({ error: 'Could not load billing status.' });
+  }
 }
 
 export function handleBillingCheckout(req, res) {
@@ -94,7 +100,7 @@ export async function handleBillingPortal(req, res) {
   }
 }
 
-export function handleBillingWebhook(req, res) {
+export async function handleBillingWebhook(req, res) {
   const signature = req.headers['paddle-signature'];
   const rawBody = req.body;
 
@@ -114,8 +120,25 @@ export function handleBillingWebhook(req, res) {
     return res.status(400).json({ error: 'Invalid JSON.' });
   }
 
+  const eventId = event?.event_id || event?.notification_id || event?.data?.id;
+  if (eventId) {
+    try {
+      const duplicate = await recordWebhookEvent(
+        String(eventId),
+        'paddle',
+        event?.event_type ?? null,
+        event,
+      );
+      if (duplicate) {
+        return res.json({ received: true, duplicate: true });
+      }
+    } catch (err) {
+      console.error('[SG16 billing webhook idempotency]', err);
+    }
+  }
+
   try {
-    handlePaddleWebhookEvent(event);
+    await handlePaddleWebhookEvent(event);
     res.json({ received: true });
   } catch (err) {
     console.error('[SG16 billing webhook]', err);

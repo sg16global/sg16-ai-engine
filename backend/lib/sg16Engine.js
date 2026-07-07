@@ -282,7 +282,7 @@ export async function handleChatRequest(req, res) {
       return res.status(403).json({ error: 'Blocked by SG16 Safety Shield' });
     }
 
-    const entitlements = getEntitlements(req.auth?.sub);
+    const entitlements = await getEntitlements(req.auth?.sub);
 
     if (
       !serverCanAccessWorkspace(ws, {
