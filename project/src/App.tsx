@@ -28,6 +28,10 @@ import { InstallPrompt } from './components/pwa/InstallPrompt';
 
 import { LandingPage } from './components/landing/LandingPage';
 
+import { PublicLegalShell } from './components/legal/PublicLegalShell';
+
+import { isPublicLegalPath } from './content/legalContent';
+
 import { useAppStore } from './core/appState';
 
 import { isAuthenticated } from './core/access';
@@ -301,6 +305,8 @@ function App() {
 
   const showLanding = authHydrated && !isAuthenticated(authUser) && isLandingRoute(pathname);
 
+  const showPublicLegal = authHydrated && !isAuthenticated(authUser) && isPublicLegalPath(pathname);
+
 
 
   useEffect(() => {
@@ -315,10 +321,40 @@ function App() {
 
 
 
-  if (!authHydrated && isLandingRoute(pathname)) {
+  useEffect(() => {
+
+    if (!showPublicLegal) return;
+
+    const titles: Record<string, string> = {
+
+      '/privacy': 'Privacy Policy — SG16 AI Engine',
+
+      '/terms': 'Terms of Service — SG16 AI Engine',
+
+      '/contact': 'Contact — SG16 AI Engine',
+
+      '/help': 'Help — SG16 AI Engine',
+
+    };
+
+    const key = pathname.replace(/\/+$/, '') || '/';
+
+    document.title = titles[key] ?? 'SG16 AI Engine';
+
+  }, [showPublicLegal, pathname]);
+
+
+
+  if (!authHydrated && (isLandingRoute(pathname) || isPublicLegalPath(pathname))) {
 
     return <AuthSplash />;
 
+  }
+
+
+
+  if (showPublicLegal) {
+    return <PublicLegalShell />;
   }
 
 

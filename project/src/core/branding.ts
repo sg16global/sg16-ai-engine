@@ -4,6 +4,8 @@ export const SG16_BRAND = {
   shortName: 'SG16 AI',
   chatName: 'SG16 Chatting',
   company: 'SaifTech Global Limited',
+  contactEmail: 'contact@sg16engine.com',
+  publicUrl: 'https://sg16engine.com',
   logo: '/hero.png',
   logoFallback: '/hero-globe.png',
   logoAlt: 'SG16 AI Engine',

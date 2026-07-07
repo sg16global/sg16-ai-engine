@@ -243,19 +243,31 @@ export function LandingPage() {
 
         <footer className="landing-footer-bar mt-5 border-t border-white/[0.08] pt-3 sm:mt-6 sm:pt-4">
           <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[10px] text-[#00BFFF]/80 sm:gap-x-4 sm:text-[11px]">
+            <a href="/privacy" className="hover:text-white transition">
+              Privacy Policy
+            </a>
+            <span className="text-white/15">|</span>
+            <a href="/terms" className="hover:text-white transition">
+              Terms of Service
+            </a>
+            <span className="text-white/15">|</span>
+            <a href="/contact" className="hover:text-white transition">
+              Contact
+            </a>
+            <span className="text-white/15">|</span>
+            <a href="mailto:contact@sg16engine.com" className="hover:text-white transition">
+              contact@sg16engine.com
+            </a>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-2 text-[10px] text-white/40 sm:text-[11px]">
             <span className="inline-flex items-center gap-1.5">
               <Shield className="h-3.5 w-3.5" />
-              Trusted by users worldwide
+              SaifTech Global Limited
             </span>
             <span className="text-white/15">|</span>
             <span className="inline-flex items-center gap-1.5">
               <Lock className="h-3.5 w-3.5" />
-              100% Secure
-            </span>
-            <span className="text-white/15">|</span>
-            <span className="inline-flex items-center gap-1.5">
-              <CheckCircle2 className="h-3.5 w-3.5" />
-              Privacy First
+              Google Sign-In only — we never ask for your password
             </span>
           </div>
         </footer>
