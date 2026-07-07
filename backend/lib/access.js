@@ -1,3 +1,5 @@
+import { isLaunchFree } from './launchMode.js';
+
 export const TRIAL_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
 
 /** Always free forever after sign-in. */
@@ -45,6 +47,7 @@ export function serverCanAccessWorkspace(workspaceId, entitlements = {}) {
   const { signupDate, planTier = 'free', studentVerified = false } = entitlements;
 
   if (!signupDate) return false;
+  if (isLaunchFree()) return true;
   if (hasPaidAccess(planTier, studentVerified)) return true;
   if (ALWAYS_FREE_WORKSPACES.has(ws)) return true;
   if (trialIsActive(signupDate)) return true;

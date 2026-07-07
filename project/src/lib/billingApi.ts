@@ -9,6 +9,10 @@ export interface PaddlePublicConfig {
     student: string;
     pro: string;
   };
+  launchFree?: boolean;
+  checkoutEnabled?: boolean;
+  launchMessage?: string;
+  contactEmail?: string;
 }
 
 export interface BillingEntitlementsResponse {

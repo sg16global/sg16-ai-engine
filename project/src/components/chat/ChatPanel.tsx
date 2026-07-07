@@ -363,7 +363,7 @@ export function ChatPanel({
             }}
             placeholder={placeholder}
             rows={1}
-            className="flex-1 min-w-0 bg-zinc-900 border border-white/10 rounded-xl px-3 sm:px-4 py-3 text-sm outline-none focus:border-emerald-500/40 resize-none min-h-[48px] max-h-32"
+            className="flex-1 min-w-0 bg-zinc-900 border border-white/10 rounded-xl px-3 sm:px-4 py-3 text-base outline-none focus:border-emerald-500/40 resize-none min-h-[48px] max-h-32"
           />
 
           <button

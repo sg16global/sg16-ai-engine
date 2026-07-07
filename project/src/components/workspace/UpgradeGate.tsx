@@ -1,6 +1,6 @@
 import { Check, Lock, Sparkles } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
-import { accessDeniedMessage, isAuthenticated, trialDaysRemaining } from '../../core/access';
+import { accessDeniedMessage, isAuthenticated, isLaunchPeriod, trialDaysRemaining } from '../../core/access';
 import { SG16_BRAND } from '../../core/branding';
 import { PLANS } from '../../core/plans';
 import type { WorkspaceId } from '../../core/types';
@@ -16,9 +16,11 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
   const openLoginModal = useAppStore((s) => s.openLoginModal);
 
+  const launchFree = useAppStore((s) => s.launchFree);
   const message = accessDeniedMessage(workspaceId, subscription, authUser);
   const isStudentFlow = subscription.plan === 'student';
-  const trialEnded = isAuthenticated(authUser) && trialDaysRemaining(authUser?.signupDate) === 0;
+  const trialEnded =
+    isAuthenticated(authUser) && !isLaunchPeriod(authUser) && !launchFree && trialDaysRemaining(authUser?.signupDate) === 0;
 
   return (
     <div className="h-full flex items-center justify-center p-4 sm:p-8">

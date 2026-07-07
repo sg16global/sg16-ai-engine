@@ -1,4 +1,5 @@
 import { buildSubscriptionPayload, getEntitlements } from './userLedger.js';
+import { getLaunchPublicConfig, isLaunchFree } from './launchMode.js';
 import {
   createCustomerPortalUrl,
   getCheckoutPriceId,
@@ -9,7 +10,10 @@ import {
 } from './paddle.js';
 
 export function handleBillingConfig(_req, res) {
-  res.json(getPaddlePublicConfig());
+  res.json({
+    ...getPaddlePublicConfig(),
+    ...getLaunchPublicConfig(),
+  });
 }
 
 export function handleBillingEntitlements(req, res) {
@@ -30,6 +34,12 @@ export function handleBillingCheckout(req, res) {
 
   if (!googleSub) {
     return res.status(401).json({ error: 'Sign in before checkout.', code: 'AUTH_REQUIRED' });
+  }
+  if (isLaunchFree()) {
+    return res.status(403).json({
+      error: getLaunchPublicConfig().launchMessage,
+      code: 'LAUNCH_FREE',
+    });
   }
   if (!isPaddleConfigured()) {
     return res.status(503).json({
@@ -59,6 +69,12 @@ export async function handleBillingPortal(req, res) {
   const googleSub = req.auth?.sub;
   if (!googleSub) {
     return res.status(401).json({ error: 'Sign in to manage billing.', code: 'AUTH_REQUIRED' });
+  }
+  if (isLaunchFree()) {
+    return res.status(403).json({
+      error: getLaunchPublicConfig().launchMessage,
+      code: 'LAUNCH_FREE',
+    });
   }
   if (!isPaddleConfigured()) {
     return res.status(503).json({ error: 'Billing portal is not configured.' });

@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { buildSubscriptionPayload, ensureSignupDate } from './userLedger.js';
 import { trialDaysRemaining, trialIsActive, trialMsRemaining } from './access.js';
+import { isLaunchFree } from './launchMode.js';
 
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -92,15 +93,17 @@ export async function createAuthSessionFromGoogle(credential) {
 
 export function buildUserPayload(session) {
   const signupDate = session.signupDate;
-  const trialActive = trialIsActive(signupDate);
+  const launchFree = isLaunchFree();
+  const trialActive = !launchFree && trialIsActive(signupDate);
   return {
     id: session.sub,
     signupDate,
     name: session.name || 'SG16 User',
     picture: session.picture,
+    launchFree,
     trialActive,
-    trialDaysRemaining: trialDaysRemaining(signupDate),
-    trialMsRemaining: trialMsRemaining(signupDate),
+    trialDaysRemaining: launchFree ? 0 : trialDaysRemaining(signupDate),
+    trialMsRemaining: launchFree ? 0 : trialMsRemaining(signupDate),
     subscription: buildSubscriptionPayload(session.sub),
   };
 }
@@ -137,7 +140,7 @@ export async function handleGoogleAuth(req, res) {
     res.json(result);
   } catch (err) {
     console.error('[SG16 auth]', err);
-    res.status(401).json({ error: err instanceof Error ? err.message : 'Google sign-in failed.' });
+    res.status(401).json({ error: 'Google sign-in failed. Please try again.' });
   }
 }
 

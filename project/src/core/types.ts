@@ -43,6 +43,7 @@ export interface AuthUser {
   signupDate: number;
   name: string;
   picture?: string;
+  launchFree?: boolean;
   trialActive: boolean;
   trialDaysRemaining: number;
   subscription?: Subscription;

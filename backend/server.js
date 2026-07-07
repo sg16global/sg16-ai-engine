@@ -1,8 +1,10 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import rateLimit from 'express-rate-limit';
 import fs from 'fs';
 import path from 'path';
+import { randomUUID } from 'crypto';
 import { fileURLToPath } from 'url';
 import { handleChatRequest } from './lib/sg16Engine.js';
 import { handleRouteRequest } from './lib/router.js';
@@ -26,6 +28,7 @@ import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { hasGeminiKey } from './lib/geminiProvider.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
+import { isLaunchFree } from './lib/launchMode.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -38,7 +41,40 @@ const app = express();
 app.set('trust proxy', 1);
 app.disable('x-powered-by');
 
-app.use(cors());
+const allowedOrigins = new Set([
+  'https://sg16engine.com',
+  'https://www.sg16engine.com',
+  ...(isProd ? [] : ['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:5173']),
+]);
+
+app.use(
+  cors({
+    origin(origin, callback) {
+      if (!origin || allowedOrigins.has(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('Not allowed by CORS'));
+    },
+    credentials: true,
+  }),
+);
+
+app.use((req, res, next) => {
+  req.id = randomUUID();
+  res.setHeader('X-Request-Id', req.id);
+  next();
+});
+
+const apiRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many requests. Please try again later.' },
+});
+
+app.use('/api/', apiRateLimit);
 
 // Paddle webhooks require the raw body for signature verification.
 app.post(
@@ -133,6 +169,9 @@ app.get('*', (req, res, next) => {
 });
 
 app.use((err, _req, res, _next) => {
+  if (err?.message === 'Not allowed by CORS') {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
   console.error('[SG16] Server error:', err);
   res.status(500).json({ error: 'Internal server error' });
 });
@@ -141,7 +180,8 @@ const server = app.listen(PORT, HOST, () => {
   const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID?.trim());
   console.log(`SG16 AI Engine running on http://${HOST}:${PORT} (${isProd ? 'production' : 'development'})`);
   console.log(`Google OAuth: ${googleReady ? 'configured' : 'MISSING — set GOOGLE_CLIENT_ID'}`);
-  console.log(`Paddle billing: ${isPaddleConfigured() ? 'configured' : 'MISSING — set PADDLE_* env vars'}`);
+  console.log(`Launch mode: ${isLaunchFree() ? 'FREE UNLIMITED (checkout disabled)' : 'billing active'}`);
+  console.log(`Paddle billing: ${isPaddleConfigured() ? 'configured' : 'not configured'}`);
   if (process.env.SG16_APP_URL) {
     console.log(`Public URL: ${process.env.SG16_APP_URL}`);
   }

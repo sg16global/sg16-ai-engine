@@ -3,6 +3,9 @@ import { trialFromSignupDate } from './trial';
 
 /** Apply live trial flags from raw signup timestamp — instant activation, no polling. */
 export function enrichAuthUser(user: AuthUser): AuthUser {
+  if (user.launchFree) {
+    return { ...user, trialActive: false, trialDaysRemaining: 0 };
+  }
   const trial = trialFromSignupDate(user.signupDate);
   return {
     ...user,

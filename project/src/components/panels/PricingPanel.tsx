@@ -22,6 +22,8 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
   const authUser = useAppStore((s) => s.authUser);
   const loading = useAppStore((s) => s.loading);
   const error = useAppStore((s) => s.error);
+  const launchFree = useAppStore((s) => s.launchFree);
+  const launchMessage = useAppStore((s) => s.launchMessage);
   const selectPlan = useAppStore((s) => s.selectPlan);
   const startPaddleCheckout = useAppStore((s) => s.startPaddleCheckout);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
@@ -32,6 +34,11 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
   const handleSelect = async (plan: PlanTier) => {
     if (plan === 'free') {
       selectPlan('free');
+      if (compact) openPricing();
+      return;
+    }
+
+    if (launchFree) {
       if (compact) openPricing();
       return;
     }
@@ -78,11 +85,15 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
           Free $0 · Student Shield $4/mo · Pro Premium $10/mo
         </p>
         <p className="text-gray-500 text-xs sm:text-sm mt-1 max-w-2xl mx-auto">
-          {compact
-            ? `All plans include ${SG16_BRAND.chatName}. Premium unlocks every workspace.`
-            : `Choose the plan that fits you — ${SG16_BRAND.chatName} on Free, full platform on Student & Pro.`}
+          {launchFree
+            ? launchMessage
+            : compact
+              ? `All plans include ${SG16_BRAND.chatName}. Premium unlocks every workspace.`
+              : `Choose the plan that fits you — ${SG16_BRAND.chatName} on Free, full platform on Student & Pro.`}
         </p>
-        <p className="text-[11px] text-gray-500 mt-2">Secure checkout powered by Paddle</p>
+        <p className="text-[11px] text-gray-500 mt-2">
+          {launchFree ? 'Checkout opens after launch — pricing shown for reference' : 'Secure checkout powered by Paddle'}
+        </p>
         {!compact && (
           <p className="text-xs text-gray-400 mt-3">
             Current plan: <strong className="text-white">{planLabel(subscription.plan)}</strong>
@@ -169,7 +180,11 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
 
               <button
                 type="button"
-                disabled={(!compact && isCurrent && plan.id !== 'student') || isLoading}
+                disabled={
+                  (!compact && isCurrent && plan.id !== 'student') ||
+                  isLoading ||
+                  (launchFree && plan.id !== 'free')
+                }
                 onClick={() => void handleSelect(plan.id)}
                 className={`w-full py-2.5 rounded-xl text-sm font-medium transition touch-target flex items-center justify-center gap-2 ${
                   plan.highlighted
@@ -178,7 +193,9 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
                 }`}
               >
                 {isLoading && <Loader2 className="w-4 h-4 animate-spin" />}
-                {compact
+                {launchFree && plan.id !== 'free'
+                  ? 'Included during launch'
+                  : compact
                   ? isCurrent && plan.id === 'free'
                     ? 'Current — Free'
                     : isCurrent && plan.id === 'pro'

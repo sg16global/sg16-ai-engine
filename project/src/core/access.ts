@@ -22,6 +22,10 @@ export function isAuthenticated(authUser: AuthUser | null): boolean {
   return authUser != null && authUser.signupDate > 0;
 }
 
+export function isLaunchPeriod(authUser: AuthUser | null): boolean {
+  return authUser?.launchFree === true;
+}
+
 export function canAccessWorkspace(
   workspace: WorkspaceType | WorkspaceId,
   subscription: Subscription,
@@ -39,6 +43,7 @@ export function canAccessWorkspace(
   }
 
   if (!isAuthenticated(authUser)) return false;
+  if (isLaunchPeriod(authUser)) return true;
   if (hasPaidAccess(subscription)) return true;
   if (ALWAYS_FREE_WORKSPACES.includes(workspace as (typeof ALWAYS_FREE_WORKSPACES)[number])) return true;
   if (trialIsActive(authUser!.signupDate)) return true;
@@ -66,6 +71,10 @@ export function accessDeniedMessage(
 ): string {
   if (!isAuthenticated(authUser)) {
     return 'Sign in with Google to use SG16 AI workspaces.';
+  }
+
+  if (isLaunchPeriod(authUser)) {
+    return 'This workspace is included free during the launch period.';
   }
 
   if (subscription.plan === 'student' && subscription.studentVerification.status === 'pending') {

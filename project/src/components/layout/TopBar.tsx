@@ -30,6 +30,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
   const subscription = useAppStore((s) => s.subscription);
   const authUser = useAppStore((s) => s.authUser);
+  const launchFree = useAppStore((s) => s.launchFree);
   const settings = useAppStore((s) => s.settings);
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
@@ -39,6 +40,13 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const title = titles[currentWorkspace] ?? `${currentWorkspace.replace('-', ' ')} Workspace`;
 
   const planBadge = (compact = false) => {
+    if (launchFree || authUser?.launchFree) {
+      return (
+        <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg whitespace-nowrap">
+          Launch · Full access
+        </span>
+      );
+    }
     if (authUser?.trialActive) {
       return (
         <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg">

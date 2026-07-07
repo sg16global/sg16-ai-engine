@@ -11,6 +11,7 @@ export function SettingsPanel() {
   const subscription = useAppStore((s) => s.subscription);
   const updateSettings = useAppStore((s) => s.updateSettings);
   const authUser = useAppStore((s) => s.authUser);
+  const launchFree = useAppStore((s) => s.launchFree);
   const logout = useAppStore((s) => s.logout);
   const openLoginModal = useAppStore((s) => s.openLoginModal);
   const wipeSession = useAppStore((s) => s.wipeSession);
@@ -160,7 +161,9 @@ export function SettingsPanel() {
         {authUser ? (
           <div className="text-sm text-gray-300 space-y-2">
             <p>Signed in as <strong className="text-white">{authUser.name}</strong></p>
-            {authUser.trialActive ? (
+            {launchFree ? (
+              <p className="text-xs text-emerald-400">Launch period — all workspaces are free and unlimited.</p>
+            ) : authUser.trialActive ? (
               <p className="text-xs text-emerald-400">Trial active — {authUser.trialDaysRemaining} day(s) of full access remaining.</p>
             ) : (
               <p className="text-xs text-gray-500">Trial ended. {SG16_BRAND.chatName} and Translate remain free.</p>
@@ -187,7 +190,7 @@ export function SettingsPanel() {
       <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-3">
         <h2 className="font-semibold text-red-400">Privacy</h2>
         <p className="text-xs text-gray-500">
-          SG16 stores only your Google signup date for the 3-day trial. No chat history, messages, or conversations are saved to disk.
+          SG16 stores only your Google signup date for account access. No chat history, messages, or conversations are saved to disk.
         </p>
         <button
           type="button"

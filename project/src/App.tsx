@@ -4,6 +4,8 @@ import { GoogleLoginModal } from './components/auth/GoogleLoginModal';
 
 import { TopBar } from './components/layout/TopBar';
 
+import { LaunchBanner } from './components/layout/LaunchBanner';
+
 import { Sidebar } from './components/layout/Sidebar';
 
 import { MobileBottomNav } from './components/layout/MobileBottomNav';
@@ -242,7 +244,9 @@ function AppShell() {
 
         <TopBar onMenuClick={() => setDrawerOpen(true)} />
 
-        <main className="flex-1 overflow-auto overscroll-contain pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <LaunchBanner />
+
+        <main className="flex-1 overflow-auto overscroll-contain mobile-scroll-main pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
 
           {mainContent()}
 

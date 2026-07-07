@@ -83,6 +83,12 @@
   html.standalone .mobile-scroll-main {
     -webkit-overflow-scrolling: touch;
   }
+
+  input,
+  textarea,
+  select {
+    font-size: 16px;
+  }
 }
 
 @keyframes landing-binary-scroll {

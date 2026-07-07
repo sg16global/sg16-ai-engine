@@ -45,6 +45,9 @@ interface AppState {
   pendingAuthAction: (() => void) | null;
   loading: boolean;
   error: string | null;
+  launchFree: boolean;
+  checkoutEnabled: boolean;
+  launchMessage: string;
 
   setWorkspace: (workspace: WorkspaceType) => void;
   openHelp: (section?: HelpSection) => void;
@@ -67,6 +70,7 @@ interface AppState {
   selectPlan: (plan: PlanTier) => void;
   startPaddleCheckout: (plan: 'student' | 'pro') => Promise<void>;
   syncSubscriptionFromServer: () => Promise<void>;
+  loadPublicConfig: () => Promise<void>;
   applyStudentVerification: (result: StudentVerifyResponse) => void;
 
   addMessage: (workspaceId: WorkspaceId, message: Message) => void;
@@ -128,6 +132,10 @@ export const useAppStore = create<AppState>((set, getState) => ({
   pendingAuthAction: null,
   loading: false,
   error: null,
+  launchFree: true,
+  checkoutEnabled: false,
+  launchMessage:
+    'Launch period — all features are free unlimited. We will notify you in the app before paid plans begin.',
 
   openLoginModal: (action) =>
     set({
@@ -163,6 +171,9 @@ export const useAppStore = create<AppState>((set, getState) => ({
       loginModalOpen: false,
       pendingAuthAction: null,
       error: null,
+      ...(user.launchFree !== undefined
+        ? { launchFree: user.launchFree, checkoutEnabled: !user.launchFree }
+        : {}),
     });
     queueMicrotask(() => {
       pending?.();
@@ -180,6 +191,26 @@ export const useAppStore = create<AppState>((set, getState) => ({
       set({ subscription, error: null });
     } catch {
       /* billing may be offline or user not subscribed yet */
+    }
+  },
+
+  loadPublicConfig: async () => {
+    try {
+      const config = await fetchBillingConfig();
+      const launchFree = config.launchFree ?? true;
+      const checkoutEnabled = config.checkoutEnabled ?? false;
+      const launchMessage =
+        config.launchMessage ??
+        'Launch period — all features are free unlimited. We will notify you in the app before paid plans begin.';
+      const { authUser } = getState();
+      set({
+        launchFree,
+        checkoutEnabled,
+        launchMessage,
+        ...(authUser ? { authUser: { ...authUser, launchFree } } : {}),
+      });
+    } catch {
+      /* keep launch defaults until server responds */
     }
   },
 
@@ -307,9 +338,13 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   startPaddleCheckout: async (plan) => {
-    const { authUser, requireAuth } = getState();
+    const { authUser, requireAuth, launchFree, checkoutEnabled, launchMessage } = getState();
     if (!isAuthenticated(authUser)) {
       requireAuth(() => void getState().startPaddleCheckout(plan));
+      return;
+    }
+    if (launchFree || !checkoutEnabled) {
+      set({ error: launchMessage });
       return;
     }
 
@@ -389,6 +424,10 @@ export const useAppStore = create<AppState>((set, getState) => ({
 }));
 
 if (typeof window !== 'undefined') {
+  queueMicrotask(() => {
+    void useAppStore.getState().loadPublicConfig();
+  });
+
   window.addEventListener('beforeunload', () => {
     useAppStore.getState().wipeSession();
   });
