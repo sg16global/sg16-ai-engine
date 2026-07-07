@@ -32,40 +32,73 @@ function cleanKey(key) {
   return k;
 }
 
-export function getPrimaryProvider() {
-  if (cleanKey(process.env.XAI_API_KEY)) {
-    return {
-      id: 'xai',
-      apiUrl: 'https://api.x.ai/v1/chat/completions',
-      apiKey: cleanKey(process.env.XAI_API_KEY),
-      models: {
-        text: process.env.SG16_AI_MODEL_TEXT || 'grok-2-latest',
-        reasoning: process.env.SG16_AI_MODEL_REASONING || 'grok-2-latest',
-        vision: process.env.SG16_AI_MODEL_VISION || 'grok-2-vision-latest',
-      },
-    };
-  }
+function getSpeedMode() {
+  const flag = process.env.SG16_SPEED_MODE?.trim().toLowerCase();
+  if (flag === 'quality' || flag === '0' || flag === 'false') return 'quality';
+  return 'speed';
+}
 
-  if (process.env.SG16_AI_API_URL && cleanKey(process.env.SG16_AI_API_KEY)) {
-    return {
-      id: 'custom',
-      apiUrl: process.env.SG16_AI_API_URL,
-      apiKey: cleanKey(process.env.SG16_AI_API_KEY),
-      models: getGroqStyleModels(),
-    };
-  }
-
+function getGroqProvider() {
   const groqKey =
     cleanKey(process.env.SG16_AI_API_KEY) || cleanKey(process.env.SG16_ROUTER_API_KEY);
-  if (groqKey) {
-    return {
-      id: 'groq',
-      apiUrl: 'https://api.groq.com/openai/v1/chat/completions',
-      apiKey: groqKey,
-      models: getGroqStyleModels(),
-    };
+  if (!groqKey) return null;
+
+  if (process.env.SG16_AI_API_URL && cleanKey(process.env.SG16_AI_API_KEY)) {
+    const url = process.env.SG16_AI_API_URL.trim();
+    if (!url.includes('groq.com')) return null;
   }
 
+  return {
+    id: 'groq',
+    apiUrl: 'https://api.groq.com/openai/v1/chat/completions',
+    apiKey: groqKey,
+    models: getGroqStyleModels(),
+  };
+}
+
+function getXaiProvider() {
+  const key = cleanKey(process.env.XAI_API_KEY);
+  if (!key) return null;
+  return {
+    id: 'xai',
+    apiUrl: 'https://api.x.ai/v1/chat/completions',
+    apiKey: key,
+    models: {
+      text: process.env.SG16_AI_MODEL_TEXT || 'grok-2-latest',
+      reasoning: process.env.SG16_AI_MODEL_REASONING || 'grok-2-latest',
+      coding: process.env.SG16_AI_MODEL_CODING || process.env.SG16_AI_MODEL_REASONING || 'grok-2-latest',
+      vision: process.env.SG16_AI_MODEL_VISION || 'grok-2-vision-latest',
+    },
+  };
+}
+
+function getCustomProvider() {
+  if (!process.env.SG16_AI_API_URL || !cleanKey(process.env.SG16_AI_API_KEY)) return null;
+  const url = process.env.SG16_AI_API_URL.trim();
+  if (url.includes('groq.com')) return null;
+  return {
+    id: 'custom',
+    apiUrl: url,
+    apiKey: cleanKey(process.env.SG16_AI_API_KEY),
+    models: getGroqStyleModels(),
+  };
+}
+
+export function getPrimaryProvider() {
+  const groq = getGroqProvider();
+  const xai = getXaiProvider();
+  const custom = getCustomProvider();
+
+  if (getSpeedMode() === 'speed') {
+    if (groq) return groq;
+    if (xai) return xai;
+    if (custom) return custom;
+    return null;
+  }
+
+  if (xai) return xai;
+  if (groq) return groq;
+  if (custom) return custom;
   return null;
 }
 
@@ -112,8 +145,9 @@ export function getBackupProvider() {
 
 function getGroqStyleModels() {
   return {
-    text: process.env.SG16_AI_MODEL_TEXT || 'llama-3.3-70b-versatile',
+    text: process.env.SG16_AI_MODEL_TEXT || 'llama-3.1-8b-instant',
     reasoning: process.env.SG16_AI_MODEL_REASONING || 'llama-3.3-70b-versatile',
+    coding: process.env.SG16_AI_MODEL_CODING || 'llama-3.3-70b-versatile',
     vision: process.env.SG16_AI_MODEL_VISION || 'meta-llama/llama-4-scout-17b-16e-instruct',
   };
 }
@@ -187,11 +221,22 @@ export function getVisionModelChain(provider = getPrimaryProvider()) {
   return [...new Set(visionModels.filter(Boolean))];
 }
 
-function getProviderChain() {
+export function getProviderChain() {
   const chain = [];
-  const primary = getPrimaryProvider();
+  const groq = getGroqProvider();
+  const xai = getXaiProvider();
+  const custom = getCustomProvider();
   const backup = getBackupProvider();
-  if (primary) chain.push(primary);
+
+  if (getSpeedMode() === 'speed') {
+    if (groq) chain.push(groq);
+    if (xai) chain.push(xai);
+  } else {
+    if (xai) chain.push(xai);
+    if (groq) chain.push(groq);
+  }
+
+  if (custom && !chain.some((p) => p.id === custom.id)) chain.push(custom);
   if (backup) chain.push(backup);
   return chain;
 }
@@ -251,6 +296,7 @@ export async function callWithModelFallback({
   models,
   temperature = 0.7,
   maxTokens = 2048,
+  timeoutMs = 90000,
 }) {
   const providers = getProviderChain();
   if (!providers.length) {
@@ -274,6 +320,7 @@ export async function callWithModelFallback({
           model,
           temperature,
           maxTokens,
+          timeoutMs,
           provider,
         });
         return { content, model, provider: provider.id };
@@ -364,6 +411,9 @@ export function getProviderStatus() {
   return {
     primary: primary ? primary.id : null,
     backup: backup ? backup.id : null,
+    speedMode: getSpeedMode(),
+    chatModel: primary?.models?.text || null,
+    codingModel: primary?.models?.coding || primary?.models?.reasoning || null,
     backupModel: backup?.models?.text || null,
     backupVision: backup?.models?.vision || process.env.SG16_BACKUP_MODEL_VISION || null,
     openRouter: backup?.id === 'openrouter',

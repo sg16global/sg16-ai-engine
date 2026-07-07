@@ -2,7 +2,8 @@ import { createOrEditImage, getImageAction } from './imageEngine.js';
 import { serverCanAccessWorkspace, serverAccessDeniedMessage } from './access.js';
 import { getEntitlements } from './userLedger.js';
 import { needsWebSearch, searchAndAnswer } from './webSearch.js';
-import { callWithModelFallback, callWithVisionFallback, getTextModelChain, isRateLimitError } from './sg16Provider.js';
+import { callWithModelFallback, callWithVisionFallback, isRateLimitError } from './sg16Provider.js';
+import { getGenerationProfile, getModelChainForProfile } from './modelRouting.js';
 import { callGeminiChat, callGeminiVision, shouldPreferGeminiForDocument, hasGeminiKey } from './geminiProvider.js';
 
 const SG16_IDENTITY = `You are SG16 AI Engine by SaifTech Global Limited.
@@ -16,7 +17,9 @@ For current events, news, weather, prices, or anything time-sensitive, SG16 AI u
 const WORKSPACE_PROMPTS = {
   general: BASE_SYSTEM,
   coding: `${SG16_IDENTITY}
-You are SG16 Coding Workspace. Expert software engineer. Write clean, production-ready code with brief explanations. Use markdown code blocks with language tags.`,
+You are SG16 Coding Workspace. Expert software engineer.
+Write clean, production-ready code with brief explanations. Use markdown code blocks with language tags.
+Be concise — prioritize working code and clear fixes over long essays.`,
   image: `${SG16_IDENTITY}
 You are SG16 Image Workspace. SG16 AI can create images from prompts and analyze uploaded photos.
 When users ask to create or describe visuals, respond briefly and professionally as SG16 AI.`,
@@ -33,9 +36,10 @@ You are SG16 Memory Vault. Help users organize, recall, and connect saved knowle
 };
 
 const MODELS = {
-  text: process.env.SG16_AI_MODEL_TEXT || 'llama-3.3-70b-versatile',
+  text: process.env.SG16_AI_MODEL_TEXT || 'llama-3.1-8b-instant',
   vision: process.env.SG16_AI_MODEL_VISION || 'meta-llama/llama-4-scout-17b-16e-instruct',
   reasoning: process.env.SG16_AI_MODEL_REASONING || 'llama-3.3-70b-versatile',
+  coding: process.env.SG16_AI_MODEL_CODING || 'llama-3.3-70b-versatile',
 };
 
 function getApiKey() {
@@ -99,10 +103,12 @@ function detectIntent(message, workspaceId, hasImage) {
   return 'text';
 }
 
-async function callSg16AI({ messages, model }) {
+async function callSg16AI({ messages, model, workspaceId = 'general', intent = 'text' }) {
   if (!hasApiKey() && !hasGeminiKey()) {
     throw new Error('SG16 AI is not configured');
   }
+
+  const profile = getGenerationProfile(workspaceId, intent === 'code' ? 'code' : intent);
 
   if (model === MODELS.vision) {
     try {
@@ -128,15 +134,14 @@ async function callSg16AI({ messages, model }) {
     }
   }
 
-  const chain =
-    model === MODELS.reasoning
-      ? [MODELS.reasoning, ...getTextModelChain()]
-      : [model, ...getTextModelChain().filter((m) => m !== model)];
+  const chain = getModelChainForProfile(profile);
 
   const { content } = await callWithModelFallback({
     messages,
-    models: chain,
-    temperature: 0.7,
+    models: chain.length ? chain : [model],
+    temperature: profile.temperature,
+    maxTokens: profile.maxTokens,
+    timeoutMs: profile.timeoutMs,
   });
   return content;
 }
@@ -166,7 +171,15 @@ async function callDocumentAI({ workspaceId, message, history, targetLanguage, m
   return callSg16AI({ messages, model: MODELS.text });
 }
 
-function buildMessages({ workspaceId, message, imageUrl, history = [], targetLanguage, memoryContext }) {
+function buildMessages({
+  workspaceId,
+  message,
+  imageUrl,
+  history = [],
+  targetLanguage,
+  memoryContext,
+  historyLimit = 8,
+}) {
   let system = WORKSPACE_PROMPTS[workspaceId] || BASE_SYSTEM;
   if (targetLanguage) {
     system += `\nTranslate all content to ${targetLanguage}. Format: Original → Translation.`;
@@ -176,7 +189,7 @@ function buildMessages({ workspaceId, message, imageUrl, history = [], targetLan
   }
 
   const messages = [{ role: 'system', content: system }];
-  for (const msg of history.slice(-10)) {
+  for (const msg of history.slice(-historyLimit)) {
     messages.push({ role: msg.role, content: msg.content });
   }
 
@@ -197,7 +210,8 @@ function buildMessages({ workspaceId, message, imageUrl, history = [], targetLan
 
 function pickModel(intent) {
   if (intent === 'vision') return MODELS.vision;
-  if (intent === 'reasoning' || intent === 'code') return MODELS.reasoning;
+  if (intent === 'code') return MODELS.coding;
+  if (intent === 'reasoning') return MODELS.reasoning;
   return MODELS.text;
 }
 
@@ -234,6 +248,7 @@ export async function handleUserMessage({
   }
 
   const intent = detectIntent(message, workspaceId, !!imageUrl);
+  const profile = getGenerationProfile(workspaceId, intent);
   const model = pickModel(intent);
   const messages = buildMessages({
     workspaceId,
@@ -242,6 +257,7 @@ export async function handleUserMessage({
     history,
     targetLanguage,
     memoryContext,
+    historyLimit: profile.historyLimit,
   });
 
   const reply =
@@ -253,7 +269,7 @@ export async function handleUserMessage({
           targetLanguage,
           memoryContext,
         })
-      : await callSg16AI({ messages, model });
+      : await callSg16AI({ messages, model, workspaceId, intent });
 
   return { reply };
 }

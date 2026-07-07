@@ -28,6 +28,7 @@ import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { hasGeminiKey } from './lib/geminiProvider.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
+import { getActiveProviderSummary } from './lib/modelRouting.js';
 import { isLaunchFree } from './lib/launchMode.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
 
@@ -117,6 +118,7 @@ app.get('/health', async (_req, res) => {
     documentAnalysis: hasGeminiKey() ? 'gemini' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     providers: getProviderStatus(),
+    speed: getActiveProviderSummary(),
     modelFallbacks: getTextModelChain(),
   });
 });
