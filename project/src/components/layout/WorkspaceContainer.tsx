@@ -37,8 +37,9 @@ export const WorkspaceContainer = () => {
     return <UpgradeGate workspaceId={workspaceId} />;
   }
 
-
-
+  return (
+    <div key={currentWorkspace} className="h-full min-h-0">
+      {(() => {
   switch (currentWorkspace) {
 
     case 'coding':
@@ -78,6 +79,9 @@ export const WorkspaceContainer = () => {
       return null;
 
   }
+      })()}
+    </div>
+  );
 
 };
 

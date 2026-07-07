@@ -7,6 +7,21 @@ import { uid } from '../../lib/utils';
 import { SG16_BRAND } from '../../core/branding';
 import type { Message, WorkspaceId } from '../../core/types';
 
+const workspaceLabels: Record<WorkspaceId, string> = {
+  general: SG16_BRAND.chatName,
+  coding: 'Coding Hub',
+  image: 'Image Studio',
+  document: 'Document Lab',
+  'student-shield': 'Student Shield',
+  translate: 'Translate',
+  voice: 'Voice AI',
+  memory: 'Memory Vault',
+};
+
+function workspaceLabel(id: WorkspaceId) {
+  return workspaceLabels[id];
+}
+
 interface ChatPanelProps {
   workspaceId: WorkspaceId;
   placeholder?: string;
@@ -51,14 +66,19 @@ export function ChatPanel({
   const [pendingDoc, setPendingDoc] = useState<{ name: string; text: string } | null>(null);
   const [listening, setListening] = useState(false);
   const [activeLoadingLabel, setActiveLoadingLabel] = useState(loadingLabel);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   useEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0;
+  }, [workspaceId]);
+
+  useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+  }, [messages, loading, workspaceId]);
 
   const sendMessage = useCallback(
     async (text?: string, image?: string) => {
@@ -217,8 +237,11 @@ export function ChatPanel({
   };
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex items-center justify-end px-4 py-2 border-b border-white/5 gap-2">
+    <div key={workspaceId} className="h-full flex flex-col">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 gap-2">
+        <span className="text-[11px] text-gray-500 truncate">
+          {workspaceLabel(workspaceId)} · separate chat
+        </span>
         {messages.length > 0 && (
           <button
             type="button"
@@ -230,7 +253,7 @@ export function ChatPanel({
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 space-y-4">
+      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4 mobile-scroll-main">
         {messages.length === 0 && suggestions.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {suggestions.map((s) => (

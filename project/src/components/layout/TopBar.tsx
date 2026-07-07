@@ -113,12 +113,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
 
       <div className="flex-1 flex items-center gap-2 min-w-0 justify-center lg:justify-start">
         <Sg16Logo className="w-8 h-8 lg:hidden shrink-0" />
-        <div className="min-w-0 text-center lg:text-left">
-          <div className="text-sm lg:text-lg font-semibold truncate leading-tight">
-            <span className="lg:hidden">{SG16_BRAND.shortName}</span>
-            <span className="hidden lg:inline">{title}</span>
-          </div>
-          <div className="text-[10px] lg:hidden text-emerald-400 truncate">{title}</div>
+          <div className="min-w-0 text-center lg:text-left flex-1">
+          <div className="text-sm lg:text-lg font-semibold truncate leading-tight">{title}</div>
         </div>
       </div>
 

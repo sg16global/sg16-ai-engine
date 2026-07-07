@@ -37,7 +37,7 @@ export function HistoryPanel() {
         <h1 className="text-2xl font-bold">This session</h1>
         <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
           <Shield className="w-4 h-4 text-emerald-400" />
-          Privacy mode — messages exist only in this tab and are wiped when you close it.
+          Each workspace has its own chat. Saved on this device only — not on SG16 servers.
         </p>
       </div>
 

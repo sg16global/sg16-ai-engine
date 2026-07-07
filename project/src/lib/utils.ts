@@ -59,15 +59,39 @@ export function saveSubscription(subscription: Subscription) {
   localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscription));
 }
 
-/** @deprecated Chat is session-only — no-op for compatibility */
-export function saveChatHistory(_messages: Record<WorkspaceId, Message[]>) {}
+const CHAT_KEY_PREFIX = 'sg16_chat_device';
 
-/** @deprecated Returns empty history — messages live in memory only */
-export function loadChatHistory(): Record<WorkspaceId, Message[]> {
-  return emptyChatHistory();
+function chatStorageKey(userId?: string | null) {
+  return userId ? `${CHAT_KEY_PREFIX}_${userId}` : `${CHAT_KEY_PREFIX}_guest`;
 }
 
-export function clearAllChatHistory() {}
+/** Saved on this device only — never sent to SG16 servers. */
+export function saveChatHistory(messages: Record<WorkspaceId, Message[]>, userId?: string | null) {
+  try {
+    localStorage.setItem(chatStorageKey(userId), JSON.stringify(messages));
+  } catch {
+    /* storage full — keep in-memory session */
+  }
+}
+
+export function loadChatHistory(userId?: string | null): Record<WorkspaceId, Message[]> {
+  try {
+    const raw = localStorage.getItem(chatStorageKey(userId));
+    if (!raw) return emptyChatHistory();
+    const parsed = JSON.parse(raw) as Partial<Record<WorkspaceId, Message[]>>;
+    return { ...emptyChatHistory(), ...parsed };
+  } catch {
+    return emptyChatHistory();
+  }
+}
+
+export function clearChatHistoryForUser(userId?: string | null) {
+  localStorage.removeItem(chatStorageKey(userId));
+}
+
+export function clearAllChatHistory(userId?: string | null) {
+  clearChatHistoryForUser(userId);
+}
 
 export function clearAllMemories() {
   sessionStorage.removeItem(MEMORY_KEY);
@@ -109,8 +133,8 @@ export function formatMemoryContext(): string {
     .join('\n');
 }
 
-export function clearSessionData() {
-  clearAllChatHistory();
+export function clearSessionData(userId?: string | null) {
+  clearAllChatHistory(userId);
   clearAllMemories();
   clearSessionSettings();
 }

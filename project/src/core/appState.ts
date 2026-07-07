@@ -12,10 +12,14 @@ import type {
 import { canAccessWorkspace, defaultSubscription, isAuthenticated } from './access';
 import { enrichAuthUser } from './authSession';
 import {
+  clearAllMemories,
   clearSessionData,
+  clearSessionSettings,
   emptyChatHistory,
+  loadChatHistory,
   loadSettings,
   loadSubscription,
+  saveChatHistory,
   saveSettings,
   saveSubscription,
   type AppSettings,
@@ -82,6 +86,10 @@ interface AppState {
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+}
+
+function persistMessages(messages: AppState['messages'], userId?: string | null) {
+  saveChatHistory(messages, userId);
 }
 
 function tryOpenWorkspace(
@@ -167,11 +175,13 @@ export const useAppStore = create<AppState>((set, getState) => ({
     const settings = { ...getState().settings, displayName: enriched.name };
     saveSettings(settings);
     const pending = getState().pendingAuthAction;
+    const messages = loadChatHistory(enriched.id);
     set({
       authToken: token,
       authUser: enriched,
       subscription,
       settings,
+      messages,
       loginModalOpen: false,
       pendingAuthAction: null,
       error: null,
@@ -245,16 +255,20 @@ export const useAppStore = create<AppState>((set, getState) => ({
         ? { ...defaultSubscription(), ...me.subscription }
         : getState().subscription;
       saveSubscription(subscription);
-      set({ authUser: user, subscription, settings: { ...getState().settings, displayName: user.name } });
+      const messages = loadChatHistory(user.id);
+      set({ authUser: user, subscription, messages, settings: { ...getState().settings, displayName: user.name } });
     } catch {
       clearAuthToken();
-      set({ authToken: null, authUser: null });
+      set({ authToken: null, authUser: null, messages: emptyChatHistory() });
     }
   },
 
   logout: () => {
+    const userId = getState().authUser?.id;
+    persistMessages(getState().messages, userId);
     clearAuthToken();
-    getState().wipeSession();
+    clearAllMemories();
+    clearSessionSettings();
     pushAppPath('/', true);
     set({
       authUser: null,
@@ -262,11 +276,13 @@ export const useAppStore = create<AppState>((set, getState) => ({
       loginModalOpen: false,
       pendingAuthAction: null,
       currentWorkspace: 'home',
+      messages: emptyChatHistory(),
     });
   },
 
   wipeSession: () => {
-    clearSessionData();
+    const userId = getState().authUser?.id;
+    clearSessionData(userId);
     set({ messages: emptyChatHistory() });
   },
 
@@ -405,19 +421,27 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   addMessage: (workspaceId, message) =>
-    set((state) => ({
-      messages: {
+    set((state) => {
+      const messages = {
         ...state.messages,
         [workspaceId]: [...state.messages[workspaceId], message],
-      },
-    })),
+      };
+      persistMessages(messages, state.authUser?.id);
+      return { messages };
+    }),
 
   clearMessages: (workspaceId) =>
-    set((state) => ({
-      messages: { ...state.messages, [workspaceId]: [] },
-    })),
+    set((state) => {
+      const messages = { ...state.messages, [workspaceId]: [] };
+      persistMessages(messages, state.authUser?.id);
+      return { messages };
+    }),
 
-  clearAllMessages: () => set({ messages: emptyChatHistory() }),
+  clearAllMessages: () =>
+    set((state) => {
+      persistMessages(emptyChatHistory(), state.authUser?.id);
+      return { messages: emptyChatHistory() };
+    }),
 
   updateSettings: (patch) =>
     set((state) => {
@@ -436,6 +460,7 @@ if (typeof window !== 'undefined') {
   });
 
   window.addEventListener('beforeunload', () => {
-    useAppStore.getState().wipeSession();
+    const { messages, authUser } = useAppStore.getState();
+    persistMessages(messages, authUser?.id);
   });
 }

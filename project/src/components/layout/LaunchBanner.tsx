@@ -9,7 +9,7 @@ export function LaunchBanner() {
   if (!launchFree) return null;
 
   return (
-    <div className="shrink-0 border-b border-emerald-500/20 bg-gradient-to-r from-emerald-950/80 via-emerald-900/40 to-cyan-950/60 px-3 sm:px-6 py-2.5">
+    <div className="hidden lg:block shrink-0 border-b border-emerald-500/20 bg-gradient-to-r from-emerald-950/80 via-emerald-900/40 to-cyan-950/60 px-3 sm:px-6 py-2.5">
       <div className="flex items-start sm:items-center gap-2.5 text-xs sm:text-sm text-emerald-100/95 max-w-6xl mx-auto">
         <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5 sm:mt-0" />
         <p className="leading-relaxed">

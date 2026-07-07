@@ -228,6 +228,10 @@ function AppShell() {
 
   };
 
+  const isChatWorkspace = !(
+    ['home', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
+  ).includes(currentWorkspace);
+
 
 
   return (
@@ -248,7 +252,11 @@ function AppShell() {
 
         <LaunchBanner />
 
-        <main className="flex-1 overflow-auto overscroll-contain mobile-scroll-main pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0">
+        <main
+          className={`flex-1 overscroll-contain mobile-scroll-main pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 min-h-0 ${
+            isChatWorkspace ? 'overflow-hidden' : 'overflow-auto'
+          }`}
+        >
 
           {mainContent()}
 

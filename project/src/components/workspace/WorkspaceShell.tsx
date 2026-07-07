@@ -17,7 +17,7 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
   return (
     <div className="h-full flex flex-col bg-[#050507]">
-      <div className="px-6 py-5 border-b border-white/10">
+      <div className="px-6 py-5 border-b border-white/10 hidden lg:block shrink-0">
         <div className="flex items-center gap-3 flex-wrap">
           <div>
             <h1 className="text-2xl font-bold">{title}</h1>
