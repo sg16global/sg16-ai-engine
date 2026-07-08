@@ -13,13 +13,12 @@ import {
 import { SG16_BRAND } from '../../core/branding';
 import { SG16_PUBLIC_URL } from '../../core/routes';
 import { Sg16Logo } from '../ui/Sg16Logo';
+import { OptimizedImage } from '../ui/OptimizedImage';
 import { LandingGoogleSignIn } from './LandingGoogleSignIn';
 import { LandingHeader } from './LandingHeader';
 import './landingStyles.css';
 
 const HERO_BACKGROUND = '/landing/hero-background.png';
-const HERO_BACKGROUND_WEBP = '/landing/hero-background.webp';
-const HERO_BACKGROUND_MOBILE_WEBP = '/landing/hero-background-mobile.webp';
 
 const featureCards = [
   { icon: MessageSquare, title: 'AI Chat', desc: 'Smart conversations powered by SG16', slot: 'tl' },
@@ -79,19 +78,15 @@ function HeroBackground() {
   return (
     <section className="landing-hero-wrap px-0 sm:px-1" aria-label="SG16 AI Engine">
       <div className="relative" id="features">
-        <picture>
-          <source media="(max-width: 768px)" srcSet={HERO_BACKGROUND_MOBILE_WEBP} type="image/webp" />
-          <source srcSet={HERO_BACKGROUND_WEBP} type="image/webp" />
-          <img
-            src={HERO_BACKGROUND}
-            alt="SG16 — Most Powerful AI Engine. Powered by SG16 Engine."
-            className="landing-hero-img"
-            width={1100}
-            height={900}
-            fetchPriority="high"
-            decoding="async"
-          />
-        </picture>
+        <OptimizedImage
+          src={HERO_BACKGROUND}
+          alt="SG16 — Most Powerful AI Engine. Powered by SG16 Engine."
+          className="landing-hero-img"
+          width={1100}
+          height={900}
+          fetchPriority="high"
+          decoding="async"
+        />
         <div className="landing-hero-fade" aria-hidden />
 
         {/* Desktop feature orbit */}

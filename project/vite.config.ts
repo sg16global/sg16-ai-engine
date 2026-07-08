@@ -16,6 +16,7 @@ export default defineConfig({
         'hero-globe.svg',
         'landing/*.png',
         'landing/*.webp',
+        '*.webp',
         'icons/*.svg',
         'icons/*.png',
         'favicon.svg',
