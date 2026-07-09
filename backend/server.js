@@ -31,6 +31,7 @@ import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
 import { isLaunchFree } from './lib/launchMode.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
+import { handleSpeechTranscribe, speechTranscriptionAvailable } from './lib/speechEngine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -117,6 +118,7 @@ app.get('/health', async (_req, res) => {
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
     documentAnalysis: hasGeminiKey() ? 'gemini' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
+    voice: speechTranscriptionAvailable() ? 'ready' : 'needs_api_key',
     providers: getProviderStatus(),
     speed: getActiveProviderSummary(),
     modelFallbacks: getTextModelChain(),
@@ -135,6 +137,7 @@ app.post('/api/v1/billing/portal', requireAuth, handleBillingPortal);
 
 app.post('/api/v1/route', requireAuth, handleRouteRequest);
 app.post('/api/v1/chat', requireAuth, handleChatRequest);
+app.post('/api/v1/speech/transcribe', requireAuth, handleSpeechTranscribe);
 app.post('/api/v1/student/verify', requireAuth, handleStudentVerifyRequest);
 
 const indexPath = path.join(frontendDist, 'index.html');

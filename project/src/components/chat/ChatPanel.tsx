@@ -4,6 +4,7 @@ import { useAppStore } from '../../core/appState';
 import { isStudentVerified } from '../../core/access';
 import { sendChat, readDocumentFile, readImageFile } from '../../lib/chatApi';
 import { uid } from '../../lib/utils';
+import { startVoiceCapture, speakText, voiceInputAvailable } from '../../lib/voiceInput';
 import { SG16_BRAND } from '../../core/branding';
 import type { Message, WorkspaceId } from '../../core/types';
 
@@ -70,7 +71,7 @@ export function ChatPanel({
   const bottomRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const voiceSessionRef = useRef<ReturnType<typeof startVoiceCapture> | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
@@ -144,10 +145,8 @@ export function ChatPanel({
           liveSearch: result.liveSearch,
         });
 
-        if (allowVoice && 'speechSynthesis' in window) {
-          const utter = new SpeechSynthesisUtterance(result.reply.slice(0, 500));
-          utter.rate = 1;
-          window.speechSynthesis.speak(utter);
+        if (allowVoice && result.reply) {
+          speakText(result.reply);
         }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Something went wrong';
@@ -181,34 +180,47 @@ export function ChatPanel({
     else if (pendingImg) sendMessage('Analyze this image', pendingImg);
   }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const toggleVoice = () => {
-    const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) {
-      setError('Voice input is not supported in this browser.');
-      return;
-    }
-    if (listening && recognitionRef.current) {
-      recognitionRef.current.stop();
-      setListening(false);
-      return;
-    }
-    const rec = new SR();
-    rec.lang = 'en-US';
-    rec.interimResults = false;
-    rec.onresult = (e: SpeechRecognitionEvent) => {
-      const transcript = e.results[0][0].transcript;
-      setListening(false);
-      if (settings.autoSendVoice) {
-        sendMessage(transcript);
-      } else {
-        setInput(transcript);
-      }
+  useEffect(() => {
+    return () => {
+      voiceSessionRef.current?.cancel();
+      voiceSessionRef.current = null;
     };
-    rec.onerror = () => setListening(false);
-    rec.onend = () => setListening(false);
-    recognitionRef.current = rec;
-    rec.start();
-    setListening(true);
+  }, [workspaceId]);
+
+  const toggleVoice = () => {
+    requireAuth(async () => {
+      if (!voiceInputAvailable()) {
+        setError('Voice input is not supported on this device. Type your message instead.');
+        return;
+      }
+
+      if (listening && voiceSessionRef.current) {
+        setListening(false);
+        try {
+          const transcript = await voiceSessionRef.current.stop();
+          voiceSessionRef.current = null;
+          if (settings.autoSendVoice) {
+            await sendMessage(transcript);
+          } else {
+            setInput(transcript);
+          }
+        } catch (err) {
+          voiceSessionRef.current = null;
+          setError(err instanceof Error ? err.message : 'Voice input failed');
+        }
+        return;
+      }
+
+      try {
+        setError(null);
+        voiceSessionRef.current = startVoiceCapture('en-US');
+        setListening(true);
+      } catch (err) {
+        voiceSessionRef.current = null;
+        setListening(false);
+        setError(err instanceof Error ? err.message : 'Voice input failed');
+      }
+    });
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -368,7 +380,7 @@ export function ChatPanel({
               type="button"
               onClick={toggleVoice}
               className={`p-2.5 rounded-xl shrink-0 ${listening ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/10'}`}
-              title="Voice input"
+              title={listening ? 'Stop recording' : 'Voice input — tap, speak, tap again on iPhone'}
             >
               {listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
             </button>
@@ -404,16 +416,15 @@ export function ChatPanel({
             type="button"
             onClick={() => {
               const last = [...messages].reverse().find((m) => m.role === 'assistant');
-              if (last && 'speechSynthesis' in window) {
-                window.speechSynthesis.cancel();
-                const u = new SpeechSynthesisUtterance(last.content.slice(0, 800));
-                window.speechSynthesis.speak(u);
-              }
+              if (last) speakText(last.content);
             }}
             className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 hover:text-emerald-400"
           >
             <Volume2 className="w-3.5 h-3.5" /> Read last reply aloud
           </button>
+        )}
+        {allowVoice && listening && (
+          <p className="mt-1 text-[11px] text-pink-400">Recording… tap mic again when finished speaking.</p>
         )}
       </div>
     </div>

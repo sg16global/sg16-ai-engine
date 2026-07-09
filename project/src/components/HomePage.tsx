@@ -2,6 +2,7 @@ import { useState, useRef } from 'react';
 import { useAppStore } from '../core/appState';
 import { detectIntent } from '../core/engine';
 import { readImageFile } from '../lib/chatApi';
+import { startVoiceCapture, voiceInputAvailable } from '../lib/voiceInput';
 import { WorkspaceType } from '../core/types';
 import { SG16_BRAND } from '../core/branding';
 import { Sg16Logo } from './ui/Sg16Logo';
@@ -142,6 +143,7 @@ export const HomePage = () => {
   const [inputValue, setInputValue] = useState('');
   const [routing, setRouting] = useState(false);
   const [listening, setListening] = useState(false);
+  const voiceSessionRef = useRef<ReturnType<typeof startVoiceCapture> | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
 
   const runAsk = async (query?: string) => {
@@ -171,26 +173,32 @@ export const HomePage = () => {
   };
 
   const handleVoiceInput = () => {
-    requireAuth(() => {
-      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-      if (!SR) return;
-      if (listening) {
-        setListening(false);
+    requireAuth(async () => {
+      if (!voiceInputAvailable()) {
+        useAppStore.getState().setError('Voice input is not supported on this device.');
         return;
       }
-      const rec = new SR();
-      rec.lang = 'en-US';
-      rec.interimResults = false;
-      rec.onresult = (e: SpeechRecognitionEvent) => {
-        const transcript = e.results[0][0].transcript;
-        setInputValue(transcript);
+
+      if (listening && voiceSessionRef.current) {
         setListening(false);
-        void runAsk(transcript);
-      };
-      rec.onerror = () => setListening(false);
-      rec.onend = () => setListening(false);
-      rec.start();
-      setListening(true);
+        try {
+          const transcript = await voiceSessionRef.current.stop();
+          voiceSessionRef.current = null;
+          setInputValue(transcript);
+          await runAsk(transcript);
+        } catch {
+          voiceSessionRef.current = null;
+        }
+        return;
+      }
+
+      try {
+        voiceSessionRef.current = startVoiceCapture('en-US');
+        setListening(true);
+      } catch {
+        voiceSessionRef.current = null;
+        setListening(false);
+      }
     });
   };
 

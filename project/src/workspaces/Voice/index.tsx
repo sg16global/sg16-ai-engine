@@ -4,7 +4,7 @@ import { ChatPanel } from '../../components/chat/ChatPanel';
 export const VoiceWorkspace = () => (
   <WorkspaceShell
     title="Voice AI"
-    subtitle="Speak naturally — SG16 AI responds for voice playback"
+    subtitle="Tap mic → speak → tap mic again. Works on iPhone via SG16 server."
     badge="Voice"
     badgeClass="text-pink-400"
   >
