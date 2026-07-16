@@ -1,10 +1,9 @@
 import { getEntitlements, setStudentVerification } from './userLedger.js';
 import { isLaunchFree } from './launchMode.js';
 import { callWithVisionFallback } from './sg16Provider.js';
-import { callGeminiVision, hasGeminiKey } from './geminiProvider.js';
 
 const VERIFY_SYSTEM = `You are SG16 AI Student Verification by SaifTech Global Limited.
-Analyze the uploaded photo for student ID verification. Never mention Groq, OpenAI, Gemini, or third-party providers.
+Analyze the uploaded photo for student ID verification. Never mention Groq, OpenAI, or third-party providers.
 Return ONLY valid JSON with these fields:
 {
   "selfieWithId": boolean,
@@ -60,22 +59,8 @@ async function callVision(imageUrl) {
     },
   ];
 
-  let content = '';
-
-  try {
-    const result = await callWithVisionFallback({ messages, temperature: 0.1 });
-    content = result.content;
-  } catch (groqErr) {
-    if (hasGeminiKey()) {
-      content = await callGeminiVision({
-        system: VERIFY_SYSTEM,
-        userText: 'Verify this student ID selfie. Return JSON only.',
-        imageUrl,
-      });
-    } else {
-      throw groqErr;
-    }
-  }
+  const result = await callWithVisionFallback({ messages, temperature: 0.1 });
+  const content = result.content;
 
   const parsed = extractJson(content);
   if (!parsed) {

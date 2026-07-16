@@ -4,7 +4,6 @@ import { getEntitlements } from './userLedger.js';
 import { needsWebSearch, searchAndAnswer } from './webSearch.js';
 import { callWithModelFallback, callWithVisionFallback, isRateLimitError } from './sg16Provider.js';
 import { getGenerationProfile, getModelChainForProfile } from './modelRouting.js';
-import { callGeminiChat, callGeminiVision, shouldPreferGeminiForDocument, hasGeminiKey } from './geminiProvider.js';
 
 const SG16_IDENTITY = `You are SG16 AI Engine by SaifTech Global Limited.
 Never mention Groq, Grok, xAI, OpenAI, Llama, or any third-party AI provider.
@@ -104,34 +103,15 @@ function detectIntent(message, workspaceId, hasImage) {
 }
 
 async function callSg16AI({ messages, model, workspaceId = 'general', intent = 'text' }) {
-  if (!hasApiKey() && !hasGeminiKey()) {
+  if (!hasApiKey()) {
     throw new Error('SG16 AI is not configured');
   }
 
   const profile = getGenerationProfile(workspaceId, intent === 'code' ? 'code' : intent);
 
   if (model === MODELS.vision) {
-    try {
-      const { content } = await callWithVisionFallback({ messages, temperature: 0.7 });
-      return content;
-    } catch (visionErr) {
-      if (hasGeminiKey()) {
-        const userMsg = messages.find((m) => m.role === 'user');
-        const system = messages.find((m) => m.role === 'system')?.content || '';
-        let imageUrl;
-        let text = '';
-        if (Array.isArray(userMsg?.content)) {
-          for (const part of userMsg.content) {
-            if (part.type === 'text') text = part.text;
-            if (part.type === 'image_url') imageUrl = part.image_url.url;
-          }
-        }
-        if (imageUrl) {
-          return callGeminiVision({ system, userText: text || 'Analyze this image.', imageUrl });
-        }
-      }
-      throw visionErr;
-    }
+    const { content } = await callWithVisionFallback({ messages, temperature: 0.7 });
+    return content;
   }
 
   const chain = getModelChainForProfile(profile);
@@ -154,19 +134,6 @@ async function callDocumentAI({ workspaceId, message, history, targetLanguage, m
     targetLanguage,
     memoryContext,
   });
-
-  if (shouldPreferGeminiForDocument(workspaceId)) {
-    try {
-      const { content } = await callGeminiChat({
-        messages,
-        temperature: 0.4,
-        maxTokens: 4096,
-      });
-      return content;
-    } catch (err) {
-      console.warn('SG16 Gemini document analysis failed — using Groq:', err.message);
-    }
-  }
 
   return callSg16AI({ messages, model: MODELS.text });
 }

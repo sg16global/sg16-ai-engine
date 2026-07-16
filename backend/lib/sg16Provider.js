@@ -214,7 +214,7 @@ export function getVisionModelChain(provider = getPrimaryProvider()) {
   if (provider.id === 'openrouter' || provider.id === 'backup') {
     const backupVision =
       process.env.SG16_BACKUP_MODEL_VISION ||
-      'google/gemini-2.0-flash-exp:free';
+      'meta-llama/llama-3.2-11b-vision-instruct:free';
     visionModels.push(backupVision);
   }
 

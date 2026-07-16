@@ -25,7 +25,6 @@ import {
 } from './lib/billing.js';
 import { isPaddleConfigured } from './lib/paddle.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
-import { hasGeminiKey } from './lib/geminiProvider.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
@@ -116,7 +115,7 @@ app.get('/health', async (_req, res) => {
     database: db,
     launchFree: isLaunchFree(),
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
-    documentAnalysis: hasGeminiKey() ? 'gemini' : 'groq',
+    documentAnalysis: 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     voice: speechTranscriptionAvailable() ? 'ready' : 'needs_api_key',
     providers: getProviderStatus(),
