@@ -45,6 +45,8 @@ import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
 import { useTrialSync } from './hooks/useTrialSync';
 
 import type { WorkspaceType } from './core/types';
+import { HelperBot } from './components/help/HelperBot';
+import { skinForWorkspace } from './core/sectionThemes';
 
 
 
@@ -103,6 +105,7 @@ function AppShell() {
   const currentWorkspace = useAppStore((state) => state.currentWorkspace);
 
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const sectionSkin = skinForWorkspace(currentWorkspace);
 
 
 
@@ -236,7 +239,10 @@ function AppShell() {
 
   return (
 
-    <div className="flex h-[100dvh] bg-[#050507] text-white overflow-hidden">
+    <div
+      data-skin={sectionSkin}
+      className={`sg16-app-shell sg16-skin-${sectionSkin} flex h-[100dvh] text-white overflow-hidden`}
+    >
 
       <Sidebar />
 
@@ -267,6 +273,8 @@ function AppShell() {
 
 
       <MobileBottomNav />
+
+      <HelperBot />
 
       <InstallPrompt />
 

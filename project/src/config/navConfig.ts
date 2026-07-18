@@ -2,13 +2,9 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Home,
   Code2,
-  Image,
-  FileText,
   GraduationCap,
   MessageSquare,
-  Mic,
-  Languages,
-  Brain,
+  HeartPulse,
   Clock,
   Settings,
   HelpCircle,
@@ -24,16 +20,13 @@ export interface NavItem {
   mobileBottom?: boolean;
 }
 
+/** Only 4 worldwide services + Home */
 export const mainNavItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home, mobileBottom: true },
-  { id: 'coding', label: 'Coding Hub', icon: Code2, premium: true },
-  { id: 'image', label: 'Image Studio', icon: Image, premium: true },
-  { id: 'document', label: 'Document Lab', icon: FileText, premium: true },
+  { id: 'general', label: 'Chat', icon: MessageSquare, mobileBottom: true },
   { id: 'student-shield', label: 'Student Shield', icon: GraduationCap, premium: true },
-  { id: 'general', label: 'SG16 Chatting', icon: MessageSquare, mobileBottom: true },
-  { id: 'voice', label: 'Voice AI', icon: Mic, premium: true },
-  { id: 'translate', label: 'Translate', icon: Languages },
-  { id: 'memory', label: 'Memory Vault', icon: Brain, premium: true },
+  { id: 'coding', label: 'Coding', icon: Code2, premium: true },
+  { id: 'health', label: 'Health', icon: HeartPulse },
 ];
 
 export const utilityNavItems: NavItem[] = [
@@ -44,8 +37,8 @@ export const utilityNavItems: NavItem[] = [
 
 export const mobileBottomNavItems = [
   { id: 'home' as WorkspaceType, label: 'Home', icon: Home },
-  { id: 'history' as WorkspaceType, label: 'History', icon: Clock },
   { id: 'general' as WorkspaceType, label: 'Chat', icon: MessageSquare },
-  { id: 'settings' as WorkspaceType, label: 'Settings', icon: Settings },
+  { id: 'coding' as WorkspaceType, label: 'Coding', icon: Code2 },
+  { id: 'health' as WorkspaceType, label: 'Health', icon: HeartPulse },
   { id: 'pricing' as WorkspaceType, label: 'Premium', icon: Crown },
 ];

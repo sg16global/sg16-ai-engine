@@ -11,9 +11,10 @@ import type { Message, WorkspaceId } from '../../core/types';
 const workspaceLabels: Record<WorkspaceId, string> = {
   general: SG16_BRAND.chatName,
   coding: 'Coding Hub',
+  health: 'Health Guide',
+  'student-shield': 'Student Shield',
   image: 'Image Studio',
   document: 'Document Lab',
-  'student-shield': 'Student Shield',
   translate: 'Translate',
   voice: 'Voice AI',
   memory: 'Memory Vault',
@@ -56,6 +57,7 @@ export function ChatPanel({
   const setLoading = useAppStore((s) => s.setLoading);
   const setError = useAppStore((s) => s.setError);
   const consumePendingPrompt = useAppStore((s) => s.consumePendingPrompt);
+  const pendingPromptToken = useAppStore((s) => s.pendingPromptToken);
   const consumePendingImage = useAppStore((s) => s.consumePendingImage);
   const settings = useAppStore((s) => s.settings);
   const subscription = useAppStore((s) => s.subscription);
@@ -178,7 +180,7 @@ export function ChatPanel({
     if (pendingImg) setImageUrl(pendingImg);
     if (pending) sendMessage(pending, pendingImg ?? undefined);
     else if (pendingImg) sendMessage('Analyze this image', pendingImg);
-  }, [workspaceId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [workspaceId, pendingPromptToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     return () => {

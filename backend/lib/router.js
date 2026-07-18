@@ -1,37 +1,35 @@
 const VALID = [
-  'coding', 'image', 'student-shield', 'translate', 'document', 'voice', 'memory', 'general',
+  'coding', 'health', 'student-shield', 'general',
+  'image', 'translate', 'document', 'voice', 'memory',
 ];
+
+const LEGACY = {
+  image: 'general',
+  document: 'health',
+  translate: 'general',
+  voice: 'general',
+  memory: 'general',
+};
 
 const SG16_IDENTITY = `You are the intelligent router for SG16 AI Engine by SaifTech Global Limited.
 Never mention third-party AI providers. Return ONLY valid JSON.`;
 
 function normalize(value) {
-  return VALID.includes(value) ? value : 'general';
+  const raw = VALID.includes(value) ? value : 'general';
+  return LEGACY[raw] || raw;
 }
 
 export function fallbackRoute(query) {
   const lower = query.toLowerCase();
 
-  if (/code|python|debug|program|javascript|typescript|react|api/.test(lower)) {
+  if (/code|python|debug|program|javascript|typescript|react|api|refactor/.test(lower)) {
     return { targetWorkspace: 'coding', confidence: 0.85, cleanedPrompt: query };
   }
-  if (/image|photo|picture|draw|visual|edit image|generate picture/.test(lower)) {
-    return { targetWorkspace: 'image', confidence: 0.88, cleanedPrompt: query };
+  if (/health|symptom|blood test|doctor|wellness|diet|sleep|fever|medical/.test(lower)) {
+    return { targetWorkspace: 'health', confidence: 0.88, cleanedPrompt: query };
   }
   if (/student|homework|math|physics|exam|study|school|essay|learn/.test(lower)) {
     return { targetWorkspace: 'student-shield', confidence: 0.9, cleanedPrompt: query };
-  }
-  if (/translate|language|malay|spanish|french|arabic|chinese|japanese|korean/.test(lower)) {
-    return { targetWorkspace: 'translate', confidence: 0.85, cleanedPrompt: query };
-  }
-  if (/document|pdf|summarize|summary|analyze doc|report/.test(lower)) {
-    return { targetWorkspace: 'document', confidence: 0.87, cleanedPrompt: query };
-  }
-  if (/voice|speak|speech|audio|microphone/.test(lower)) {
-    return { targetWorkspace: 'voice', confidence: 0.8, cleanedPrompt: query };
-  }
-  if (/memory|remember|recall|save|vault|note/.test(lower)) {
-    return { targetWorkspace: 'memory', confidence: 0.75, cleanedPrompt: query };
   }
 
   return { targetWorkspace: 'general', confidence: 0.6, cleanedPrompt: query };
@@ -61,8 +59,8 @@ async function aiRoute(query) {
           role: 'system',
           content: `${SG16_IDENTITY}
 Analyze the query and return ONLY JSON:
-{"targetWorkspace":"coding"|"image"|"student-shield"|"translate"|"document"|"voice"|"memory"|"general","confidence":0.0-1.0,"cleanedPrompt":"string"}
-Rules: student-shield only for education/homework/study. Never route entertainment to student-shield.`,
+{"targetWorkspace":"coding"|"health"|"student-shield"|"general","confidence":0.0-1.0,"cleanedPrompt":"string"}
+Rules: Only these 4 services. student-shield for education/homework/study. health for wellness/report explain (not diagnosis). coding for software. Else general.`,
         },
         { role: 'user', content: query },
       ],
@@ -79,32 +77,28 @@ Rules: student-shield only for education/homework/study. Never route entertainme
   const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
 
   return {
-    targetWorkspace: normalize(parsed.targetWorkspace || 'general'),
-    confidence: parsed.confidence ?? 0.7,
+    targetWorkspace: normalize(parsed.targetWorkspace),
+    confidence: Number(parsed.confidence) || 0.7,
     cleanedPrompt: parsed.cleanedPrompt || query,
   };
 }
 
-export async function detectIntent(query) {
-  try {
-    const result = await aiRoute(query);
-    if (result) return result;
-  } catch (err) {
-    console.error('SG16 router:', err.message);
-  }
-  return fallbackRoute(query);
-}
-
 export async function handleRouteRequest(req, res) {
-  const { query } = req.body ?? {};
-  if (!query?.trim()) {
-    return res.status(400).json({ error: 'Query is required' });
-  }
   try {
-    const result = await detectIntent(query.trim());
-    res.json(result);
+    const query = String(req.body?.query || '').trim();
+    if (!query) {
+      return res.status(400).json({ error: 'query required' });
+    }
+
+    try {
+      const routed = await aiRoute(query);
+      if (routed) return res.json(routed);
+    } catch {
+      /* fallback */
+    }
+
+    return res.json(fallbackRoute(query));
   } catch (err) {
-    console.error('SG16 route error:', err);
-    res.json(fallbackRoute(query.trim()));
+    return res.status(500).json({ error: String(err?.message || err) });
   }
 }

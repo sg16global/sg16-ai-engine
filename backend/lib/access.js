@@ -3,7 +3,7 @@ import { isLaunchFree } from './launchMode.js';
 export const TRIAL_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
 
 /** Always free forever after sign-in. */
-export const ALWAYS_FREE_WORKSPACES = new Set(['general', 'translate']);
+export const ALWAYS_FREE_WORKSPACES = new Set(['general', 'health', 'translate']);
 
 /** Locked after the 3-day trial unless user has a paid plan. */
 export const HEAVY_PREMIUM_WORKSPACES = new Set(['coding', 'image', 'document']);

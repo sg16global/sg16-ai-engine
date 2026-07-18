@@ -5,8 +5,10 @@ import { SG16_BRAND } from '../../core/branding';
 export const GeneralWorkspace = () => (
   <WorkspaceShell
     title={SG16_BRAND.chatName}
-    subtitle="Real-time answers from the live web — powered by SG16 AI"
-    badge="SG16 AI"
+    subtitle="Worldwide general chat — live answers, daily questions, clear SG16 help"
+    badge="Worldwide"
+    badgeClass="text-fuchsia-300"
+    skin="chat"
   >
     <ChatPanel
       workspaceId="general"

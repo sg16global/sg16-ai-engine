@@ -20,11 +20,16 @@ export const PLANS: PlanDefinition[] = [
     name: 'Free Plan',
     price: '$0',
     priceNote: '/month',
-    description: `Basic ${SG16_BRAND.chatName} for everyday questions and information.`,
-    features: [`${SG16_BRAND.chatName} & Translate — free forever`, 'Home Ask Engine', 'All workspaces free during launch'],
+    description: `${SG16_BRAND.chatName} + Health basics worldwide.`,
+    features: [
+      `${SG16_BRAND.chatName} — free`,
+      'Health Guide — questions & report explain',
+      'Coding project score (check)',
+      '24h helping hand for basic support',
+    ],
     limitations: [
-      'After launch: premium workspaces require a plan',
-      'Student Shield & Pro Premium shown for reference',
+      'Coding repair / rewrite needs Premium',
+      'Student Shield full access needs student plan or Pro',
     ],
     cta: 'Current plan',
   },
@@ -33,15 +38,14 @@ export const PLANS: PlanDefinition[] = [
     name: 'Student Shield',
     price: '$4',
     priceNote: '/month',
-    description: 'Full platform access for verified students after AI Student ID check.',
+    description: 'Education-safe tutor + full 4 services for verified students.',
     features: [
-      'All 8 SG16 AI workspaces',
-      'Image Studio create & edit',
-      'Coding Hub & Document Lab',
-      'Voice AI, Translate, Memory Vault',
       'Student Shield educational guard',
+      'Chat + Health + Coding score',
+      'Coding repair / rewrite',
+      'Verified student ID required',
     ],
-    limitations: ['Requires selfie + valid Student ID verification', 'ID expiry must be current'],
+    limitations: ['Requires selfie + valid Student ID verification'],
     cta: 'Subscribe — $4/mo',
     badge: 'Students',
   },
@@ -50,13 +54,12 @@ export const PLANS: PlanDefinition[] = [
     name: 'Pro Premium',
     price: '$10',
     priceNote: '/month',
-    description: 'Instant full access to every premium SG16 AI feature for the general public.',
+    description: 'Full SG16 power — score, repair, Student Shield, priority help.',
     features: [
-      'All 8 SG16 AI workspaces — no waiting',
-      'Image Studio create & edit',
-      'Coding Hub & Document Lab',
-      'Voice AI, Translate, Memory Vault',
-      'Priority access to new features',
+      'All 4 worldwide services',
+      'Coding project score + Premium repair',
+      'Student Shield access',
+      'Priority support escalation',
     ],
     cta: 'Subscribe — $10/mo',
     highlighted: true,
@@ -65,15 +68,11 @@ export const PLANS: PlanDefinition[] = [
 ];
 
 /** Always free forever after sign-in. */
-export const FREE_WORKSPACES: WorkspaceId[] = ['general', 'translate'];
+export const FREE_WORKSPACES: WorkspaceId[] = ['general', 'health'];
 
 export const PREMIUM_WORKSPACES: WorkspaceId[] = [
   'coding',
-  'image',
-  'document',
   'student-shield',
-  'voice',
-  'memory',
 ];
 
 export function planLabel(plan: PlanTier): string {

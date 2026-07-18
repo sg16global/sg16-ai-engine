@@ -35,13 +35,13 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="hidden lg:flex w-72 bg-black/90 border-r border-white/10 flex-col shrink-0 h-full">
-      <div className="p-5 border-b border-white/10">
+    <aside className="hidden lg:flex w-72 bg-[#0a0612]/95 border-r border-violet-500/20 flex-col shrink-0 h-full">
+      <div className="p-5 border-b border-violet-500/20">
         <div className="flex items-center gap-3">
           <Sg16Logo className="w-12 h-12 rounded-xl" glow />
           <div>
             <div className="font-bold text-sm tracking-tight leading-tight">SG16 AI ENGINE</div>
-            <div className="text-[10px] text-emerald-400 mt-0.5">SaifTech Global Limited</div>
+            <div className="text-[10px] text-violet-300 mt-0.5">4 services · worldwide</div>
           </div>
         </div>
       </div>
@@ -59,10 +59,10 @@ export const Sidebar = () => {
               onClick={() => setWorkspace(item.id)}
               className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm ${
                 isActive
-                  ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                  ? 'bg-violet-500/15 text-violet-200 border border-violet-400/40 shadow-[0_0_20px_rgba(139,92,246,0.15)]'
                   : locked
                     ? 'hover:bg-white/5 text-gray-500 hover:text-gray-300 border border-transparent'
-                    : 'hover:bg-white/5 text-gray-400 hover:text-white border border-transparent'
+                    : 'hover:bg-violet-500/5 text-gray-400 hover:text-white border border-transparent'
               }`}
             >
               <Icon className="w-4 h-4" />

@@ -6,13 +6,15 @@ export type WorkspaceType =
   | 'pricing'
   | 'student-verify'
   | 'coding'
-  | 'image'
   | 'student-shield'
+  | 'general'
+  | 'health'
+  /** Legacy IDs — hidden from nav; still typed for old routes/history */
+  | 'image'
   | 'translate'
   | 'document'
   | 'voice'
-  | 'memory'
-  | 'general';
+  | 'memory';
 
 export type HelpSection = 'overview' | 'privacy' | 'terms' | 'contact';
 

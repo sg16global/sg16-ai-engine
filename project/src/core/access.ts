@@ -89,7 +89,7 @@ export function accessDeniedMessage(
   if (HEAVY_PREMIUM_WORKSPACES.includes(workspace as (typeof HEAVY_PREMIUM_WORKSPACES)[number])) {
     const days = trialDaysRemaining(authUser?.signupDate);
     if (days === 0) {
-      return 'Your 3-day full-access trial has ended. Coding Hub, Image Studio, and Document Lab now require an upgrade. SG16 Chatting and Translate stay free forever.';
+      return 'Your 3-day trial has ended. Coding Hub needs Premium for full access. Chat and Health stay free. Project score stays available; repair needs Premium.';
     }
     return `${workspaceLabel(workspace)} requires an active trial or premium plan.`;
   }
@@ -104,13 +104,14 @@ export function accessDeniedMessage(
 function workspaceLabel(id: WorkspaceId): string {
   const labels: Record<WorkspaceId, string> = {
     coding: 'Coding Hub',
+    health: 'Health Guide',
+    general: SG16_BRAND.chatName,
+    'student-shield': 'Student Shield',
     image: 'Image Studio',
     document: 'Document Lab',
-    general: SG16_BRAND.chatName,
     voice: 'Voice AI',
     translate: 'Translate',
     memory: 'Memory Vault',
-    'student-shield': 'Student Shield',
   };
   return labels[id];
 }

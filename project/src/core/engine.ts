@@ -2,36 +2,34 @@ import type { RouteResponse, WorkspaceId } from './types';
 import { authHeaders } from '../lib/authApi';
 
 const VALID: WorkspaceId[] = [
-  'coding', 'image', 'student-shield', 'translate', 'document', 'voice', 'memory', 'general',
+  'coding', 'health', 'student-shield', 'general',
+  'image', 'translate', 'document', 'voice', 'memory',
 ];
 
+const LEGACY_MAP: Partial<Record<WorkspaceId, WorkspaceId>> = {
+  image: 'general',
+  document: 'health',
+  translate: 'general',
+  voice: 'general',
+  memory: 'general',
+};
+
 function normalize(value: string): WorkspaceId {
-  return VALID.includes(value as WorkspaceId) ? (value as WorkspaceId) : 'general';
+  const raw = VALID.includes(value as WorkspaceId) ? (value as WorkspaceId) : 'general';
+  return LEGACY_MAP[raw] ?? raw;
 }
 
 export function fallbackRoute(query: string): RouteResponse {
   const lower = query.toLowerCase();
 
-  if (/code|python|debug|program|javascript|typescript|react|api/.test(lower)) {
+  if (/code|python|debug|program|javascript|typescript|react|api|refactor|score (my )?project/.test(lower)) {
     return { targetWorkspace: 'coding', confidence: 0.85, cleanedPrompt: query };
   }
-  if (/image|photo|picture|draw|visual|edit image|generate picture/.test(lower)) {
-    return { targetWorkspace: 'image', confidence: 0.88, cleanedPrompt: query };
+  if (/health|symptom|blood test|doctor|wellness|diet|sleep|fever|medical report/.test(lower)) {
+    return { targetWorkspace: 'health', confidence: 0.88, cleanedPrompt: query };
   }
   if (/student|homework|math|physics|exam|study|school|essay|learn/.test(lower)) {
     return { targetWorkspace: 'student-shield', confidence: 0.9, cleanedPrompt: query };
-  }
-  if (/translate|language|malay|spanish|french|arabic|chinese|japanese|korean/.test(lower)) {
-    return { targetWorkspace: 'translate', confidence: 0.85, cleanedPrompt: query };
-  }
-  if (/document|pdf|summarize|summary|analyze doc|report/.test(lower)) {
-    return { targetWorkspace: 'document', confidence: 0.87, cleanedPrompt: query };
-  }
-  if (/voice|speak|speech|audio|microphone/.test(lower)) {
-    return { targetWorkspace: 'voice', confidence: 0.8, cleanedPrompt: query };
-  }
-  if (/memory|remember|recall|save|vault|note/.test(lower)) {
-    return { targetWorkspace: 'memory', confidence: 0.75, cleanedPrompt: query };
   }
 
   return { targetWorkspace: 'general', confidence: 0.6, cleanedPrompt: query };

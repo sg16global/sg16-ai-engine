@@ -20,8 +20,9 @@ export function emptyChatHistory(): Record<WorkspaceId, Message[]> {
   return {
     general: [],
     coding: [],
-    image: [],
+    health: [],
     'student-shield': [],
+    image: [],
     translate: [],
     document: [],
     voice: [],

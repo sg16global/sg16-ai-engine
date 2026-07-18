@@ -17,13 +17,7 @@ import {
   Lightbulb,
   BookOpen,
   Calendar,
-  Wand2,
-  FileText,
-  Languages,
-  Mic2,
   MessageSquare,
-  Globe,
-  Brain,
   GraduationCap,
   CheckCircle2,
   Users,
@@ -35,92 +29,50 @@ import {
 } from 'lucide-react';
 
 const popularActions = [
-  { label: 'Solve Math Problem', icon: Calculator },
-  { label: 'Write Python Code', icon: Code2 },
-  { label: 'Explain Any Topic', icon: Lightbulb },
+  { label: 'Ask Anything', icon: MessageSquare },
   { label: 'Homework Help', icon: BookOpen },
+  { label: 'Score My Project', icon: Code2 },
+  { label: 'Health Question', icon: Lightbulb },
   { label: 'Study Plan', icon: Calendar },
-  { label: 'Edit Image', icon: Wand2 },
-  { label: 'Analyze Document', icon: FileText },
-  { label: 'Translate Language', icon: Languages },
-  { label: 'Voice Assistant', icon: Mic2 },
+  { label: 'Explain Topic', icon: Calculator },
 ];
 
 const workspaces = [
   {
-    id: 'coding',
-    title: 'Coding Hub',
-    desc: 'Code generation, editing & advanced debugging',
-    icon: Code2,
-    accent: 'from-blue-500/20 to-blue-600/5 border-blue-500/30 text-blue-400',
-    iconBg: 'bg-blue-500/15',
-    iconColor: 'text-blue-400',
-  },
-  {
-    id: 'image',
-    title: 'Image Studio',
-    desc: 'AI image generation, photo editing & enhancement',
-    icon: ImageIcon,
-    accent: 'from-emerald-500/20 to-emerald-600/5 border-emerald-500/30 text-emerald-400',
-    iconBg: 'bg-emerald-500/15',
-    iconColor: 'text-emerald-400',
-  },
-  {
-    id: 'document',
-    title: 'Document Lab',
-    desc: 'Smart document analysis & PDF tools',
-    icon: FileText,
-    accent: 'from-purple-500/20 to-purple-600/5 border-purple-500/30 text-purple-400',
-    iconBg: 'bg-purple-500/15',
-    iconColor: 'text-purple-400',
-  },
-  {
     id: 'general',
     title: SG16_BRAND.chatName,
-    desc: 'Ask anything — live news, facts & daily questions',
+    desc: 'Worldwide general chat — news, facts, daily questions',
     icon: MessageSquare,
-    accent: 'from-cyan-500/20 to-cyan-600/5 border-cyan-500/30 text-cyan-400',
-    iconBg: 'bg-cyan-500/15',
-    iconColor: 'text-cyan-400',
-  },
-  {
-    id: 'voice',
-    title: 'Voice AI',
-    desc: 'Speech to text & voice assistant',
-    icon: Mic,
-    accent: 'from-pink-500/20 to-pink-600/5 border-pink-500/30 text-pink-400',
-    iconBg: 'bg-pink-500/15',
-    iconColor: 'text-pink-400',
-  },
-  {
-    id: 'translate',
-    title: 'Translate',
-    desc: 'Real-time language translation',
-    icon: Globe,
-    accent: 'from-sky-500/20 to-sky-600/5 border-sky-500/30 text-sky-400',
-    iconBg: 'bg-sky-500/15',
-    iconColor: 'text-sky-400',
-    wide: true,
-  },
-  {
-    id: 'memory',
-    title: 'Memory Vault',
-    desc: 'Store & recall information instantly',
-    icon: Brain,
-    accent: 'from-orange-500/20 to-orange-600/5 border-orange-500/30 text-orange-400',
-    iconBg: 'bg-orange-500/15',
-    iconColor: 'text-orange-400',
-    wide: true,
+    accent: 'from-fuchsia-500/20 to-violet-600/5 border-fuchsia-500/30 text-fuchsia-300',
+    iconBg: 'bg-fuchsia-500/15',
+    iconColor: 'text-fuchsia-300',
   },
   {
     id: 'student-shield',
     title: 'Student Shield',
-    desc: 'Safe learning assistant for students',
+    desc: 'Education-safe tutor for students worldwide',
     icon: GraduationCap,
-    accent: 'from-amber-500/20 to-amber-600/5 border-amber-500/30 text-amber-400',
+    accent: 'from-amber-500/20 to-violet-600/5 border-amber-500/30 text-amber-300',
     iconBg: 'bg-amber-500/15',
-    iconColor: 'text-amber-400',
-    wide: true,
+    iconColor: 'text-amber-300',
+  },
+  {
+    id: 'coding',
+    title: 'Coding Hub',
+    desc: 'Project check, score from every side, Premium repair',
+    icon: Code2,
+    accent: 'from-sky-500/20 to-violet-600/5 border-sky-500/30 text-sky-300',
+    iconBg: 'bg-sky-500/15',
+    iconColor: 'text-sky-300',
+  },
+  {
+    id: 'health',
+    title: 'Health Guide',
+    desc: 'Wellness questions, report explain & lifestyle tips',
+    icon: Lightbulb,
+    accent: 'from-teal-500/20 to-violet-600/5 border-teal-500/30 text-teal-300',
+    iconBg: 'bg-teal-500/15',
+    iconColor: 'text-teal-300',
   },
 ];
 
@@ -226,21 +178,21 @@ export const HomePage = () => {
     requireAuth(() => {});
   };
 
-  const topWorkspaces = workspaces.filter((w) => !w.wide);
-  const bottomWorkspaces = workspaces.filter((w) => w.wide);
+  const topWorkspaces = workspaces;
+  const bottomWorkspaces: typeof workspaces = [];
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
       {/* Hero */}
       <section className="relative flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 items-center min-h-[200px]">
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/5 via-transparent to-cyan-500/5 rounded-3xl pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-transparent to-fuchsia-500/10 rounded-3xl pointer-events-none" />
 
         <div className="relative z-10 order-2 lg:order-1 text-center lg:text-left w-full">
           <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-3">Welcome to SG16 AI Engine</h1>
           <p className="text-base sm:text-xl lg:text-2xl font-medium">
-            <span className="text-emerald-400">Most Powerful AI Platform</span>{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-sky-400 to-pink-400">
-              All-in-One
+            <span className="text-violet-300">4 services · worldwide</span>{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-white">
+              Premium inside
             </span>
           </p>
           <p className="text-gray-500 mt-3 lg:mt-4 max-w-lg mx-auto lg:mx-0 text-sm leading-relaxed">

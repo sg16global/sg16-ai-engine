@@ -38,6 +38,7 @@ import { pushAppPath, routeToPath } from './routes';
 interface AppState {
   currentWorkspace: WorkspaceType;
   pendingPrompt: string | null;
+  pendingPromptToken: number;
   pendingImageUrl: string | null;
   helpSection: HelpSection;
   messages: Record<WorkspaceId, Message[]>;
@@ -132,6 +133,7 @@ function tryOpenWorkspace(
 export const useAppStore = create<AppState>((set, getState) => ({
   currentWorkspace: 'home',
   pendingPrompt: null,
+  pendingPromptToken: 0,
   pendingImageUrl: null,
   helpSection: 'overview',
   messages: emptyChatHistory(),
@@ -361,7 +363,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   startPaddleCheckout: async (plan) => {
-    const { authUser, requireAuth, launchFree, checkoutEnabled, launchMessage } = getState();
+    const { authUser, requireAuth, launchFree, checkoutEnabled } = getState();
     if (!isAuthenticated(authUser)) {
       requireAuth(() => void getState().startPaddleCheckout(plan));
       return;

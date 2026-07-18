@@ -4,9 +4,10 @@ import { ChatPanel } from '../../components/chat/ChatPanel';
 export const StudentShieldWorkspace = () => (
   <WorkspaceShell
     title="Student Shield"
-    subtitle="Safe, educational tutoring — study topics only"
-    badge="🛡️ Shield Active"
-    badgeClass="text-amber-400"
+    subtitle="Worldwide education-safe tutor — homework, exams, clear explanations"
+    badge="Shield active"
+    badgeClass="text-amber-300"
+    skin="student"
   >
     <ChatPanel
       workspaceId="student-shield"
