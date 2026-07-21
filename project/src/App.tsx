@@ -30,6 +30,8 @@ import { StudentVerifyPanel } from './components/panels/StudentVerifyPanel';
 
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 
+import { SeoCanonical } from './components/SeoCanonical';
+
 import { LandingPage } from './components/landing/LandingPage';
 
 import { PublicLegalShell } from './components/legal/PublicLegalShell';
@@ -370,32 +372,39 @@ function App() {
 
 
   if (!authHydrated && !isLandingRoute(pathname) && !isPublicLegalPath(pathname)) {
-
-    return <AuthSplash />;
-
+    return (
+      <>
+        <SeoCanonical />
+        <AuthSplash />
+      </>
+    );
   }
-
-
 
   if (showPublicLegal) {
-    return <PublicLegalShell />;
+    return (
+      <>
+        <SeoCanonical />
+        <PublicLegalShell />
+      </>
+    );
   }
-
-
 
   if (showLanding) {
     return (
       <>
+        <SeoCanonical />
         <LandingPage />
         <GoogleLoginModal />
       </>
     );
   }
 
-
-
-  return <AppShell />;
-
+  return (
+    <>
+      <SeoCanonical />
+      <AppShell />
+    </>
+  );
 }
 
 
