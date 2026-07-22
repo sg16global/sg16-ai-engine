@@ -1,8 +1,9 @@
 import type { PlanTier, Subscription } from '../core/types';
 import { authHeaders } from './authApi';
 
-export interface PaddlePublicConfig {
+export interface BillingPublicConfig {
   enabled: boolean;
+  provider?: string;
   environment: 'sandbox' | 'production';
   clientToken: string;
   prices: {
@@ -13,7 +14,12 @@ export interface PaddlePublicConfig {
   checkoutEnabled?: boolean;
   launchMessage?: string;
   contactEmail?: string;
+  paymentsPending?: boolean;
+  paymentsMessage?: string;
 }
+
+/** @deprecated Use BillingPublicConfig — kept for older imports */
+export type PaddlePublicConfig = BillingPublicConfig;
 
 export interface BillingEntitlementsResponse {
   entitlements: {
@@ -41,7 +47,7 @@ export interface CheckoutSessionResponse {
   customData: { googleSub: string };
 }
 
-export async function fetchBillingConfig(): Promise<PaddlePublicConfig> {
+export async function fetchBillingConfig(): Promise<BillingPublicConfig> {
   const res = await fetch('/api/v1/billing/config');
   const data = await res.json();
   if (!res.ok) throw new Error(data.error || 'Billing config unavailable');

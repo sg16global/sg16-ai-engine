@@ -5,7 +5,6 @@ import { checkEngineHealth } from '../../lib/apiStatus';
 import { isStudentVerified, verificationStatusLabel } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
-import { openBillingPortal } from '../../lib/billingApi';
 
 export function SettingsPanel() {
   const settings = useAppStore((s) => s.settings);
@@ -22,8 +21,6 @@ export function SettingsPanel() {
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
   const [engineOnline, setEngineOnline] = useState<boolean | null>(null);
   const [saved, setSaved] = useState(false);
-  const [portalLoading, setPortalLoading] = useState(false);
-  const [portalError, setPortalError] = useState<string | null>(null);
 
   useEffect(() => {
     checkEngineHealth().then(setEngineOnline);
@@ -33,19 +30,6 @@ export function SettingsPanel() {
     updateSettings({ displayName: settings.displayName.trim() || 'SG16 User' });
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  };
-
-  const handleManageBilling = async () => {
-    setPortalLoading(true);
-    setPortalError(null);
-    try {
-      const url = await openBillingPortal();
-      window.open(url, '_blank', 'noopener,noreferrer');
-    } catch (err) {
-      setPortalError(err instanceof Error ? err.message : 'Could not open billing portal');
-    } finally {
-      setPortalLoading(false);
-    }
   };
 
   return (
@@ -164,7 +148,6 @@ export function SettingsPanel() {
                 <p className="text-xs text-emerald-400/80 mt-1">Billing active</p>
               )}
             </div>
-            {portalError && <p className="text-xs text-red-400">{portalError}</p>}
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
@@ -173,16 +156,6 @@ export function SettingsPanel() {
               >
                 View pricing
               </button>
-              {subscription.billingActive && subscription.paddleCustomerId && (
-                <button
-                  type="button"
-                  onClick={() => void handleManageBilling()}
-                  disabled={portalLoading}
-                  className="text-xs border border-purple-500/30 text-purple-300 hover:bg-purple-500/10 px-3 py-2 rounded-lg disabled:opacity-50"
-                >
-                  {portalLoading ? 'Opening…' : 'Manage billing'}
-                </button>
-              )}
               {subscription.plan === 'student' && !isStudentVerified(subscription) && (
                 <button
                   type="button"

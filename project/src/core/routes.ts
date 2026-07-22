@@ -2,7 +2,7 @@ import type { HelpSection, WorkspaceType } from './types';
 
 export const SG16_PUBLIC_URL = 'https://sg16engine.com';
 
-/** Clean URLs for Paddle, Google, and footer links. */
+/** Clean URLs for Google, checkout, and footer links. */
 export const APP_PATHS = {
   home: '/',
   pricing: '/pricing',

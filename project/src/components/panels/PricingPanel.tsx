@@ -26,7 +26,7 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
   const launchMessage = useAppStore((s) => s.launchMessage);
   const openLaunchNotice = useAppStore((s) => s.openLaunchNotice);
   const selectPlan = useAppStore((s) => s.selectPlan);
-  const startPaddleCheckout = useAppStore((s) => s.startPaddleCheckout);
+  const startCheckout = useAppStore((s) => s.startCheckout);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
   const openPricing = useAppStore((s) => s.openPricing);
   const requireAuth = useAppStore((s) => s.requireAuth);
@@ -56,13 +56,13 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
             openStudentVerify();
             return;
           }
-          await startPaddleCheckout('student');
+          await startCheckout('student');
           if (compact) openPricing();
           return;
         }
 
         if (plan === 'pro') {
-          await startPaddleCheckout('pro');
+          await startCheckout('pro');
           if (compact) openPricing();
         }
       } finally {
@@ -96,7 +96,9 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
               : `Choose the plan that fits you — ${SG16_BRAND.chatName} on Free, full platform on Student & Pro.`}
         </p>
         <p className="text-[11px] text-gray-500 mt-2">
-          {launchFree ? 'Checkout opens after launch — pricing shown for reference' : 'Secure checkout powered by Paddle'}
+          {launchFree
+            ? 'Checkout opens after launch — pricing shown for reference'
+            : 'Secure checkout activating soon on sg16engine.com'}
         </p>
         {!compact && (
           <p className="text-xs text-gray-400 mt-3">

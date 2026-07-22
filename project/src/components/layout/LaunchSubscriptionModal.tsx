@@ -36,7 +36,7 @@ export function LaunchSubscriptionModal() {
           <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
             <Sparkles className="w-7 h-7 text-emerald-400" />
           </div>
-          <h2 className="text-xl font-bold mb-2">Launch period — full access</h2>
+          <h2 className="text-xl font-bold mb-2">Full access — pricing coming soon</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
             {launchMessage ||
               `Every ${SG16_BRAND.shortName} workspace is free and unlimited right now. Paid plans are shown for reference only.`}
@@ -46,9 +46,9 @@ export function LaunchSubscriptionModal() {
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 px-4 py-3 text-sm text-emerald-100/90 mb-5">
           <p className="font-medium text-emerald-300 mb-1">Your access today</p>
           <ul className="space-y-1 text-xs text-emerald-100/80 text-left">
-            <li>• All 8 AI workspaces — unlimited</li>
-            <li>• No payment required during launch</li>
-            <li>• We will notify you in the app before billing starts</li>
+            <li>• All AI workspaces — unlimited</li>
+            <li>• No payment required right now</li>
+            <li>• Domain stays sg16engine.com when checkout goes live</li>
           </ul>
         </div>
 

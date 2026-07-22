@@ -26,13 +26,10 @@ import {
 } from '../lib/utils';
 import { clearAuthToken, fetchAuthMe, loadAuthToken, saveAuthToken as persistToken } from '../lib/authApi';
 import {
-  createCheckoutSession,
   fetchBillingConfig,
   fetchBillingEntitlements,
   subscriptionFromApi,
-  type PaddlePublicConfig,
 } from '../lib/billingApi';
-import { openPaddleCheckout } from '../lib/paddle';
 import { pushAppPath, routeToPath } from './routes';
 
 interface AppState {
@@ -76,7 +73,7 @@ interface AppState {
   wipeSession: () => void;
 
   selectPlan: (plan: PlanTier) => void;
-  startPaddleCheckout: (plan: 'student' | 'pro') => Promise<void>;
+  startCheckout: (plan: 'student' | 'pro') => Promise<void>;
   syncSubscriptionFromServer: () => Promise<void>;
   loadPublicConfig: () => Promise<void>;
   applyStudentVerification: (result: StudentVerifyResponse) => void;
@@ -362,44 +359,15 @@ export const useAppStore = create<AppState>((set, getState) => ({
     set({ subscription, error: null, currentWorkspace: 'home' });
   },
 
-  startPaddleCheckout: async (plan) => {
-    const { authUser, requireAuth, launchFree, checkoutEnabled } = getState();
+  startCheckout: async (plan) => {
+    const { authUser, requireAuth } = getState();
     if (!isAuthenticated(authUser)) {
-      requireAuth(() => void getState().startPaddleCheckout(plan));
+      requireAuth(() => void getState().startCheckout(plan));
       return;
     }
-    if (launchFree || !checkoutEnabled) {
-      set({ launchNoticeOpen: true, error: null });
-      return;
-    }
-
-    set({ loading: true, error: null });
-    try {
-      const config: PaddlePublicConfig = await fetchBillingConfig();
-      if (!config.enabled) {
-        throw new Error('Payments are not configured yet. Add Paddle keys on the server.');
-      }
-
-      const session = await createCheckoutSession(plan);
-      await openPaddleCheckout({
-        config,
-        priceId: session.priceId,
-        googleSub: session.googleSub,
-        onComplete: () => {
-          void getState().syncSubscriptionFromServer().then(() => {
-            if (plan === 'student') {
-              set({ currentWorkspace: 'student-verify' });
-            } else {
-              set({ currentWorkspace: 'home' });
-            }
-          });
-        },
-      });
-    } catch (err) {
-      set({ error: err instanceof Error ? err.message : 'Checkout failed' });
-    } finally {
-      set({ loading: false });
-    }
+    // Paddle removed — pricing stays visible; live checkout waits for new provider (e.g. Dodo)
+    void plan;
+    set({ launchNoticeOpen: true, error: null, loading: false });
   },
 
   applyStudentVerification: (result) => {

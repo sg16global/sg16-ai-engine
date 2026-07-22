@@ -23,12 +23,11 @@ import {
   handleBillingPortal,
   handleBillingWebhook,
 } from './lib/billing.js';
-import { isPaddleConfigured } from './lib/paddle.js';
+import { isLaunchFree } from './lib/launchMode.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
-import { isLaunchFree } from './lib/launchMode.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
 import { handleSpeechTranscribe, speechTranscriptionAvailable } from './lib/speechEngine.js';
 
@@ -78,7 +77,7 @@ const apiRateLimit = rateLimit({
 
 app.use('/api/', apiRateLimit);
 
-// Paddle webhooks require the raw body for signature verification.
+// Billing webhook (provider-agnostic raw body; currently returns 410 until Dodo is wired)
 app.post(
   '/api/v1/billing/webhook',
   express.raw({ type: 'application/json' }),
@@ -200,7 +199,7 @@ async function startServer() {
     console.log(`Google OAuth: ${googleReady ? 'configured' : 'MISSING — set GOOGLE_CLIENT_ID'}`);
     console.log(`Database: ${isDatabaseReady() ? 'PostgreSQL' : 'JSON fallback (set DATABASE_URL for production)'}`);
     console.log(`Launch mode: ${isLaunchFree() ? 'FREE UNLIMITED (checkout disabled)' : 'billing active'}`);
-    console.log(`Paddle billing: ${isPaddleConfigured() ? 'configured' : 'not configured'}`);
+    console.log('Payments provider: pending (Paddle removed — wire Dodo when account is ready)');
     if (process.env.SG16_APP_URL) {
       console.log(`Public URL: ${process.env.SG16_APP_URL}`);
     }
