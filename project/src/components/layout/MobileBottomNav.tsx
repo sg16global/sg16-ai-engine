@@ -31,7 +31,7 @@ export function MobileBottomNav() {
                 active ? 'text-emerald-400' : 'text-gray-500 active:text-gray-300'
               }`}
             >
-              <Icon className={`w-5 h-5 ${item.id === 'pricing' && !active ? 'text-purple-400/80' : ''}`} />
+              <Icon className={`w-5 h-5 ${item.id === 'pricing' && !active ? 'text-rose-400/80' : ''}`} />
               <span className="text-[10px] font-medium truncate max-w-full px-0.5">{item.label}</span>
               {active && (
                 <span className="absolute top-1 w-1 h-1 rounded-full bg-emerald-400" aria-hidden />

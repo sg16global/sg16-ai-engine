@@ -59,7 +59,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
         <button
           type="button"
           onClick={openPricing}
-          className="flex items-center gap-1.5 text-xs bg-purple-500/15 border border-purple-500/30 text-purple-300 px-2 py-1 rounded-lg hover:bg-purple-500/25 transition"
+          className="flex items-center gap-1.5 text-xs bg-[#FF2E2E]/15 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg hover:bg-[#FF2E2E]/25 transition"
         >
           <Crown className="w-3.5 h-3.5" />
           {!compact && <span className="hidden sm:inline">Pro Premium</span>}
@@ -101,7 +101,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   };
 
   return (
-    <header className="h-14 lg:h-16 border-b border-white/10 bg-black/80 backdrop-blur-xl flex items-center gap-2 px-3 sm:px-6 z-50 shrink-0 pt-[env(safe-area-inset-top)] lg:pt-0">
+    <header className="h-14 lg:h-16 border-b border-[#2a1218] bg-[#050307]/90 backdrop-blur-xl flex items-center gap-2 px-3 sm:px-6 z-50 shrink-0 pt-[env(safe-area-inset-top)] lg:pt-0">
       <button
         type="button"
         onClick={onMenuClick}
@@ -162,7 +162,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
                   className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl object-cover"
                 />
               ) : (
-                <span className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-black">
+                <span className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF2E2E] to-[#A30000] rounded-xl sm:rounded-2xl flex items-center justify-center text-white">
                   <LogOut className="w-4 h-4" />
                 </span>
               )}
@@ -171,7 +171,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <button
               type="button"
               onClick={() => openLoginModal()}
-              className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-xl sm:rounded-2xl flex items-center justify-center text-black font-bold text-xs"
+              className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF2E2E] to-[#A30000] rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold text-xs"
               title="Sign in"
             >
               {settings.displayName.slice(0, 2).toUpperCase()}

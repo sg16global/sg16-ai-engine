@@ -152,7 +152,7 @@ export function SettingsPanel() {
               <button
                 type="button"
                 onClick={openPricing}
-                className="text-xs bg-purple-600 hover:bg-purple-500 px-3 py-2 rounded-lg font-medium"
+                className="text-xs bg-rose-600 hover:bg-rose-500 px-3 py-2 rounded-lg font-medium"
               >
                 View pricing
               </button>

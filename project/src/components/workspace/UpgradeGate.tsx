@@ -68,7 +68,7 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
                 <button
                   type="button"
                   onClick={openPricing}
-                  className="inline-flex items-center justify-center gap-2 bg-purple-600 hover:bg-purple-500 px-5 py-2.5 rounded-xl text-sm font-medium"
+                  className="inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 px-5 py-2.5 rounded-xl text-sm font-medium"
                 >
                   View pricing
                 </button>

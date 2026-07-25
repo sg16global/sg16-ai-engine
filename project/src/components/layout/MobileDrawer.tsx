@@ -53,13 +53,13 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
         aria-label="Close menu"
       />
 
-      <aside className="absolute inset-y-0 left-0 w-[min(20rem,88vw)] bg-zinc-950 border-r border-white/10 flex flex-col shadow-2xl animate-slide-in-left">
-        <div className="flex items-center justify-between p-4 border-b border-white/10 pt-[max(1rem,env(safe-area-inset-top))]">
+      <aside className="absolute inset-y-0 left-0 w-[min(20rem,88vw)] bg-[#050307] border-r border-[#2a1218] flex flex-col shadow-2xl animate-slide-in-left">
+        <div className="flex items-center justify-between p-4 border-b border-[#2a1218] pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="flex items-center gap-3">
             <Sg16Logo className="w-10 h-10 rounded-xl" />
             <div>
               <div className="font-bold text-sm">SG16 AI ENGINE</div>
-              <div className="text-[10px] text-emerald-400">SaifTech Global</div>
+              <div className="text-[10px] text-[#FF8A8A]">SaifTech Global</div>
             </div>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-white/10" aria-label="Close">
@@ -77,9 +77,9 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
                 key={item.id}
                 type="button"
                 onClick={() => navigate(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm ${
                   active
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-[#FF2E2E]/12 text-[#FF8A8A] border border-[#FF2E2E]/35'
                     : 'text-gray-400 hover:bg-white/5 hover:text-white border border-transparent'
                 }`}
               >
@@ -90,7 +90,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
             );
           })}
 
-          <div className="pt-3 mt-2 border-t border-white/5 space-y-0.5">
+          <div className="pt-3 mt-2 border-t border-[#2a1218] space-y-0.5">
             {utilityNavItems.map((item) => {
               const Icon = item.icon;
               const active = currentWorkspace === item.id;
@@ -99,9 +99,9 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
                   key={item.id}
                   type="button"
                   onClick={() => navigate(item.id)}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm ${
+                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm ${
                     active
-                      ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                      ? 'bg-[#FF2E2E]/12 text-[#FF8A8A] border border-[#FF2E2E]/35'
                       : 'text-gray-500 hover:bg-white/5 hover:text-white border border-transparent'
                   }`}
                 >
@@ -113,14 +113,14 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
           </div>
         </div>
 
-        <div className="p-4 border-t border-white/10 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="p-4 border-t border-[#2a1218] pb-[max(1rem,env(safe-area-inset-bottom))]">
           <button
             type="button"
             onClick={() => {
               openPricing();
               onClose();
             }}
-            className="w-full bg-purple-600 hover:bg-purple-500 py-2.5 rounded-xl text-sm font-medium"
+            className="w-full bg-[#FF2E2E] hover:bg-[#FF5C5C] py-2.5 rounded-2xl text-sm font-semibold text-white shadow-[0_0_16px_rgba(255,46,46,0.25)]"
           >
             View pricing plans
           </button>

@@ -39,40 +39,44 @@ const popularActions = [
 
 const workspaces = [
   {
-    id: 'general',
-    title: SG16_BRAND.chatName,
-    desc: 'Worldwide general chat — news, facts, daily questions',
-    icon: MessageSquare,
-    accent: 'from-fuchsia-500/20 to-violet-600/5 border-fuchsia-500/30 text-fuchsia-300',
-    iconBg: 'bg-fuchsia-500/15',
-    iconColor: 'text-fuchsia-300',
+    id: 'coding',
+    title: 'Coding Hub',
+    desc: 'Code check, score & fix — built for real projects',
+    icon: Code2,
+    accent: 'border-[#1e3a5f] hover:border-blue-400/40',
+    iconBg: 'bg-blue-500/15',
+    iconColor: 'text-blue-400',
+    ring: 'bg-blue-500',
   },
   {
     id: 'student-shield',
     title: 'Student Shield',
     desc: 'Education-safe tutor for students worldwide',
     icon: GraduationCap,
-    accent: 'from-amber-500/20 to-violet-600/5 border-amber-500/30 text-amber-300',
-    iconBg: 'bg-amber-500/15',
-    iconColor: 'text-amber-300',
-  },
-  {
-    id: 'coding',
-    title: 'Coding Hub',
-    desc: 'Project check, score from every side, Premium repair',
-    icon: Code2,
-    accent: 'from-sky-500/20 to-violet-600/5 border-sky-500/30 text-sky-300',
-    iconBg: 'bg-sky-500/15',
-    iconColor: 'text-sky-300',
+    accent: 'border-[#14352a] hover:border-emerald-400/40',
+    iconBg: 'bg-emerald-500/15',
+    iconColor: 'text-emerald-400',
+    ring: 'bg-emerald-500',
   },
   {
     id: 'health',
     title: 'Health Guide',
     desc: 'Wellness questions, report explain & lifestyle tips',
     icon: Lightbulb,
-    accent: 'from-teal-500/20 to-violet-600/5 border-teal-500/30 text-teal-300',
+    accent: 'border-[#0f3333] hover:border-teal-400/40',
     iconBg: 'bg-teal-500/15',
-    iconColor: 'text-teal-300',
+    iconColor: 'text-teal-400',
+    ring: 'bg-teal-500',
+  },
+  {
+    id: 'general',
+    title: SG16_BRAND.chatName,
+    desc: 'Worldwide general chat — news, facts, daily questions',
+    icon: MessageSquare,
+    accent: 'border-[#2a1218] hover:border-[#FF2E2E]/40',
+    iconBg: 'bg-[#FF2E2E]/15',
+    iconColor: 'text-[#FF8A8A]',
+    ring: 'bg-[#FF2E2E]',
   },
 ];
 
@@ -178,40 +182,34 @@ export const HomePage = () => {
     requireAuth(() => {});
   };
 
-  const topWorkspaces = workspaces;
-  const bottomWorkspaces: typeof workspaces = [];
-
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-[1400px] mx-auto space-y-8 lg:space-y-10">
-      {/* Hero */}
-      <section className="relative flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 items-center min-h-[200px]">
-        <div className="absolute inset-0 bg-gradient-to-r from-violet-500/10 via-transparent to-fuchsia-500/10 rounded-3xl pointer-events-none" />
+      <section className="relative flex flex-col lg:grid lg:grid-cols-[1fr_auto] gap-6 lg:gap-8 items-center min-h-[180px]">
+        <div className="absolute inset-0 bg-gradient-to-r from-[#FF2E2E]/10 via-transparent to-transparent rounded-[1.75rem] pointer-events-none" />
 
         <div className="relative z-10 order-2 lg:order-1 text-center lg:text-left w-full">
-          <h1 className="text-2xl sm:text-4xl lg:text-5xl font-bold tracking-tight mb-3">Welcome to SG16 AI Engine</h1>
-          <p className="text-base sm:text-xl lg:text-2xl font-medium">
-            <span className="text-violet-300">4 services · worldwide</span>{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-violet-300 via-fuchsia-300 to-white">
-              Premium inside
-            </span>
+          <h1 className="text-2xl sm:text-4xl lg:text-[2.75rem] font-bold tracking-tight mb-3 text-white">
+            One platform. <span className="text-[#FF2E2E]">Four</span> powerful solutions.
+          </h1>
+          <p className="text-base sm:text-lg text-slate-400 font-medium">
+            Coding · Student · Health · AI Chat
           </p>
           <p className="text-gray-500 mt-3 lg:mt-4 max-w-lg mx-auto lg:mx-0 text-sm leading-relaxed">
-            Your intelligent companion for coding, learning, creativity, and everyday tasks — built by SaifTech Global.
+            Your intelligent companion for coding, learning, and everyday tasks — Saif Tech Global.
           </p>
         </div>
 
         <div className="relative z-10 order-1 lg:order-2 flex justify-center lg:justify-end w-full">
           <Sg16Logo
             glow
-            className="w-32 h-32 sm:w-40 sm:h-40 lg:w-56 lg:h-56 drop-shadow-[0_0_40px_rgba(16,185,129,0.35)]"
+            className="w-28 h-28 sm:w-36 sm:h-36 lg:w-48 lg:h-48 drop-shadow-[0_0_40px_rgba(255,46,46,0.35)]"
           />
         </div>
       </section>
 
-      {/* Ask Box */}
       <section>
-        <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-2 shadow-[0_0_40px_rgba(0,0,0,0.4)]">
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-zinc-950 rounded-xl px-4 py-3">
+        <div className="sg16-card p-2">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 bg-[#050307] rounded-2xl px-4 py-3 border border-[#2a1218]">
             <div className="flex items-center gap-3 flex-1">
               <Search className="w-5 h-5 text-gray-500 shrink-0" />
               <input
@@ -223,7 +221,7 @@ export const HomePage = () => {
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') handleAsk();
                 }}
-                className="flex-1 bg-transparent text-base lg:text-lg outline-none placeholder-gray-500"
+                className="flex-1 bg-transparent text-base lg:text-lg outline-none placeholder-gray-500 text-white"
               />
             </div>
             <div className="flex items-center gap-2 justify-end">
@@ -231,7 +229,7 @@ export const HomePage = () => {
               <button
                 type="button"
                 onClick={handleVoiceInput}
-                className={`p-2.5 rounded-xl transition ${listening ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/10 text-gray-400 hover:text-white'}`}
+                className={`p-2.5 rounded-2xl transition ${listening ? 'bg-[#FF2E2E]/20 text-[#FF8A8A]' : 'hover:bg-white/10 text-gray-400 hover:text-white'}`}
                 title="Voice input"
               >
                 <Mic className="w-5 h-5" />
@@ -239,7 +237,7 @@ export const HomePage = () => {
               <button
                 type="button"
                 onClick={() => imageInputRef.current?.click()}
-                className="p-2.5 hover:bg-white/10 rounded-xl text-gray-400 hover:text-white transition"
+                className="p-2.5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition"
                 title="Upload image"
               >
                 <ImageIcon className="w-5 h-5" />
@@ -248,7 +246,7 @@ export const HomePage = () => {
                 type="button"
                 onClick={() => handleAsk()}
                 disabled={routing || !inputValue.trim()}
-                className="bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 transition shadow-lg shadow-purple-500/20 disabled:opacity-50"
+                className="bg-[#FF2E2E] hover:bg-[#FF5C5C] px-6 py-2.5 rounded-2xl font-semibold flex items-center gap-2 transition shadow-[0_0_20px_rgba(255,46,46,0.25)] disabled:opacity-50 text-white"
               >
                 {routing ? 'Routing...' : 'Ask Engine'} <Send className="w-4 h-4" />
               </button>
@@ -257,7 +255,6 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Popular Things to Ask */}
       <section>
         <h3 className="text-sm font-semibold text-gray-400 mb-4 uppercase tracking-wider">Popular Things to Ask</h3>
         <div className="flex flex-wrap gap-2.5">
@@ -266,42 +263,27 @@ export const HomePage = () => {
               key={label}
               type="button"
               onClick={() => handleAsk(label)}
-              className="flex items-center gap-2 bg-zinc-900/80 hover:bg-zinc-800 border border-white/10 hover:border-emerald-500/30 px-4 py-2.5 rounded-xl text-sm transition"
+              className="flex items-center gap-2 bg-[#0c0a0e] hover:bg-[#12080e] border border-[#2a1218] hover:border-[#FF2E2E]/35 px-4 py-2.5 rounded-2xl text-sm transition"
             >
-              <Icon className="w-4 h-4 text-emerald-400" />
+              <Icon className="w-4 h-4 text-[#FF8A8A]" />
               {label}
             </button>
           ))}
         </div>
       </section>
 
-      {/* Workspaces */}
       <section>
-        <h3 className="text-sm font-semibold text-gray-400 mb-5 uppercase tracking-wider">Workspaces</h3>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-          {topWorkspaces.map((ws) => {
+        <h3 className="text-sm font-semibold text-gray-400 mb-5 uppercase tracking-wider">
+          One platform · four solutions
+        </h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {workspaces.map((ws) => {
             const Icon = ws.icon;
             return (
               <WorkspaceCard
                 key={ws.id}
                 ws={ws}
                 Icon={Icon}
-                onOpen={() => openWorkspace(ws.id as WorkspaceType)}
-              />
-            );
-          })}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {bottomWorkspaces.map((ws) => {
-            const Icon = ws.icon;
-            return (
-              <WorkspaceCard
-                key={ws.id}
-                ws={ws}
-                Icon={Icon}
-                wide
                 onOpen={() => openWorkspace(ws.id as WorkspaceType)}
               />
             );
@@ -309,36 +291,31 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Pricing on Home */}
-      <section className="bg-zinc-900/50 border border-white/10 rounded-3xl p-4 sm:p-6 lg:p-8">
+      <section className="sg16-card p-4 sm:p-6 lg:p-8">
         <PricingPanel compact />
         <div className="text-center mt-4">
-          <a
-            href="/pricing"
-            className="text-sm text-emerald-400 hover:text-emerald-300 font-medium inline-block"
-          >
+          <a href="/pricing" className="text-sm text-[#FF8A8A] hover:text-[#FF2E2E] font-medium inline-block">
             View full pricing & plans →
           </a>
         </div>
       </section>
 
-      {/* Info Footer */}
       <section className="grid md:grid-cols-3 gap-6 pt-4">
         <InfoColumn
           title="Why SG16 AI Engine?"
           items={whyFeatures}
           icon={CheckCircle2}
-          iconClass="text-emerald-400"
+          iconClass="text-[#FF8A8A]"
         />
         <InfoColumn title="Built for Everyone" items={builtFor} icon={Users} iconClass="text-sky-400" />
-        <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6">
-          <h4 className="font-semibold mb-4 flex items-center gap-2">
-            <Shield className="w-5 h-5 text-emerald-400" /> Trusted & Secure
+        <div className="sg16-card p-6">
+          <h4 className="font-semibold mb-4 flex items-center gap-2 text-white">
+            <Shield className="w-5 h-5 text-[#FF2E2E]" /> Trusted & Secure
           </h4>
           <ul className="space-y-2.5">
             {trusted.map((item) => (
               <li key={item} className="flex items-center gap-2 text-sm text-gray-400">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#FF8A8A] shrink-0" />
                 {item}
               </li>
             ))}
@@ -346,24 +323,37 @@ export const HomePage = () => {
         </div>
       </section>
 
-      {/* Bottom Footer */}
-      <footer className="border-t border-white/10 pt-8 pb-4">
+      <footer className="border-t border-[#2a1218] pt-8 pb-4">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-6">
           <p className="text-xs text-gray-500 text-center lg:text-left">
             © SaifTech Global Limited • SG16 AI Engine • All Rights Reserved
           </p>
           <div className="flex items-center gap-4 text-gray-500">
             {[Facebook, Twitter, Linkedin, Youtube].map((Icon, i) => (
-              <button key={i} type="button" onClick={() => openHelp('contact')} className="hover:text-emerald-400 transition" title="Contact SG16 AI">
+              <button
+                key={i}
+                type="button"
+                onClick={() => openHelp('contact')}
+                className="hover:text-[#FF2E2E] transition"
+                title="Contact SG16 AI"
+              >
                 <Icon className="w-4 h-4" />
               </button>
             ))}
           </div>
           <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-500">
-            <a href="/pricing" className="hover:text-white transition">Pricing</a>
-            <a href="/privacy" className="hover:text-white transition">Privacy Policy</a>
-            <a href="/terms" className="hover:text-white transition">Terms of Service</a>
-            <a href="/contact" className="hover:text-white transition">Contact Us</a>
+            <a href="/pricing" className="hover:text-white transition">
+              Pricing
+            </a>
+            <a href="/privacy" className="hover:text-white transition">
+              Privacy Policy
+            </a>
+            <a href="/terms" className="hover:text-white transition">
+              Terms of Service
+            </a>
+            <a href="/contact" className="hover:text-white transition">
+              Contact Us
+            </a>
           </div>
         </div>
       </footer>
@@ -375,12 +365,10 @@ function WorkspaceCard({
   ws,
   Icon,
   onOpen,
-  wide = false,
 }: {
   ws: (typeof workspaces)[0];
   Icon: typeof Code2;
   onOpen: () => void;
-  wide?: boolean;
 }) {
   return (
     <div
@@ -388,18 +376,21 @@ function WorkspaceCard({
       tabIndex={0}
       onClick={onOpen}
       onKeyDown={(e) => e.key === 'Enter' && onOpen()}
-      className={`group bg-gradient-to-br ${ws.accent} border rounded-2xl p-5 cursor-pointer transition-all hover:-translate-y-0.5 hover:shadow-lg ${
-        wide ? 'md:p-6' : ''
-      }`}
+      className={`group sg16-card sg16-card-hover border ${ws.accent} p-6 cursor-pointer flex flex-col min-h-[200px]`}
     >
-      <div className="flex items-start justify-between mb-4">
-        <div className={`w-11 h-11 ${ws.iconBg} rounded-xl flex items-center justify-center`}>
-          <Icon className={`w-5 h-5 ${ws.iconColor}`} />
-        </div>
+      <div className={`w-12 h-12 ${ws.iconBg} rounded-2xl flex items-center justify-center mb-5`}>
+        <Icon className={`w-6 h-6 ${ws.iconColor}`} />
       </div>
-      <h4 className="font-semibold mb-1.5">{ws.title}</h4>
-      <p className="text-xs text-gray-400 line-clamp-2 mb-4 leading-relaxed">{ws.desc}</p>
-      <span className="text-xs font-medium text-emerald-400 group-hover:underline">Open Workspace →</span>
+      <h4 className="font-semibold text-lg mb-2 text-white tracking-tight">{ws.title}</h4>
+      <p className="text-sm text-gray-400 line-clamp-3 mb-auto leading-relaxed flex-1">{ws.desc}</p>
+      <div className="mt-5 flex items-center justify-between">
+        <span className="text-xs font-medium text-slate-400 group-hover:text-white transition">Open</span>
+        <span
+          className={`w-9 h-9 rounded-full ${ws.ring} flex items-center justify-center text-white text-sm font-bold shadow-lg`}
+        >
+          →
+        </span>
+      </div>
     </div>
   );
 }
@@ -416,8 +407,8 @@ function InfoColumn({
   iconClass: string;
 }) {
   return (
-    <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-6">
-      <h4 className="font-semibold mb-4">{title}</h4>
+    <div className="sg16-card p-6">
+      <h4 className="font-semibold mb-4 text-white">{title}</h4>
       <ul className="space-y-2.5">
         {items.map((item) => (
           <li key={item} className="flex items-center gap-2 text-sm text-gray-400">

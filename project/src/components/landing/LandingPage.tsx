@@ -36,6 +36,7 @@ const trustItems = [
 
 export function LandingPage() {
   const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const enterLocalPreview = useAppStore((s) => s.enterLocalPreview);
 
   return (
     <div className="landing-page relative min-h-[100dvh] overflow-x-hidden">
@@ -61,6 +62,13 @@ export function LandingPage() {
               See features
             </a>
           </div>
+          <button
+            type="button"
+            onClick={() => enterLocalPreview()}
+            className="mt-3 text-xs uppercase tracking-wider text-white/45 hover:text-[#7CFC00] transition"
+          >
+            Enter app without Google →
+          </button>
           <div className="landing-hero-signin">
             <LandingGoogleSignIn compact />
           </div>

@@ -13,6 +13,7 @@ export function GoogleLoginModal() {
   const launchMessage = useAppStore((s) => s.launchMessage);
   const closeLoginModal = useAppStore((s) => s.closeLoginModal);
   const setAuthSession = useAppStore((s) => s.setAuthSession);
+  const enterLocalPreview = useAppStore((s) => s.enterLocalPreview);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [clientConfigured, setClientConfigured] = useState<boolean | null>(null);
@@ -98,6 +99,17 @@ export function GoogleLoginModal() {
           )}
           {loading && <p className="text-xs text-emerald-400">Activating your account…</p>}
           {error && <p className="text-xs text-red-400 text-center max-w-xs">{error}</p>}
+
+          <button
+            type="button"
+            onClick={() => enterLocalPreview()}
+            className="w-full mt-2 rounded-xl border border-[#FF2E2E]/40 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 py-3 text-sm font-semibold text-[#FF8A8A] transition"
+          >
+            Enter app without Google →
+          </button>
+          <p className="text-[10px] text-gray-500 text-center">
+            Use this if Google login shows a white page
+          </p>
         </div>
 
         <div className="mt-6 pt-4 border-t border-white/10 space-y-2">

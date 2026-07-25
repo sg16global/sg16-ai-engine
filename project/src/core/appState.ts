@@ -67,6 +67,8 @@ interface AppState {
   openLoginModal: (action?: () => void) => void;
   closeLoginModal: () => void;
   setAuthSession: (token: string, user: AuthUser) => void;
+  /** Local / preview enter — no Google. Use when OAuth is blocked. */
+  enterLocalPreview: () => void;
   refreshAuthUser: () => Promise<void>;
   restoreAuthSession: () => Promise<void>;
   logout: () => void;
@@ -192,6 +194,19 @@ export const useAppStore = create<AppState>((set, getState) => ({
       pending?.();
       void getState().syncSubscriptionFromServer();
     });
+  },
+
+  enterLocalPreview: () => {
+    const user: AuthUser = {
+      id: 'local-preview',
+      signupDate: Date.now(),
+      name: 'SG16 Preview',
+      launchFree: true,
+      trialActive: false,
+      trialDaysRemaining: 0,
+    };
+    getState().setAuthSession('local-preview-token', user);
+    getState().setWorkspace('home');
   },
 
   syncSubscriptionFromServer: async () => {

@@ -349,9 +349,9 @@ export function ChatPanel({
         )}
 
         {pendingDoc && (
-          <div className="mb-2 flex items-center gap-2 text-xs bg-purple-500/10 border border-purple-500/20 rounded-xl px-3 py-2">
-            <Upload className="w-4 h-4 text-purple-400 shrink-0" />
-            <span className="text-purple-200 truncate flex-1">
+          <div className="mb-2 flex items-center gap-2 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">
+            <Upload className="w-4 h-4 text-rose-400 shrink-0" />
+            <span className="text-rose-200 truncate flex-1">
               {pendingDoc.name} · {Math.round(pendingDoc.text.length / 1000)}K chars — type your question, then send
             </span>
             <button type="button" onClick={() => setPendingDoc(null)} className="text-gray-500 hover:text-red-400 shrink-0">
