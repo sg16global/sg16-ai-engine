@@ -128,12 +128,12 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
               key={plan.id}
               className={`relative rounded-2xl border p-5 sm:p-6 flex flex-col ${
                 plan.highlighted
-                  ? 'border-purple-500/50 bg-gradient-to-b from-purple-900/30 to-zinc-900/80 shadow-lg shadow-purple-500/10'
+                  ? 'border-rose-500/50 bg-gradient-to-b from-rose-950/30 to-zinc-900/80 shadow-lg shadow-rose-500/10'
                   : 'border-white/10 bg-zinc-900/60'
               }`}
             >
               {plan.badge && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider bg-purple-600 px-3 py-1 rounded-full font-semibold whitespace-nowrap">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 text-[10px] uppercase tracking-wider bg-rose-600 px-3 py-1 rounded-full font-semibold whitespace-nowrap">
                   {plan.badge}
                 </span>
               )}
@@ -193,7 +193,7 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
                 onClick={() => void handleSelect(plan.id)}
                 className={`w-full py-2.5 rounded-xl text-sm font-medium transition touch-target flex items-center justify-center gap-2 ${
                   plan.highlighted
-                    ? 'bg-purple-600 hover:bg-purple-500 disabled:opacity-50'
+                    ? 'bg-rose-600 hover:bg-rose-500 disabled:opacity-50'
                     : 'bg-emerald-600/90 hover:bg-emerald-500 disabled:opacity-50'
                 }`}
               >

@@ -314,6 +314,18 @@ function App() {
 
   }, [restoreAuthSession]);
 
+  // Direct preview: http://localhost:5173/?preview=1
+  useEffect(() => {
+    if (!authHydrated) return;
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('preview') === '1' && !isAuthenticated(useAppStore.getState().authUser)) {
+      useAppStore.getState().enterLocalPreview();
+      params.delete('preview');
+      const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}`;
+      window.history.replaceState({}, '', next);
+    }
+  }, [authHydrated]);
+
 
 
   useEffect(() => {

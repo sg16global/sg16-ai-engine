@@ -35,13 +35,13 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="hidden lg:flex w-72 bg-[#0a0612]/95 border-r border-violet-500/20 flex-col shrink-0 h-full">
-      <div className="p-5 border-b border-violet-500/20">
+    <aside className="hidden lg:flex w-72 bg-[#050307]/95 border-r border-[#2a1218] flex-col shrink-0 h-full">
+      <div className="p-5 border-b border-[#2a1218]">
         <div className="flex items-center gap-3">
           <Sg16Logo className="w-12 h-12 rounded-xl" glow />
           <div>
-            <div className="font-bold text-sm tracking-tight leading-tight">SG16 AI ENGINE</div>
-            <div className="text-[10px] text-violet-300 mt-0.5">4 services · worldwide</div>
+            <div className="font-bold text-sm tracking-tight leading-tight text-white">SG16 AI ENGINE</div>
+            <div className="text-[10px] text-[#FF2E2E]/90 mt-0.5">4 services · worldwide</div>
           </div>
         </div>
       </div>
@@ -57,12 +57,12 @@ export const Sidebar = () => {
               key={item.id}
               type="button"
               onClick={() => setWorkspace(item.id)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all text-sm ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl transition-all text-sm ${
                 isActive
-                  ? 'bg-violet-500/15 text-violet-200 border border-violet-400/40 shadow-[0_0_20px_rgba(139,92,246,0.15)]'
+                  ? 'bg-[#FF2E2E]/12 text-[#FF8A8A] border border-[#FF2E2E]/35 shadow-[0_0_20px_rgba(255,46,46,0.12)]'
                   : locked
                     ? 'hover:bg-white/5 text-gray-500 hover:text-gray-300 border border-transparent'
-                    : 'hover:bg-violet-500/5 text-gray-400 hover:text-white border border-transparent'
+                    : 'hover:bg-white/5 text-gray-400 hover:text-white border border-transparent'
               }`}
             >
               <Icon className="w-4 h-4" />
@@ -72,7 +72,7 @@ export const Sidebar = () => {
           );
         })}
 
-        <div className="pt-4 mt-2 border-t border-white/5 space-y-0.5">
+        <div className="pt-4 mt-2 border-t border-[#2a1218] space-y-0.5">
           {utilityNavItems.map((item) => {
             const Icon = item.icon;
             const isActive = currentWorkspace === item.id;
@@ -81,9 +81,9 @@ export const Sidebar = () => {
                 key={item.id}
                 type="button"
                 onClick={() => openBottom(item.id)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all ${
+                className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm transition-all ${
                   isActive
-                    ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                    ? 'bg-[#FF2E2E]/10 text-[#FF8A8A] border border-[#FF2E2E]/30'
                     : 'text-gray-500 hover:bg-white/5 hover:text-white border border-transparent'
                 }`}
               >
@@ -95,7 +95,7 @@ export const Sidebar = () => {
         </div>
       </div>
 
-      <div className="px-4 py-3 border-t border-white/10">
+      <div className="px-4 py-3 border-t border-[#2a1218]">
         <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
           <span>SG16 AI Engine v1.0.0</span>
           <span
@@ -112,10 +112,10 @@ export const Sidebar = () => {
           </span>
         </div>
 
-        <div className="bg-gradient-to-br from-purple-900/40 to-black border border-purple-500/25 rounded-xl p-3">
+        <div className="bg-[#10080e] border border-[#4a1a28] rounded-2xl p-3 shadow-[0_0_24px_rgba(255,46,46,0.08)]">
           <div className="flex items-center gap-2 mb-2 text-sm">
-            <span>👑</span>
-            <span className="font-semibold">Plans from $0/mo</span>
+            <span className="text-[#FF2E2E]">◆</span>
+            <span className="font-semibold text-white">Plans from $0/mo</span>
           </div>
           <p className="text-[10px] text-gray-500 mb-2 leading-relaxed">
             Free · Student $4 · Pro $10
@@ -123,7 +123,7 @@ export const Sidebar = () => {
           <button
             type="button"
             onClick={openPricing}
-            className="block w-full text-center bg-purple-600 hover:bg-purple-500 py-2 rounded-lg text-xs font-medium transition"
+            className="block w-full text-center bg-[#FF2E2E] hover:bg-[#FF5C5C] text-white py-2.5 rounded-xl text-xs font-semibold transition shadow-[0_0_16px_rgba(255,46,46,0.25)]"
           >
             See pricing →
           </button>
