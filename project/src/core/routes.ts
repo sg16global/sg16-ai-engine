@@ -9,6 +9,7 @@ export const APP_PATHS = {
   terms: '/terms',
   privacy: '/privacy',
   contact: '/contact',
+  room: '/room',
   settings: '/settings',
   help: '/help',
 } as const;
@@ -24,6 +25,7 @@ const PATH_ROUTES: Record<string, RouteTarget> = {
   [APP_PATHS.terms]: { workspace: 'help', helpSection: 'terms' },
   [APP_PATHS.privacy]: { workspace: 'help', helpSection: 'privacy' },
   [APP_PATHS.contact]: { workspace: 'help', helpSection: 'contact' },
+  [APP_PATHS.room]: { workspace: 'user-room' },
   [APP_PATHS.settings]: { workspace: 'settings' },
   [APP_PATHS.help]: { workspace: 'help', helpSection: 'overview' },
 };
@@ -39,6 +41,7 @@ export function pathToRoute(pathname: string): RouteTarget | null {
 
 export function routeToPath(workspace: WorkspaceType, helpSection?: HelpSection): string | null {
   if (workspace === 'home') return APP_PATHS.home;
+  if (workspace === 'user-room') return APP_PATHS.room;
   if (workspace === 'pricing') return APP_PATHS.pricing;
   if (workspace === 'settings') return APP_PATHS.settings;
   if (workspace === 'help') {

@@ -29,6 +29,7 @@ import { liveSearchAvailable } from './lib/webSearch.js';
 import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
+import { handleGetUserRoom, handleGetUserHistory, handlePutUserHistory } from './lib/userRoom.js';
 import { handleSpeechTranscribe, speechTranscriptionAvailable } from './lib/speechEngine.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -127,6 +128,10 @@ app.get('/api/v1/auth/config', getGoogleClientIdForFrontend);
 app.post('/api/v1/auth/google', handleGoogleAuth);
 app.post('/api/v1/auth/dev', handleDevAuth);
 app.get('/api/v1/auth/me', requireAuth, handleAuthMe);
+
+app.get('/api/v1/user/room', requireAuth, handleGetUserRoom);
+app.get('/api/v1/user/history', requireAuth, handleGetUserHistory);
+app.put('/api/v1/user/history', requireAuth, handlePutUserHistory);
 
 app.get('/api/v1/billing/config', handleBillingConfig);
 app.get('/api/v1/billing/entitlements', requireAuth, handleBillingEntitlements);

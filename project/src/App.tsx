@@ -20,6 +20,8 @@ import { WorkspaceContainer } from './components/layout/WorkspaceContainer';
 
 import { HistoryPanel } from './components/panels/HistoryPanel';
 
+import { UserRoomPanel } from './components/panels/UserRoomPanel';
+
 import { SettingsPanel } from './components/panels/SettingsPanel';
 
 import { HelpPanel } from './components/panels/HelpPanel';
@@ -170,6 +172,8 @@ function AppShell() {
 
       settings: 'Settings — SG16 AI Engine',
 
+      'user-room': 'My Room — SG16 AI Engine',
+
     };
 
     document.title = titles[currentWorkspace] ?? 'SG16 AI Engine';
@@ -206,6 +210,10 @@ function AppShell() {
 
         return <HomePage />;
 
+      case 'user-room':
+
+        return <UserRoomPanel />;
+
       case 'history':
 
         return <HistoryPanel />;
@@ -240,7 +248,7 @@ function AppShell() {
   const hideGlobalChrome = isHome || isStudentShell;
   const inShield = isShieldWorkspace(currentWorkspace);
   const isChatWorkspace = !(
-    ['home', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
+    ['home', 'user-room', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
   ).includes(currentWorkspace);
 
 

@@ -10,6 +10,7 @@ import {
   Settings,
   HelpCircle,
   Crown,
+  UserRound,
 } from 'lucide-react';
 import type { WorkspaceType } from '../core/types';
 
@@ -32,6 +33,7 @@ export const mainNavItems: NavItem[] = [
 ];
 
 export const utilityNavItems: NavItem[] = [
+  { id: 'user-room', label: 'My Room', icon: UserRound },
   { id: 'history', label: 'History', icon: Clock },
   { id: 'settings', label: 'Settings', icon: Settings, mobileBottom: true },
   { id: 'help', label: 'Help Center', icon: HelpCircle },

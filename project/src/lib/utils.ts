@@ -67,7 +67,7 @@ function chatStorageKey(userId?: string | null) {
   return userId ? `${CHAT_KEY_PREFIX}_${userId}` : `${CHAT_KEY_PREFIX}_guest`;
 }
 
-/** Saved on this device only — never sent to SG16 servers. */
+/** Device cache + synced to user room on the server when signed in. */
 export function saveChatHistory(messages: Record<WorkspaceId, Message[]>, userId?: string | null) {
   try {
     localStorage.setItem(chatStorageKey(userId), JSON.stringify(messages));

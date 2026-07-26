@@ -99,6 +99,7 @@ export const HomePage = () => {
   const navigateToWorkspace = useAppStore((s) => s.navigateToWorkspace);
   const requireAuth = useAppStore((s) => s.requireAuth);
   const openHelp = useAppStore((s) => s.openHelp);
+  const openUserRoom = useAppStore((s) => s.openUserRoom);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const logout = useAppStore((s) => s.logout);
   const togglePilot = usePilotStore((s) => s.toggleOpen);
@@ -127,10 +128,15 @@ export const HomePage = () => {
       <div className="shield-home__scanlines" />
 
       <header className="shield-home__topbar">
-        <div className="hud-panel hud-welcome">
+        <button
+          type="button"
+          className="hud-panel hud-welcome"
+          onClick={() => requireAuth(() => openUserRoom())}
+          aria-label="Open your user room"
+        >
           <UserRound size={21} />
           <span>WELCOME, {displayName}</span>
-        </div>
+        </button>
 
         <div className="hud-actions">
           <button
