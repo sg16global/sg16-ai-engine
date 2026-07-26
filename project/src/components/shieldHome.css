@@ -26,9 +26,16 @@
   position: absolute;
   inset: 0;
   z-index: -4;
-  background:
+  background-color: #05060d;
+  background-image:
     linear-gradient(180deg, rgba(2, 3, 10, .28), rgba(2, 3, 10, .58)),
-    url('/shield-home/earth-dna.png') center 46% / cover no-repeat;
+    image-set(
+      url('/shield-home/earth-dna.webp') type('image/webp'),
+      url('/shield-home/earth-dna.png') type('image/png')
+    );
+  background-position: center 46%;
+  background-size: cover;
+  background-repeat: no-repeat;
   filter: saturate(1.08) contrast(1.06) brightness(.84);
   transform: scale(1.035);
 }
