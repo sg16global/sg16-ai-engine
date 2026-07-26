@@ -1,7 +1,7 @@
 export const TRIAL_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
 
 /** Always free forever once signed in. */
-export const ALWAYS_FREE_WORKSPACES = ['general', 'health'] as const;
+export const ALWAYS_FREE_WORKSPACES = ['general', 'health', 'market'] as const;
 
 /** Locked after the 3-day trial (unless paid). */
 export const HEAVY_PREMIUM_WORKSPACES = ['coding'] as const;

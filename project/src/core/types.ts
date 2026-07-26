@@ -9,6 +9,7 @@ export type WorkspaceType =
   | 'student-shield'
   | 'general'
   | 'health'
+  | 'market'
   /** Legacy IDs — hidden from nav; still typed for old routes/history */
   | 'image'
   | 'translate'

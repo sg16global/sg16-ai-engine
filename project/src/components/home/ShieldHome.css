@@ -1,0 +1,699 @@
+/* SG16 Shield Home — hybrid: PNG scene + SVG assets + CSS motion */
+
+.sg16-sh {
+  --sh-bg: #05060d;
+  --sh-red: #ff173d;
+  --sh-border: #ff617a;
+  --sh-line: #ff365a;
+  --sh-green: #00ff8b;
+  --sh-sub: #ff6a83;
+  --sh-time: #ff707f;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  overflow: hidden;
+  background: #05060d;
+  color: #fff;
+  font-family: Rajdhani, sans-serif;
+}
+
+/* ── PNG scene: Earth + DNA + stars (concept artwork) ── */
+.sg16-sh__scene {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(1100px, 92vmin);
+  height: min(1100px, 92vmin);
+  transform: translate(-50%, -50%);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.sg16-sh__scene-glow {
+  position: absolute;
+  inset: -6%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(0, 140, 255, 0.34) 0%,
+    rgba(0, 100, 220, 0.12) 45%,
+    transparent 70%
+  );
+  animation: sg16ShGlow 2.5s ease-in-out infinite;
+}
+
+.sg16-sh__scene-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  opacity: 0.95;
+  /* Full PNG includes DNA — do not rotate the whole asset (DNA must stay horizontal) */
+  filter: drop-shadow(0 0 36px rgba(0, 120, 255, 0.35));
+}
+
+.sg16-sh__circuits {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.sg16-sh__ui {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* HUD frame overlays */
+.sg16-sh__hud-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+  filter: drop-shadow(0 0 6px rgba(255, 40, 70, 0.28));
+}
+
+.sg16-sh__welcome {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  width: 340px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px 0 12px;
+  background: rgba(8, 8, 12, 0.72);
+  border: none;
+  border-radius: 10px;
+  z-index: 5;
+}
+
+.sg16-sh__welcome-icon {
+  position: relative;
+  z-index: 1;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #ff173d;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  overflow: hidden;
+  box-shadow: 0 0 8px rgba(255, 40, 70, 0.35);
+}
+
+.sg16-sh__welcome-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sg16-sh__welcome-text {
+  position: relative;
+  z-index: 1;
+  font-family: Orbitron, sans-serif;
+  font-size: 18px;
+  font-weight: 500;
+  color: #fff;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sg16-sh__top-right {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  z-index: 5;
+}
+
+.sg16-sh__icon-btn {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(8, 8, 12, 0.72);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  transition: transform 220ms ease;
+}
+
+.sg16-sh__icon-btn > svg:not(.sg16-sh__hud-frame) {
+  position: relative;
+  z-index: 1;
+}
+
+.sg16-sh__icon-btn:hover,
+.sg16-sh__logout:hover {
+  transform: scale(1.05);
+}
+
+.sg16-sh__icon-btn:active,
+.sg16-sh__logout:active {
+  transform: scale(0.97);
+  transition-duration: 140ms;
+}
+
+.sg16-sh__badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #ff3558;
+  box-shadow: 0 0 6px #ff3558;
+  z-index: 2;
+}
+
+.sg16-sh__logout {
+  position: relative;
+  width: 128px;
+  height: 48px;
+  border-radius: 10px;
+  border: none;
+  background: rgba(8, 8, 12, 0.72);
+  color: #fff;
+  font-family: Orbitron, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: transform 220ms ease;
+}
+
+.sg16-sh__logout > :not(.sg16-sh__hud-frame) {
+  position: relative;
+  z-index: 1;
+}
+
+.sg16-sh__stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+}
+
+.sg16-sh__stage-grid {
+  position: absolute;
+  inset: 0;
+}
+
+/* Shield buttons — soft neon wire (~40% less bloom than early versions) */
+.sg16-sh__shield {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: #fff;
+  transition: transform 220ms ease, filter 220ms ease;
+  filter: drop-shadow(0 0 10px rgba(255, 35, 70, 0.4)) drop-shadow(0 0 22px rgba(255, 0, 50, 0.18));
+}
+
+.sg16-sh__shield:hover {
+  transform: translate(-50%, -50%) scale(1.05);
+  filter: drop-shadow(0 0 12px rgba(255, 35, 70, 0.5)) drop-shadow(0 0 26px rgba(255, 0, 50, 0.24));
+}
+
+.sg16-sh__shield:active {
+  transform: translate(-50%, -50%) scale(0.97);
+  transition-duration: 140ms;
+}
+
+.sg16-sh__shield--normal {
+  width: 250px;
+  height: 340px;
+}
+
+.sg16-sh__shield--center {
+  width: 290px;
+  height: 395px;
+  z-index: 4;
+}
+
+/* X constellation — concept spacing */
+.sg16-sh__shield--chat {
+  left: 50%;
+  top: 36%;
+}
+
+.sg16-sh__shield--student {
+  left: 30%;
+  top: 32%;
+}
+
+.sg16-sh__shield--health {
+  left: 70%;
+  top: 32%;
+}
+
+.sg16-sh__shield--coding {
+  left: 30%;
+  top: 68%;
+}
+
+.sg16-sh__shield--market {
+  left: 70%;
+  top: 68%;
+}
+
+.sg16-sh__shield-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.sg16-sh__shield-content {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 12% 14% 28%;
+  text-align: center;
+  z-index: 1;
+}
+
+.sg16-sh__shield-ico {
+  width: 78px;
+  height: 78px;
+  color: #fff;
+  filter: drop-shadow(0 0 10px rgba(255, 60, 90, 0.35));
+  margin-bottom: 6px;
+  flex-shrink: 0;
+}
+
+.sg16-sh__shield--center .sg16-sh__shield-ico {
+  width: 92px;
+  height: 92px;
+}
+
+.sg16-sh__shield-title {
+  font-family: Orbitron, sans-serif;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.1;
+  color: #fff;
+  letter-spacing: 0.03em;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+}
+
+.sg16-sh__shield--center .sg16-sh__shield-title {
+  font-size: 34px;
+}
+
+.sg16-sh__shield-sub {
+  margin-top: 6px;
+  font-family: Rajdhani, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: #ffd0d6;
+  line-height: 1.2;
+  max-width: 170px;
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.4);
+}
+
+.sg16-sh__shield--center .sg16-sh__shield-sub {
+  font-size: 17px;
+  color: #ff6a83;
+  max-width: 200px;
+}
+
+.sg16-sh__clock {
+  position: absolute;
+  left: 50%;
+  top: 76%;
+  transform: translateX(-50%);
+  width: 366px;
+  height: 136px;
+  background: rgba(8, 8, 12, 0.88);
+  border: none;
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 4;
+  overflow: hidden;
+}
+
+.sg16-sh__clock-label {
+  position: relative;
+  z-index: 1;
+  font-family: Rajdhani, sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.22em;
+  color: rgba(255, 255, 255, 0.78);
+  font-weight: 600;
+}
+
+.sg16-sh__clock-time {
+  position: relative;
+  z-index: 1;
+  margin-top: 2px;
+  font-family: Orbitron, sans-serif;
+  font-size: 46px;
+  font-weight: 700;
+  color: #ff707f;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  text-shadow: 0 0 12px rgba(255, 112, 127, 0.35);
+}
+
+.sg16-sh__clock-date {
+  position: relative;
+  z-index: 1;
+  margin-top: 6px;
+  font-family: Rajdhani, sans-serif;
+  font-size: 17px;
+  color: #fff;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+
+.sg16-sh__clock-reflect {
+  position: absolute;
+  left: 50%;
+  bottom: 4px;
+  transform: translateX(-50%) scaleY(-1);
+  font-family: Orbitron, sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: #ff707f;
+  opacity: 0.14;
+  mask-image: linear-gradient(to bottom, transparent, black);
+  -webkit-mask-image: linear-gradient(to bottom, transparent, black);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.sg16-sh__status {
+  position: relative;
+  height: 70px;
+  background: rgba(8, 8, 12, 0.9);
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  align-items: center;
+  z-index: 5;
+  flex-shrink: 0;
+  border-radius: 0;
+}
+
+.sg16-sh__status > .sg16-sh__hud-frame {
+  border-radius: 0;
+}
+
+.sg16-sh__status-item {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border-right: 1px solid rgba(255, 54, 90, 0.4);
+  font-family: Rajdhani, sans-serif;
+}
+
+.sg16-sh__status-item:last-child {
+  border-right: none;
+}
+
+.sg16-sh__status-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.82);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sg16-sh__status-label svg {
+  color: #ff3558;
+}
+
+.sg16-sh__status-value {
+  font-family: Orbitron, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #00ff8b;
+}
+
+.sg16-sh__status-value--pilot {
+  color: #ff3558;
+}
+
+.sg16-sh__pilot {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  transition: transform 220ms ease;
+}
+
+.sg16-sh__pilot:hover {
+  transform: scale(1.05);
+}
+
+@keyframes sg16ShEarthSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sg16ShGlow {
+  0%,
+  100% {
+    opacity: 0.75;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (max-width: 1600px) {
+  .sg16-sh__scene {
+    width: min(920px, 88vmin);
+    height: min(920px, 88vmin);
+  }
+
+  .sg16-sh__shield--normal {
+    width: 210px;
+    height: 286px;
+  }
+
+  .sg16-sh__shield--center {
+    width: 245px;
+    height: 334px;
+  }
+
+  .sg16-sh__shield--center .sg16-sh__shield-title {
+    font-size: 26px;
+  }
+
+  .sg16-sh__shield-ico {
+    width: 64px;
+    height: 64px;
+  }
+
+  .sg16-sh__shield--center .sg16-sh__shield-ico {
+    width: 76px;
+    height: 76px;
+  }
+
+  .sg16-sh__clock {
+    width: 320px;
+    height: 118px;
+  }
+
+  .sg16-sh__clock-time {
+    font-size: 38px;
+  }
+}
+
+@media (max-width: 1366px) {
+  .sg16-sh__scene {
+    width: min(760px, 84vmin);
+    height: min(760px, 84vmin);
+  }
+
+  .sg16-sh__welcome {
+    width: 300px;
+  }
+
+  .sg16-sh__welcome-text {
+    font-size: 14px;
+  }
+
+  .sg16-sh__shield--normal {
+    width: 170px;
+    height: 232px;
+  }
+
+  .sg16-sh__shield--center {
+    width: 200px;
+    height: 272px;
+  }
+
+  .sg16-sh__shield-title {
+    font-size: 12px;
+  }
+
+  .sg16-sh__shield--center .sg16-sh__shield-title {
+    font-size: 20px;
+  }
+
+  .sg16-sh__shield-sub {
+    font-size: 12px;
+  }
+
+  .sg16-sh__shield-ico,
+  .sg16-sh__shield--center .sg16-sh__shield-ico {
+    width: 48px;
+    height: 48px;
+  }
+
+  .sg16-sh__clock {
+    width: 280px;
+    height: 104px;
+  }
+
+  .sg16-sh__clock-time {
+    font-size: 30px;
+  }
+
+  .sg16-sh__clock-date {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .sg16-sh__stage {
+    overflow: auto;
+    padding: 90px 12px 12px;
+  }
+
+  .sg16-sh__scene {
+    width: min(520px, 90vmin);
+    height: min(520px, 90vmin);
+    top: 42%;
+  }
+
+  .sg16-sh__circuits {
+    display: none;
+  }
+
+  .sg16-sh__stage-grid {
+    position: relative;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+    min-height: 520px;
+  }
+
+  .sg16-sh__clock {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    margin: 420px auto 16px;
+  }
+
+  .sg16-sh__status {
+    grid-template-columns: repeat(3, 1fr);
+    height: auto;
+    min-height: 70px;
+  }
+
+  .sg16-sh__status-item:nth-child(3) {
+    border-right: none;
+  }
+}
+
+@media (max-width: 700px) {
+  .sg16-sh__welcome {
+    width: calc(100% - 36px);
+    max-width: 340px;
+  }
+
+  .sg16-sh__logout span {
+    display: none;
+  }
+
+  .sg16-sh__logout {
+    width: 48px;
+  }
+
+  .sg16-sh__stage-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    min-height: 0;
+    place-items: center;
+  }
+
+  .sg16-sh__shield {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    transform: none !important;
+  }
+
+  .sg16-sh__shield--chat {
+    grid-column: 1 / -1;
+  }
+
+  .sg16-sh__shield:hover {
+    transform: scale(1.05);
+  }
+
+  .sg16-sh__shield:active {
+    transform: scale(0.97);
+  }
+
+  .sg16-sh__clock {
+    margin: 12px auto;
+    width: min(366px, 92vw);
+  }
+
+  .sg16-sh__status {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

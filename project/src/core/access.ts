@@ -107,6 +107,7 @@ function workspaceLabel(id: WorkspaceId): string {
     health: 'Health Guide',
     general: SG16_BRAND.chatName,
     'student-shield': 'Student Shield',
+    market: 'Market Shield',
     image: 'Image Studio',
     document: 'Document Lab',
     voice: 'Voice AI',

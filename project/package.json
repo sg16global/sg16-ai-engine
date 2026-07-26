@@ -19,7 +19,7 @@
     "@capacitor/core": "^7.6.7",
     "@capacitor/splash-screen": "^7.0.5",
     "@react-oauth/google": "^0.13.5",
-    "lucide-react": "^0.344.0",
+    "lucide-react": "^1.27.0",
     "pdfjs-dist": "^4.10.38",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",

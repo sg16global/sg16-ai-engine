@@ -1,11 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Share, X } from 'lucide-react';
 import { useInstallPrompt } from '../../hooks/useInstallPrompt';
+import { useAppStore } from '../../core/appState';
 import { Sg16Logo } from '../ui/Sg16Logo';
 
 export function InstallPrompt() {
   const { canPrompt, isIOS, hasNativePrompt, install, dismiss } = useInstallPrompt();
+  const currentWorkspace = useAppStore((s) => s.currentWorkspace);
   const [visible, setVisible] = useState(false);
+  const onHome = currentWorkspace === 'home';
 
   useEffect(() => {
     if (!canPrompt) return;
@@ -18,9 +21,14 @@ export function InstallPrompt() {
 
   if (!visible || !canPrompt) return null;
 
+  /* Home has no bottom nav — sit above status / safe area only */
+  const bottomClass = onHome
+    ? 'bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))]'
+    : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))]';
+
   return (
-    <div className="fixed inset-x-0 bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-6 z-[100] px-4 pointer-events-none">
-      <div className="pointer-events-auto max-w-md mx-auto bg-zinc-900/95 backdrop-blur-xl border border-emerald-500/30 rounded-2xl p-4 shadow-2xl shadow-black/50">
+    <div className={`fixed inset-x-0 ${bottomClass} lg:bottom-6 z-[100] px-4 pointer-events-none`}>
+      <div className="pointer-events-auto max-w-md mx-auto bg-zinc-900/95 backdrop-blur-xl border border-[#FF365A]/35 rounded-2xl p-4 shadow-2xl shadow-black/50">
         <div className="flex items-start gap-3">
           <Sg16Logo className="w-11 h-11 rounded-xl shrink-0" />
           <div className="flex-1 min-w-0">
@@ -40,7 +48,7 @@ export function InstallPrompt() {
                 <button
                   type="button"
                   onClick={() => install()}
-                  className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-xs font-medium py-2.5 rounded-xl transition"
+                  className="flex-1 bg-[#FF173D] hover:bg-[#ff365a] text-xs font-medium py-2.5 min-h-[44px] rounded-xl transition"
                 >
                   Install app
                 </button>
@@ -51,7 +59,7 @@ export function InstallPrompt() {
                   dismiss();
                   setVisible(false);
                 }}
-                className="px-4 text-xs text-gray-400 hover:text-white py-2.5 rounded-xl border border-white/10"
+                className="px-4 text-xs text-gray-400 hover:text-white py-2.5 min-h-[44px] rounded-xl border border-white/10"
               >
                 Not now
               </button>
@@ -63,7 +71,7 @@ export function InstallPrompt() {
               dismiss();
               setVisible(false);
             }}
-            className="p-1 text-gray-500 hover:text-white shrink-0"
+            className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-gray-500 hover:text-white shrink-0"
             aria-label="Dismiss"
           >
             <X className="w-4 h-4" />
