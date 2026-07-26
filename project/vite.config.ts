@@ -27,8 +27,8 @@ export default defineConfig({
         name: 'SG16 AI Engine',
         short_name: 'SG16',
         description: 'Most Powerful AI Platform by SaifTech Global Limited — coding, chat, images, documents & more.',
-        theme_color: '#10b981',
-        background_color: '#050507',
+        theme_color: '#05060D',
+        background_color: '#05060D',
         display: 'standalone',
         display_override: ['standalone', 'fullscreen', 'minimal-ui'],
         orientation: 'any',
@@ -93,7 +93,15 @@ export default defineConfig({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2,webmanifest}'],
+        // Large hero / shield source PNGs exceed the 2 MiB default and fail Railway builds.
+        maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,webmanifest}'],
+        globIgnores: [
+          '**/shield-home/earth-dna.png',
+          '**/assets/sg16-earth-dna-bg.png',
+          '**/assets/shield-home-concept.png',
+          '**/shield-home-concept.png',
+        ],
         navigateFallback: '/index.html',
         navigateFallbackDenylist: [/^\/api\//, /^\/health$/, /^\/sitemap\.xml$/, /^\/robots\.txt$/],
         cleanupOutdatedCaches: true,
