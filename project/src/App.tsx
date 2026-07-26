@@ -250,7 +250,7 @@ function AppShell() {
     return (
       <div
         data-skin={sectionSkin}
-        className="sg16-app-shell sg16-home-shell h-[100dvh] text-white overflow-hidden bg-[#05060D]"
+        className="sg16-app-shell sg16-home-shell h-[100dvh] max-h-[100dvh] text-white overflow-hidden bg-[#05060D] supports-[height:100dvh]:h-[100dvh]"
       >
         <HomePage />
         <GoogleLoginModal />

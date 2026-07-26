@@ -5,15 +5,21 @@
   --red-hot: #ff617a;
   --red-soft: rgba(255, 23, 61, .52);
   --green: #00ff8b;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
   position: relative;
   width: 100%;
   height: 100dvh;
-  min-height: 720px;
+  max-height: 100dvh;
+  min-height: 0;
   overflow: hidden;
   isolation: isolate;
-  background: #03040a;
+  background: #05060d;
   color: #fff;
   font-family: 'Orbitron', system-ui, sans-serif;
+  box-sizing: border-box;
 }
 
 .shield-home__backdrop {
@@ -53,9 +59,9 @@
 .shield-home__topbar {
   position: absolute;
   z-index: 20;
-  top: 22px;
-  left: 28px;
-  right: 28px;
+  top: calc(22px + var(--safe-top));
+  left: calc(28px + var(--safe-left));
+  right: calc(28px + var(--safe-right));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -214,9 +220,9 @@
 .shield-status {
   position: absolute;
   z-index: 20;
-  left: 22px;
-  right: 22px;
-  bottom: 16px;
+  left: calc(22px + var(--safe-left));
+  right: calc(22px + var(--safe-right));
+  bottom: calc(16px + var(--safe-bottom));
   height: 58px;
   border: 1px solid rgba(255, 65, 93, .72);
   border-radius: 8px;
@@ -252,21 +258,201 @@
 
 @keyframes shieldPulse { 0%,100% { opacity:.72; transform:scale(.96); } 50% { opacity:1; transform:scale(1.04); } }
 
-@media (max-width: 1180px) {
-  .shield-home__stage { transform: scale(.82); width: 1220px; left:50%; margin-left:-610px; }
-  .hud-welcome { min-width: 280px; }
+/* Tablet / large Android — shrink nodes, keep symmetry (no scale-hack) */
+@media (max-width: 1180px) and (min-width: 761px) {
+  .shield-home__topbar {
+    top: calc(16px + var(--safe-top));
+    left: calc(18px + var(--safe-left));
+    right: calc(18px + var(--safe-right));
+  }
+  .hud-welcome { min-width: 260px; font-size: 13px; height: 50px; }
+  .hud-icon, .hud-logout { height: 48px; min-height: 44px; }
+  .hud-icon { width: 48px; min-width: 44px; }
+  .hud-logout { width: 120px; }
+  .shield-node { width: 200px; height: 248px; }
+  .shield-node--featured { width: 228px; height: 282px; }
+  .shield-node__icon { width: 58px; height: 58px; margin-bottom: 10px; }
+  .shield-node--featured .shield-node__icon { width: 68px; height: 68px; }
+  .shield-node strong { font-size: 20px; }
+  .shield-node--featured strong { font-size: 28px; }
+  .shield-node small { font-size: 12px; margin-top: 8px; }
+  .shield-clock { width: 340px; height: 112px; }
+  .shield-clock__time { font-size: 42px; }
+  .shield-clock__date { font-size: 15px; margin-top: 8px; }
+  .circuit { width: 200px; }
+  .shield-status {
+    left: calc(16px + var(--safe-left));
+    right: calc(16px + var(--safe-right));
+    bottom: calc(12px + var(--safe-bottom));
+  }
 }
 
+/* Phone — real grid layout (no transform:scale) */
 @media (max-width: 760px) {
-  .shield-home { min-height: 820px; overflow-y:auto; }
-  .shield-home__topbar { top:12px; left:12px; right:12px; }
-  .hud-welcome { min-width:0; width:calc(100% - 122px); font-size:11px; padding:0 11px; height:46px; }
-  .hud-actions { gap:7px; }
-  .hud-icon { width:46px; height:46px; }
-  .hud-logout { width:46px; height:46px; }
-  .hud-logout span { display:none; }
-  .shield-home__stage { top:64px; inset-inline:auto; height:690px; transform:scale(.53); transform-origin:top center; width:1120px; left:50%; margin-left:-560px; }
-  .shield-status { left:10px; right:10px; bottom:10px; height:auto; min-height:82px; grid-template-columns:repeat(3,1fr); }
-  .shield-status > div { padding:7px 2px; }
-  .shield-status > div::after { display:none; }
+  .shield-home {
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .shield-home__backdrop {
+    background-position: center 40%;
+    background-size: cover;
+    transform: none;
+  }
+
+  .shield-home__scanlines { opacity: .05; }
+
+  .shield-home__topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    margin: 0;
+    padding: calc(10px + var(--safe-top)) calc(12px + var(--safe-right)) 10px calc(12px + var(--safe-left));
+    left: auto;
+    right: auto;
+    width: 100%;
+    box-sizing: border-box;
+    background: linear-gradient(180deg, rgba(5, 6, 13, .96), rgba(5, 6, 13, .78) 70%, transparent);
+    gap: 10px;
+  }
+
+  .hud-welcome {
+    min-width: 0;
+    flex: 1;
+    width: auto;
+    height: 44px;
+    min-height: 44px;
+    font-size: 11px;
+    padding: 0 12px;
+    gap: 8px;
+  }
+
+  .hud-actions { gap: 8px; flex-shrink: 0; }
+
+  .hud-icon,
+  .hud-logout {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .hud-logout { width: 44px; }
+  .hud-logout span { display: none; }
+
+  .shield-home__stage {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    transform: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px 10px;
+    align-items: center;
+    justify-items: center;
+    padding: 8px calc(12px + var(--safe-right)) calc(150px + var(--safe-bottom)) calc(12px + var(--safe-left));
+    box-sizing: border-box;
+  }
+
+  .circuit { display: none; }
+
+  .shield-node {
+    position: relative;
+    left: auto !important;
+    top: auto !important;
+    transform: none;
+    width: min(148px, 42vw);
+    height: min(188px, 54vw);
+    z-index: 5;
+  }
+
+  .shield-node--featured {
+    grid-column: 1 / -1;
+    width: min(168px, 48vw);
+    height: min(214px, 60vw);
+    z-index: 7;
+  }
+
+  /* DOM order: student, health, ai, coding, market → AI first visually */
+  .shield-node--ai { order: 1; }
+  .shield-node--student { order: 2; }
+  .shield-node--health { order: 3; }
+  .shield-node--coding { order: 4; }
+  .shield-node--market { order: 5; }
+
+  .shield-node__icon { width: 44px; height: 44px; margin-bottom: 8px; }
+  .shield-node--featured .shield-node__icon { width: 52px; height: 52px; }
+  .shield-node strong { font-size: 15px; }
+  .shield-node--featured strong { font-size: 20px; }
+  .shield-node small { font-size: 10px; letter-spacing: .14em; margin-top: 6px; }
+  .shield-node--featured small { font-size: 11px; }
+
+  .shield-node:hover,
+  .shield-node:active {
+    transform: scale(1.04);
+  }
+  .shield-node:active {
+    transform: scale(0.97);
+  }
+
+  .shield-clock {
+    position: relative;
+    left: auto;
+    top: auto;
+    transform: none;
+    order: 6;
+    grid-column: 1 / -1;
+    width: min(340px, 100%);
+    height: 96px;
+    margin-top: 4px;
+  }
+
+  .shield-clock__time { font-size: 34px; }
+  .shield-clock__date { font-size: 13px; margin-top: 8px; letter-spacing: .1em; }
+
+  .shield-status {
+    position: sticky;
+    left: auto;
+    right: auto;
+    bottom: calc(8px + var(--safe-bottom));
+    width: auto;
+    margin: 0 calc(10px + var(--safe-right)) calc(8px + var(--safe-bottom)) calc(10px + var(--safe-left));
+    height: auto;
+    min-height: 88px;
+    grid-template-columns: repeat(3, 1fr);
+    z-index: 25;
+  }
+
+  .shield-status > div {
+    padding: 10px 4px;
+    min-height: 44px;
+  }
+
+  .shield-status > div::after { display: none; }
+
+  .shield-status span { font-size: 8px; }
+  .shield-status strong { font-size: 9px; }
+
+  .shield-status__pilot {
+    min-height: 44px;
+  }
+}
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .shield-node {
+    width: min(132px, 44vw);
+    height: min(168px, 56vw);
+  }
+  .shield-node--featured {
+    width: min(148px, 50vw);
+    height: min(190px, 62vw);
+  }
+  .shield-node strong { font-size: 13px; }
+  .shield-node--featured strong { font-size: 17px; }
+  .shield-clock__time { font-size: 28px; }
 }
