@@ -47,8 +47,9 @@ import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
 import { useTrialSync } from './hooks/useTrialSync';
 
 import type { WorkspaceType } from './core/types';
-import { HelperBot } from './components/help/HelperBot';
+import { PilotOrb } from './components/pilot/PilotOrb';
 import { skinForWorkspace } from './core/sectionThemes';
+import { isShieldWorkspace } from './core/pilot';
 
 
 
@@ -233,36 +234,56 @@ function AppShell() {
 
   };
 
+  const isHome = currentWorkspace === 'home';
+  /** Student Shield uses Picture-1 own maroon panel — hide global chrome. */
+  const isStudentShell = currentWorkspace === 'student-shield';
+  const hideGlobalChrome = isHome || isStudentShell;
+  const inShield = isShieldWorkspace(currentWorkspace);
   const isChatWorkspace = !(
     ['home', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
   ).includes(currentWorkspace);
 
 
 
+  /* AIO Shield Home: full-bleed, no sidebar/topbar chrome */
+  if (isHome) {
+    return (
+      <div
+        data-skin={sectionSkin}
+        className="sg16-app-shell sg16-home-shell h-[100dvh] text-white overflow-hidden bg-[#05060D]"
+      >
+        <HomePage />
+        <GoogleLoginModal />
+        <LaunchSubscriptionModal />
+        <InstallPrompt />
+      </div>
+    );
+  }
+
   return (
 
     <div
       data-skin={sectionSkin}
-      className={`sg16-app-shell sg16-skin-${sectionSkin} flex h-[100dvh] text-white overflow-hidden`}
+      className={`sg16-app-shell sg16-skin-${sectionSkin} flex h-[100dvh] text-white overflow-hidden ${
+        inShield ? 'bg-black' : ''
+      }`}
     >
 
-      <Sidebar />
+      {!hideGlobalChrome && <Sidebar />}
 
+      {!hideGlobalChrome && <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
 
+      <div className={`flex-1 flex flex-col min-w-0 ${!isStudentShell ? 'sg16-work-field' : ''}`}>
 
-      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+        {!hideGlobalChrome && <TopBar onMenuClick={() => setDrawerOpen(true)} />}
 
-
-
-      <div className="flex-1 flex flex-col min-w-0">
-
-        <TopBar onMenuClick={() => setDrawerOpen(true)} />
-
-        <LaunchBanner />
+        {!hideGlobalChrome && <LaunchBanner />}
 
         <main
-          className={`flex-1 overscroll-contain mobile-scroll-main pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 min-h-0 ${
-            isChatWorkspace ? 'overflow-hidden' : 'overflow-auto'
+          className={`flex-1 overscroll-contain mobile-scroll-main ${
+            hideGlobalChrome ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'
+          } min-h-0 ${
+            isChatWorkspace || isStudentShell ? 'overflow-hidden' : 'overflow-auto'
           }`}
         >
 
@@ -272,11 +293,9 @@ function AppShell() {
 
       </div>
 
+      {!hideGlobalChrome && <MobileBottomNav />}
 
-
-      <MobileBottomNav />
-
-      <HelperBot />
+      <PilotOrb />
 
       <InstallPrompt />
 

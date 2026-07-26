@@ -20,6 +20,7 @@ const titles: Record<string, string> = {
   translate: 'Translate',
   memory: 'Memory Vault',
   'student-shield': 'Student Shield',
+  market: 'Market Shield',
 };
 
 interface TopBarProps {
@@ -42,14 +43,14 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const planBadge = (compact = false) => {
     if (launchFree || authUser?.launchFree) {
       return (
-        <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg whitespace-nowrap">
+        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg whitespace-nowrap">
           Launch · Full access
         </span>
       );
     }
     if (authUser?.trialActive) {
       return (
-        <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg">
+        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg">
           Trial · {authUser.trialDaysRemaining}d left
         </span>
       );
@@ -93,7 +94,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
       <button
         type="button"
         onClick={openPricing}
-        className="text-xs bg-zinc-800 border border-white/10 text-gray-400 px-2 py-1 rounded-lg hover:border-emerald-500/30 hover:text-white transition"
+        className="text-xs bg-zinc-800 border border-white/10 text-gray-400 px-2 py-1 rounded-lg hover:border-[#FF2E2E]/30 hover:text-white transition"
       >
         {compact ? 'Free' : planLabel(subscription.plan)}
       </button>
@@ -142,8 +143,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <div className="text-sm font-medium truncate max-w-[8rem]">
               {isAuthenticated(authUser) ? authUser!.name : settings.displayName}
             </div>
-            <div className="text-xs text-emerald-400 flex items-center gap-1 justify-end">
-              <span className="w-2 h-2 bg-emerald-400 rounded-full inline-block" />
+            <div className="text-xs text-[#FF8A8A] flex items-center gap-1 justify-end">
+              <span className="w-2 h-2 bg-[#FF2E2E] rounded-full inline-block" />
               {isAuthenticated(authUser) ? 'Signed in' : 'Guest'}
             </div>
           </div>
@@ -151,7 +152,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <button
               type="button"
               onClick={logout}
-              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-emerald-500/40 transition focus:outline-none focus-visible:ring-emerald-500/60"
+              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-[#FF2E2E]/40 transition focus:outline-none focus-visible:ring-[#FF2E2E]/60"
               title="Sign out"
               aria-label="Sign out"
             >

@@ -56,40 +56,46 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
   };
 
   return (
-    <div className="shrink-0 border-b border-white/10 px-4 py-3 bg-black/30">
-      <div className="flex items-center gap-2 mb-2">
-        <ClipboardCheck className="w-4 h-4 text-sky-300" />
-        <span className="text-xs font-semibold uppercase tracking-wider text-sky-200">
-          Project check
-        </span>
-        <span className="text-[10px] text-white/40">Score free · Repair Premium</span>
-      </div>
-      <textarea
-        value={code}
-        onChange={(e) => setCode(e.target.value)}
-        rows={3}
-        placeholder="Paste project files / code here for a full-side score..."
-        className="w-full rounded-xl bg-black/50 border border-violet-500/20 focus:border-sky-400/50 outline-none text-sm text-white/90 p-3 resize-y min-h-[72px] max-h-40 font-mono"
-      />
-      <div className="flex flex-wrap gap-2 mt-2">
-        <button
-          type="button"
-          onClick={analyze}
-          disabled={!code.trim()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-sky-500/20 text-sky-200 border border-sky-400/30 hover:bg-sky-500/30 disabled:opacity-40"
-        >
-          <Sparkles className="w-3.5 h-3.5" />
-          Check & score
-        </button>
-        <button
-          type="button"
-          onClick={repair}
-          disabled={!code.trim()}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-violet-500/20 text-violet-100 border border-violet-400/30 hover:bg-violet-500/30 disabled:opacity-40"
-        >
-          {!premium && <Lock className="w-3.5 h-3.5" />}
-          Repair / rewrite
-        </button>
+    <div className="shrink-0 px-4 sm:px-5 pt-3 pb-2">
+      <div className="sg16-chat-col">
+        <div className="sg16-card p-4">
+          <div className="flex items-center gap-2 mb-2.5">
+            <span className="w-9 h-9 rounded-2xl bg-sky-500/15 border border-sky-400/20 flex items-center justify-center">
+              <ClipboardCheck className="w-4 h-4 text-sky-300" />
+            </span>
+            <div className="min-w-0">
+              <div className="text-sm font-semibold text-white tracking-tight">Project check</div>
+              <div className="text-[11px] text-white/40">Score free · Repair on Premium</div>
+            </div>
+          </div>
+          <textarea
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            rows={3}
+            placeholder="Paste project files or code for a full-side score..."
+            className="w-full rounded-[var(--sg16-r-bar)] bg-black/45 border border-white/[0.08] focus:border-sky-400/40 outline-none text-sm text-white/90 p-3 resize-y min-h-[72px] max-h-40 font-mono placeholder:text-white/25"
+          />
+          <div className="flex flex-wrap gap-2 mt-2.5">
+            <button
+              type="button"
+              onClick={analyze}
+              disabled={!code.trim()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-100 border border-sky-400/25 hover:bg-sky-500/25 disabled:opacity-40 transition"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              Check & score
+            </button>
+            <button
+              type="button"
+              onClick={repair}
+              disabled={!code.trim()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#FF2E2E]/12 text-[#FFB4B4] border border-[#FF2E2E]/25 hover:bg-[#FF2E2E]/20 disabled:opacity-40 transition"
+            >
+              {!premium && <Lock className="w-3.5 h-3.5" />}
+              Repair / rewrite
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

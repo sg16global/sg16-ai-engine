@@ -11,8 +11,9 @@ import type { Message, WorkspaceId } from '../../core/types';
 const workspaceLabels: Record<WorkspaceId, string> = {
   general: SG16_BRAND.chatName,
   coding: 'Coding Hub',
-  health: 'Health Guide',
+  health: 'Health Shield',
   'student-shield': 'Student Shield',
+  market: 'Market Shield',
   image: 'Image Studio',
   document: 'Document Lab',
   translate: 'Translate',
@@ -252,49 +253,59 @@ export function ChatPanel({
 
   return (
     <div key={workspaceId} className="h-full flex flex-col">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 gap-2">
-        <span className="text-[11px] text-gray-500 truncate">
-          {workspaceLabel(workspaceId)} · separate chat
-        </span>
-        {messages.length > 0 && (
-          <button
-            type="button"
-            onClick={() => clearMessages(workspaceId)}
-            className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-red-400 transition px-2 py-1"
-          >
-            <Trash2 className="w-3.5 h-3.5" /> Clear chat
-          </button>
-        )}
+      <div className="px-4 sm:px-5 pt-3 shrink-0">
+        <div className="sg16-chat-col flex items-center justify-between gap-2 sg16-bar-soft !py-2">
+          <span className="text-[11px] text-white/40 truncate tracking-wide">
+            {workspaceLabel(workspaceId)} · private thread
+          </span>
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => clearMessages(workspaceId)}
+              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-[#FF8A8A] transition px-2 py-1"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Clear
+            </button>
+          )}
+        </div>
       </div>
 
-      <div ref={scrollRef} className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-6 py-4 space-y-4 mobile-scroll-main">
-        {messages.length === 0 && suggestions.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-4">
-            {suggestions.map((s) => (
-              <button
-                key={s}
-                type="button"
-                onClick={() => sendMessage(s)}
-                className="text-xs px-3 py-2 rounded-xl bg-zinc-900 border border-white/10 hover:border-emerald-500/30 text-gray-300 transition"
-              >
-                {s}
-              </button>
-            ))}
-          </div>
-        )}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 mobile-scroll-main"
+      >
+        <div className="sg16-chat-col space-y-3">
+          {messages.length === 0 && suggestions.length > 0 && (
+            <div className="sg16-card p-5 sm:p-6">
+              <p className="text-[11px] uppercase tracking-[0.18em] text-white/30 mb-1">Start here</p>
+              <p className="text-sm text-white/55 mb-4 leading-relaxed">
+                Pick a prompt bar — or type below.
+              </p>
+              <div className="space-y-2">
+                {suggestions.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => sendMessage(s)}
+                    className="sg16-bar-row w-full text-left text-sm text-white/80"
+                  >
+                    {s}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
-        {messages.map((msg) => (
-          <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+          {messages.map((msg) => (
             <div
-              className={`max-w-[85%] rounded-2xl px-4 py-3 text-sm leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-emerald-500/15 border border-emerald-500/25 text-white'
-                  : 'bg-zinc-900 border border-white/10 text-gray-200'
+              key={msg.id}
+              className={`text-sm leading-relaxed ${
+                msg.role === 'user' ? 'sg16-bar-accent' : 'sg16-bar'
               }`}
             >
-              {msg.role === 'assistant' && workspaceId === 'general' && (
-                <div className="text-[10px] text-emerald-400 mb-1.5 font-semibold tracking-wide">
-                  {SG16_BRAND.chatName}
+              {msg.role === 'assistant' && (
+                <div className="text-[10px] text-[#FF8A8A] mb-1.5 font-semibold tracking-[0.12em] uppercase">
+                  {workspaceId === 'general' ? SG16_BRAND.chatName : 'SG16 AI'}
                 </div>
               )}
               {msg.imageUrl && (
@@ -302,132 +313,173 @@ export function ChatPanel({
               )}
               {msg.generatedImageUrl && (
                 <div className="mb-2">
-                  <img src={msg.generatedImageUrl} alt="SG16 AI generated" className="rounded-lg max-h-80 object-contain w-full" />
+                  <img
+                    src={msg.generatedImageUrl}
+                    alt="SG16 AI generated"
+                    className="rounded-lg max-h-80 object-contain w-full"
+                  />
                   <a
                     href={msg.generatedImageUrl}
                     download={`sg16-image-${msg.id}.png`}
-                    className="inline-flex items-center gap-1.5 mt-2 text-xs text-emerald-400 hover:text-emerald-300"
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs text-[#FF8A8A] hover:text-[#FF2E2E]"
                   >
                     <Download className="w-3.5 h-3.5" /> Download image
                   </a>
                 </div>
               )}
               {msg.liveSearch && msg.role === 'assistant' && (
-                <div className="flex items-center gap-1.5 text-[10px] text-sky-400 mb-2">
+                <div className="flex items-center gap-1.5 text-[10px] text-sky-400/90 mb-2">
                   <Globe className="w-3 h-3" /> Live web answer · SG16 AI
                 </div>
               )}
-              <p className={`whitespace-pre-wrap ${monospace ? 'font-mono text-xs' : ''}`}>{msg.content}</p>
+              <p className={`whitespace-pre-wrap ${monospace ? 'font-mono text-xs' : ''}`}>
+                {msg.content}
+              </p>
             </div>
-          </div>
-        ))}
+          ))}
 
-        {loading && (
-          <div className="flex items-center gap-2 text-emerald-400 text-sm">
-            <Loader2 className="w-4 h-4 animate-spin" /> {activeLoadingLabel}
-          </div>
-        )}
-        <div ref={bottomRef} />
+          {loading && (
+            <div className="sg16-bar-soft flex items-center gap-2 text-[#FF8A8A] text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" /> {activeLoadingLabel}
+            </div>
+          )}
+          <div ref={bottomRef} />
+        </div>
       </div>
 
-      {error && (
-        <div className="mx-4 mb-2 text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">
-          {error}
-        </div>
-      )}
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-t border-white/[0.06] bg-gradient-to-t from-black/50 to-transparent">
+        <div className="sg16-chat-col space-y-2">
+          {error && <div className="sg16-bar-error">{error}</div>}
 
-      <div className="px-3 sm:px-4 py-3 sm:py-4 border-t border-white/10 bg-black/40">
-        {extraControls && <div className="mb-3">{extraControls}</div>}
+          {extraControls && <div>{extraControls}</div>}
 
-        {imageUrl && (
-          <div className="mb-2 flex items-center gap-2">
-            <img src={imageUrl} alt="Preview" className="h-12 rounded-lg" />
-            <button type="button" onClick={() => setImageUrl(undefined)} className="text-xs text-gray-500 hover:text-red-400">
-              Remove
+          {imageUrl && (
+            <div className="sg16-bar-soft flex items-center gap-2">
+              <img src={imageUrl} alt="Preview" className="h-12 rounded-lg" />
+              <button
+                type="button"
+                onClick={() => setImageUrl(undefined)}
+                className="text-xs text-white/40 hover:text-[#FF8A8A]"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          {pendingDoc && (
+            <div className="sg16-bar-soft flex items-center gap-2 text-xs">
+              <Upload className="w-4 h-4 text-[#FF8A8A] shrink-0" />
+              <span className="text-white/80 truncate flex-1">
+                {pendingDoc.name} · {Math.round(pendingDoc.text.length / 1000)}K chars — type your
+                question, then send
+              </span>
+              <button
+                type="button"
+                onClick={() => setPendingDoc(null)}
+                className="text-white/40 hover:text-[#FF8A8A] shrink-0"
+              >
+                Remove
+              </button>
+            </div>
+          )}
+
+          <div className="sg16-composer">
+            {allowImage && (
+              <>
+                <input
+                  ref={imageRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleImageUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => imageRef.current?.click()}
+                  className="p-2.5 hover:bg-white/[0.06] rounded-xl shrink-0 text-white/50 hover:text-white"
+                  title="Upload image"
+                >
+                  <ImageIcon className="w-5 h-5" />
+                </button>
+              </>
+            )}
+            {allowDocument && (
+              <>
+                <input
+                  ref={docRef}
+                  type="file"
+                  accept=".txt,.md,.csv,.json,.html,.js,.ts,.py,.java,.xml,.pdf"
+                  className="hidden"
+                  onChange={handleDocUpload}
+                />
+                <button
+                  type="button"
+                  onClick={() => docRef.current?.click()}
+                  className="p-2.5 hover:bg-white/[0.06] rounded-xl shrink-0 text-white/50 hover:text-white"
+                  title="Upload document"
+                >
+                  <Upload className="w-5 h-5" />
+                </button>
+              </>
+            )}
+            {allowVoice && (
+              <button
+                type="button"
+                onClick={toggleVoice}
+                className={`p-2.5 rounded-xl shrink-0 ${
+                  listening
+                    ? 'bg-[#FF2E2E]/20 text-[#FF8A8A]'
+                    : 'hover:bg-white/[0.06] text-white/50 hover:text-white'
+                }`}
+                title={listening ? 'Stop recording' : 'Voice input'}
+              >
+                {listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              </button>
+            )}
+
+            <textarea
+              value={input}
+              onFocus={() => requireAuth(() => {})}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  requireAuth(() => sendMessage());
+                }
+              }}
+              placeholder={placeholder}
+              rows={1}
+              className="flex-1 min-w-0 bg-transparent border-0 px-2 sm:px-3 py-2.5 text-base outline-none resize-none min-h-[44px] max-h-32 text-white placeholder:text-white/30"
+            />
+
+            <button
+              type="button"
+              onClick={() => requireAuth(() => sendMessage())}
+              disabled={loading || (!input.trim() && !imageUrl && !pendingDoc)}
+              className="sg16-send p-3 shrink-0 disabled:opacity-40"
+            >
+              <Send className="w-5 h-5" />
             </button>
           </div>
-        )}
 
-        {pendingDoc && (
-          <div className="mb-2 flex items-center gap-2 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">
-            <Upload className="w-4 h-4 text-rose-400 shrink-0" />
-            <span className="text-rose-200 truncate flex-1">
-              {pendingDoc.name} · {Math.round(pendingDoc.text.length / 1000)}K chars — type your question, then send
-            </span>
-            <button type="button" onClick={() => setPendingDoc(null)} className="text-gray-500 hover:text-red-400 shrink-0">
-              Remove
-            </button>
-          </div>
-        )}
-
-        <div className="flex gap-2 items-end flex-wrap sm:flex-nowrap">
-          {allowImage && (
-            <>
-              <input ref={imageRef} type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
-              <button type="button" onClick={() => imageRef.current?.click()} className="p-2.5 hover:bg-white/10 rounded-xl shrink-0" title="Upload image">
-                <ImageIcon className="w-5 h-5" />
-              </button>
-            </>
-          )}
-          {allowDocument && (
-            <>
-              <input ref={docRef} type="file" accept=".txt,.md,.csv,.json,.html,.js,.ts,.py,.java,.xml,.pdf" className="hidden" onChange={handleDocUpload} />
-              <button type="button" onClick={() => docRef.current?.click()} className="p-2.5 hover:bg-white/10 rounded-xl shrink-0" title="Upload document">
-                <Upload className="w-5 h-5" />
-              </button>
-            </>
-          )}
           {allowVoice && (
             <button
               type="button"
-              onClick={toggleVoice}
-              className={`p-2.5 rounded-xl shrink-0 ${listening ? 'bg-red-500/20 text-red-400' : 'hover:bg-white/10'}`}
-              title={listening ? 'Stop recording' : 'Voice input — tap, speak, tap again on iPhone'}
+              onClick={() => {
+                const last = [...messages].reverse().find((m) => m.role === 'assistant');
+                if (last) speakText(last.content);
+              }}
+              className="flex items-center gap-1.5 text-xs text-white/35 hover:text-[#FF8A8A]"
             >
-              {listening ? <MicOff className="w-5 h-5" /> : <Mic className="w-5 h-5" />}
+              <Volume2 className="w-3.5 h-3.5" /> Read last reply aloud
             </button>
           )}
-
-          <textarea
-            value={input}
-            onFocus={() => requireAuth(() => {})}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                requireAuth(() => sendMessage());
-              }
-            }}
-            placeholder={placeholder}
-            rows={1}
-            className="flex-1 min-w-0 bg-zinc-900 border border-white/10 rounded-xl px-3 sm:px-4 py-3 text-base outline-none focus:border-emerald-500/40 resize-none min-h-[48px] max-h-32"
-          />
-
-          <button
-            type="button"
-            onClick={() => requireAuth(() => sendMessage())}
-            disabled={loading || (!input.trim() && !imageUrl && !pendingDoc)}
-            className="p-3 bg-gradient-to-r from-emerald-500 to-cyan-500 rounded-xl disabled:opacity-40 shrink-0"
-          >
-            <Send className="w-5 h-5" />
-          </button>
+          {allowVoice && listening && (
+            <p className="text-[11px] text-[#FF8A8A]">
+              Recording… tap mic again when finished speaking.
+            </p>
+          )}
         </div>
-
-        {allowVoice && (
-          <button
-            type="button"
-            onClick={() => {
-              const last = [...messages].reverse().find((m) => m.role === 'assistant');
-              if (last) speakText(last.content);
-            }}
-            className="mt-2 flex items-center gap-1.5 text-xs text-gray-500 hover:text-emerald-400"
-          >
-            <Volume2 className="w-3.5 h-3.5" /> Read last reply aloud
-          </button>
-        )}
-        {allowVoice && listening && (
-          <p className="mt-1 text-[11px] text-pink-400">Recording… tap mic again when finished speaking.</p>
-        )}
       </div>
     </div>
   );

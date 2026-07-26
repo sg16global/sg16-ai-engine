@@ -2,7 +2,7 @@ import type { RouteResponse, WorkspaceId } from './types';
 import { authHeaders } from '../lib/authApi';
 
 const VALID: WorkspaceId[] = [
-  'coding', 'health', 'student-shield', 'general',
+  'coding', 'health', 'student-shield', 'general', 'market',
   'image', 'translate', 'document', 'voice', 'memory',
 ];
 
@@ -30,6 +30,9 @@ export function fallbackRoute(query: string): RouteResponse {
   }
   if (/student|homework|math|physics|exam|study|school|essay|learn/.test(lower)) {
     return { targetWorkspace: 'student-shield', confidence: 0.9, cleanedPrompt: query };
+  }
+  if (/market|stock|crypto|bitcoin|forex|nasdaq|s&p|invest|trading|share price/.test(lower)) {
+    return { targetWorkspace: 'market', confidence: 0.88, cleanedPrompt: query };
   }
 
   return { targetWorkspace: 'general', confidence: 0.6, cleanedPrompt: query };
