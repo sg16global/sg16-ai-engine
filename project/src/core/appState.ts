@@ -194,7 +194,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
         : {}),
     });
     queueMicrotask(() => {
-      pending?.();
+      if (pending) {
+        pending();
+      } else {
+        getState().goToHome();
+      }
       void getState().syncSubscriptionFromServer();
       void syncUserHistoryOnLogin(enriched.id, loadChatHistory, saveChatHistory).then((merged) => {
         set({ messages: merged });
@@ -259,8 +263,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
         : getState().subscription;
       saveSubscription(subscription);
       set({ authUser: user, subscription });
-    } catch {
-      getState().logout();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (message.toLowerCase().includes('session') || message.toLowerCase().includes('sign in')) {
+        getState().logout();
+      }
     }
   },
 

@@ -45,6 +45,7 @@ import { useAppStore } from './core/appState';
 import { isAuthenticated } from './core/access';
 
 import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
+import { loadAuthToken } from './lib/authApi';
 
 import { useTrialSync } from './hooks/useTrialSync';
 
@@ -81,10 +82,13 @@ function applyBrowserRoute() {
 
 
 
-function isLandingRoute(pathname: string) {
+function isWelcomeRoute(pathname: string) {
+  return normalizePath(pathname) === APP_PATHS.welcome;
+}
 
-  return normalizePath(pathname) === APP_PATHS.home;
-
+function isShieldHomeRoute(pathname: string) {
+  const path = normalizePath(pathname);
+  return path === APP_PATHS.home || path === APP_PATHS.welcome;
 }
 
 
@@ -368,21 +372,21 @@ function App() {
 
 
 
-  const showLanding = !isAuthenticated(authUser) && isLandingRoute(pathname);
-
+  const showWelcome = !isAuthenticated(authUser) && isWelcomeRoute(pathname);
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
+  const restoringSession = !authHydrated && Boolean(loadAuthToken()) && isShieldHomeRoute(pathname);
 
 
 
   useEffect(() => {
 
-    if (showLanding) {
+    if (showWelcome) {
 
       document.title = 'SG16 AI Engine — Most Powerful AI Engine';
 
     }
 
-  }, [showLanding]);
+  }, [showWelcome]);
 
 
 
@@ -410,7 +414,16 @@ function App() {
 
 
 
-  if (!authHydrated && !isLandingRoute(pathname) && !isPublicLegalPath(pathname)) {
+  if (restoringSession) {
+    return (
+      <>
+        <SeoCanonical />
+        <AuthSplash />
+      </>
+    );
+  }
+
+  if (!authHydrated && !isShieldHomeRoute(pathname) && !isPublicLegalPath(pathname) && !isWelcomeRoute(pathname)) {
     return (
       <>
         <SeoCanonical />
@@ -428,7 +441,7 @@ function App() {
     );
   }
 
-  if (showLanding) {
+  if (showWelcome) {
     return (
       <>
         <SeoCanonical />

@@ -10,6 +10,7 @@ export const APP_PATHS = {
   privacy: '/privacy',
   contact: '/contact',
   room: '/room',
+  welcome: '/welcome',
   settings: '/settings',
   help: '/help',
 } as const;
@@ -21,6 +22,7 @@ type RouteTarget = {
 
 const PATH_ROUTES: Record<string, RouteTarget> = {
   [APP_PATHS.home]: { workspace: 'home' },
+  [APP_PATHS.welcome]: { workspace: 'home' },
   [APP_PATHS.pricing]: { workspace: 'pricing' },
   [APP_PATHS.terms]: { workspace: 'help', helpSection: 'terms' },
   [APP_PATHS.privacy]: { workspace: 'help', helpSection: 'privacy' },

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAppStore } from '../core/appState';
+import { isAuthenticated } from '../core/access';
 import { usePilotStore } from '../core/pilotState';
 import type { WorkspaceId } from '../core/types';
 import './shieldHome.css';
@@ -98,6 +99,7 @@ export const HomePage = () => {
   const settings = useAppStore((s) => s.settings);
   const navigateToWorkspace = useAppStore((s) => s.navigateToWorkspace);
   const requireAuth = useAppStore((s) => s.requireAuth);
+  const openLoginModal = useAppStore((s) => s.openLoginModal);
   const openHelp = useAppStore((s) => s.openHelp);
   const openUserRoom = useAppStore((s) => s.openUserRoom);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
@@ -131,11 +133,17 @@ export const HomePage = () => {
         <button
           type="button"
           className="hud-panel hud-welcome"
-          onClick={() => requireAuth(() => openUserRoom())}
-          aria-label="Open your user room"
+          onClick={() =>
+            isAuthenticated(authUser)
+              ? requireAuth(() => openUserRoom())
+              : openLoginModal()
+          }
+          aria-label={isAuthenticated(authUser) ? 'Open your user room' : 'Sign in with Google'}
         >
           <UserRound size={21} />
-          <span>WELCOME, {displayName}</span>
+          <span>
+            {isAuthenticated(authUser) ? `WELCOME, ${displayName}` : 'SIGN IN WITH GOOGLE'}
+          </span>
         </button>
 
         <div className="hud-actions">
