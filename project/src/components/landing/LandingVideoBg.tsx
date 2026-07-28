@@ -1,25 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
 
-/** Original portrait video (mobile) + landscape crop (desktop). */
-const LANDING_VIDEO_DESKTOP = '/landing/sg16home-landscape.mp4';
-const LANDING_VIDEO_MOBILE = '/landing/sg16home.mp4';
+/** Slow Earth — 1920×1080 landscape (CURSOR BOSS / IMG_7445.MP4). */
+const LANDING_VIDEO = '/landing/sg16-earth-slow.mp4';
+const LANDING_VIDEO_FALLBACK = '/landing/sg16home-landscape.mp4';
+const LANDING_POSTER = '/landing/hero-background.webp';
 
-/** Full-viewport hero video — muted autoplay loop, edge-to-edge cover. */
+/** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
 export function LandingVideoBg() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [src, setSrc] = useState(
-    () => (typeof window !== 'undefined' && window.matchMedia('(max-width: 767px)').matches
-      ? LANDING_VIDEO_MOBILE
-      : LANDING_VIDEO_DESKTOP),
-  );
-
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)');
-    const apply = () => setSrc(mq.matches ? LANDING_VIDEO_MOBILE : LANDING_VIDEO_DESKTOP);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
+  const [src, setSrc] = useState(LANDING_VIDEO);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -28,7 +17,6 @@ export function LandingVideoBg() {
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
-    video.load();
 
     const play = () => {
       void video.play().catch(() => {
@@ -53,16 +41,19 @@ export function LandingVideoBg() {
   return (
     <div className="landing-video-bg" aria-hidden>
       <video
-        key={src}
         ref={videoRef}
         className="landing-video-bg__video"
         src={src}
+        poster={LANDING_POSTER}
         autoPlay
         muted
         loop
         playsInline
         preload="auto"
         disablePictureInPicture
+        onError={() => {
+          if (src !== LANDING_VIDEO_FALLBACK) setSrc(LANDING_VIDEO_FALLBACK);
+        }}
       />
       <div className="landing-video-bg__shade" />
     </div>
