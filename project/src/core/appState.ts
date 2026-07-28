@@ -30,6 +30,7 @@ import {
   fetchBillingEntitlements,
   subscriptionFromApi,
 } from '../lib/billingApi';
+import { scheduleHistorySync, syncUserHistoryOnLogin } from '../lib/userRoomApi';
 import { pushAppPath, routeToPath } from './routes';
 
 interface AppState {
@@ -56,6 +57,7 @@ interface AppState {
   openHelp: (section?: HelpSection) => void;
   openPricing: () => void;
   openStudentVerify: () => void;
+  openUserRoom: () => void;
   openLaunchNotice: () => void;
   closeLaunchNotice: () => void;
   navigateToWorkspace: (workspace: WorkspaceId, prompt?: string, imageUrl?: string) => void;
@@ -92,6 +94,7 @@ interface AppState {
 
 function persistMessages(messages: AppState['messages'], userId?: string | null) {
   saveChatHistory(messages, userId);
+  if (userId) scheduleHistorySync(messages);
 }
 
 function tryOpenWorkspace(
@@ -106,6 +109,7 @@ function tryOpenWorkspace(
     workspace === 'pricing' ||
     workspace === 'student-verify' ||
     workspace === 'home' ||
+    workspace === 'user-room' ||
     workspace === 'history' ||
     workspace === 'settings' ||
     workspace === 'help'
@@ -178,13 +182,12 @@ export const useAppStore = create<AppState>((set, getState) => ({
     const settings = { ...getState().settings, displayName: enriched.name };
     saveSettings(settings);
     const pending = getState().pendingAuthAction;
-    const messages = loadChatHistory(enriched.id);
     set({
       authToken: token,
       authUser: enriched,
       subscription,
       settings,
-      messages,
+      messages: loadChatHistory(enriched.id),
       loginModalOpen: false,
       pendingAuthAction: null,
       error: null,
@@ -193,8 +196,15 @@ export const useAppStore = create<AppState>((set, getState) => ({
         : {}),
     });
     queueMicrotask(() => {
-      pending?.();
+      if (pending) {
+        pending();
+      } else {
+        getState().goToHome();
+      }
       void getState().syncSubscriptionFromServer();
+      void syncUserHistoryOnLogin(enriched.id, loadChatHistory, saveChatHistory).then((merged) => {
+        set({ messages: merged });
+      });
     });
   },
 
@@ -260,8 +270,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
         : getState().subscription;
       saveSubscription(subscription);
       set({ authUser: user, subscription });
-    } catch {
-      getState().logout();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : '';
+      if (message.toLowerCase().includes('session') || message.toLowerCase().includes('sign in')) {
+        getState().logout();
+      }
     }
   },
 
@@ -276,8 +289,15 @@ export const useAppStore = create<AppState>((set, getState) => ({
         ? { ...defaultSubscription(), ...me.subscription }
         : getState().subscription;
       saveSubscription(subscription);
-      const messages = loadChatHistory(user.id);
-      set({ authUser: user, subscription, messages, settings: { ...getState().settings, displayName: user.name } });
+      set({
+        authUser: user,
+        subscription,
+        messages: loadChatHistory(user.id),
+        settings: { ...getState().settings, displayName: user.name },
+      });
+      void syncUserHistoryOnLogin(user.id, loadChatHistory, saveChatHistory).then((merged) => {
+        set({ messages: merged });
+      });
     } catch {
       clearAuthToken();
       set({ authToken: null, authUser: null, messages: emptyChatHistory() });
@@ -309,7 +329,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
 
   setWorkspace: (ws) => {
     const { subscription, authUser } = getState();
-    if (ws === 'pricing' || ws === 'student-verify' || ws === 'home' || ws === 'history' || ws === 'settings' || ws === 'help') {
+    if (ws === 'pricing' || ws === 'student-verify' || ws === 'home' || ws === 'user-room' || ws === 'history' || ws === 'settings' || ws === 'help') {
       set({ currentWorkspace: ws, error: null });
       const path = routeToPath(ws);
       if (path) pushAppPath(path);
@@ -335,6 +355,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
   closeLaunchNotice: () => set({ launchNoticeOpen: false }),
 
   openStudentVerify: () => set({ currentWorkspace: 'student-verify', error: null }),
+
+  openUserRoom: () => {
+    set({ currentWorkspace: 'user-room', error: null });
+    pushAppPath('/room');
+  },
 
   goToHome: () => {
     set({ currentWorkspace: 'home', error: null });

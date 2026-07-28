@@ -21,6 +21,8 @@ import { WorkspaceContainer } from './components/layout/WorkspaceContainer';
 
 import { HistoryPanel } from './components/panels/HistoryPanel';
 
+import { UserRoomPanel } from './components/panels/UserRoomPanel';
+
 import { SettingsPanel } from './components/panels/SettingsPanel';
 
 import { HelpPanel } from './components/panels/HelpPanel';
@@ -44,6 +46,7 @@ import { useAppStore } from './core/appState';
 import { isAuthenticated } from './core/access';
 
 import { APP_PATHS, normalizePath, pathToRoute, pushAppPath } from './core/routes';
+import { loadAuthToken } from './lib/authApi';
 
 import { useTrialSync } from './hooks/useTrialSync';
 
@@ -86,6 +89,15 @@ function isLandingRoute(pathname: string) {
 
 function isGuestAppRoute(pathname: string) {
   return normalizePath(pathname) === APP_PATHS.app;
+}
+
+function isWelcomeRoute(pathname: string) {
+  return normalizePath(pathname) === APP_PATHS.welcome;
+}
+
+function isShieldHomeRoute(pathname: string) {
+  const path = normalizePath(pathname);
+  return path === APP_PATHS.app || path === APP_PATHS.home;
 }
 
 
@@ -173,6 +185,8 @@ function AppShell() {
 
       settings: 'Settings — SG16 AI Engine',
 
+      'user-room': 'My Room — SG16 AI Engine',
+
     };
 
     document.title = titles[currentWorkspace] ?? 'SG16 AI Engine';
@@ -208,6 +222,10 @@ function AppShell() {
       case 'home':
 
         return <HomePage />;
+
+      case 'user-room':
+
+        return <UserRoomPanel />;
 
       case 'history':
 
@@ -247,7 +265,7 @@ function AppShell() {
       ? 'SG16 Chatting'
       : `${String(currentWorkspace).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`;
   const isChatWorkspace = !(
-    ['home', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
+    ['home', 'user-room', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
   ).includes(currentWorkspace);
 
 
@@ -387,9 +405,13 @@ function App() {
 
 
 
-  const showLanding = !isAuthenticated(authUser) && isLandingRoute(pathname);
+  const showLanding = !isAuthenticated(authUser) && (isLandingRoute(pathname) || isWelcomeRoute(pathname));
   const showGuestApp = !isAuthenticated(authUser) && isGuestAppRoute(pathname);
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
+  const restoringSession =
+    !authHydrated &&
+    Boolean(loadAuthToken()) &&
+    (isGuestAppRoute(pathname) || isLandingRoute(pathname));
 
   useEffect(() => {
     if (!authHydrated) return;
@@ -436,7 +458,16 @@ function App() {
 
 
 
-  if (!authHydrated && !isLandingRoute(pathname) && !isGuestAppRoute(pathname) && !isPublicLegalPath(pathname)) {
+  if (restoringSession) {
+    return (
+      <>
+        <SeoCanonical />
+        <AuthSplash />
+      </>
+    );
+  }
+
+  if (!authHydrated && !isLandingRoute(pathname) && !isGuestAppRoute(pathname) && !isPublicLegalPath(pathname) && !isWelcomeRoute(pathname)) {
     return (
       <>
         <SeoCanonical />

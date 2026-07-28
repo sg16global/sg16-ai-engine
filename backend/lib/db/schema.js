@@ -70,6 +70,14 @@ CREATE TABLE IF NOT EXISTS webhook_events (
   payload JSONB
 );
 
+CREATE TABLE IF NOT EXISTS user_rooms (
+  google_sub TEXT PRIMARY KEY,
+  chat_history JSONB NOT NULL DEFAULT '{}'::jsonb,
+  settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_rooms_updated ON user_rooms (updated_at DESC);
 CREATE INDEX IF NOT EXISTS idx_users_google_sub ON users (google_sub);
 CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions (user_id);
 CREATE INDEX IF NOT EXISTS idx_web_subscriptions_user_id ON web_subscriptions (user_id);

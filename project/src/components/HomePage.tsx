@@ -88,7 +88,9 @@ export const HomePage = () => {
   const settings = useAppStore((s) => s.settings);
   const navigateToWorkspace = useAppStore((s) => s.navigateToWorkspace);
   const requireAuth = useAppStore((s) => s.requireAuth);
+  const openLoginModal = useAppStore((s) => s.openLoginModal);
   const openHelp = useAppStore((s) => s.openHelp);
+  const openUserRoom = useAppStore((s) => s.openUserRoom);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const logout = useAppStore((s) => s.logout);
   const togglePilot = usePilotStore((s) => s.toggleOpen);
@@ -119,10 +121,21 @@ export const HomePage = () => {
       <div className="shield-home__scanlines" />
 
       <header className="shield-home__topbar">
-        <div className="hud-panel hud-welcome">
+        <button
+          type="button"
+          className="hud-panel hud-welcome"
+          onClick={() =>
+            isAuthenticated(authUser)
+              ? requireAuth(() => openUserRoom())
+              : openLoginModal()
+          }
+          aria-label={isAuthenticated(authUser) ? 'Open your user room' : 'Sign in with Google'}
+        >
           <UserRound size={21} />
-          <span>WELCOME, {displayName}</span>
-        </div>
+          <span>
+            {isAuthenticated(authUser) ? `WELCOME, ${displayName}` : 'SIGN IN WITH GOOGLE'}
+          </span>
+        </button>
 
         <div className="hud-actions">
           <button

@@ -1,5 +1,6 @@
 export type WorkspaceType =
   | 'home'
+  | 'user-room'
   | 'history'
   | 'settings'
   | 'help'
@@ -45,6 +46,7 @@ export interface AuthUser {
   id?: string;
   signupDate: number;
   name: string;
+  email?: string;
   picture?: string;
   launchFree?: boolean;
   trialActive: boolean;
@@ -62,7 +64,7 @@ export interface StudentVerifyResponse {
 
 export type WorkspaceId = Exclude<
   WorkspaceType,
-  'home' | 'history' | 'settings' | 'help' | 'pricing' | 'student-verify'
+  'home' | 'user-room' | 'history' | 'settings' | 'help' | 'pricing' | 'student-verify'
 >;
 
 export type MessageRole = 'user' | 'assistant';

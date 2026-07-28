@@ -33,6 +33,7 @@ export function canAccessWorkspace(
 ): boolean {
   if (
     workspace === 'home' ||
+    workspace === 'user-room' ||
     workspace === 'history' ||
     workspace === 'settings' ||
     workspace === 'help' ||
