@@ -26,7 +26,7 @@ export default defineConfig({
       manifest: {
         name: 'SG16 AI Engine',
         short_name: 'SG16',
-        description: 'Most Powerful AI Platform by SaifTech Global Limited — coding, chat, images, documents & more.',
+        description: 'SG16 AI Engine — five shields in one secure app. AI Chat, Coding, Health, Student, and Market.',
         theme_color: '#05060D',
         background_color: '#05060D',
         display: 'standalone',
@@ -88,8 +88,9 @@ export default defineConfig({
           },
         ],
         shortcuts: [
-          { name: 'SG16 Chatting', url: '/?workspace=general', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
-          { name: 'Image Studio', url: '/?workspace=image', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Shield Home', url: '/app', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'AI Chat', url: '/app?workspace=general', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
+          { name: 'Coding Hub', url: '/app?workspace=coding', icons: [{ src: '/icons/icon-192.png', sizes: '192x192' }] },
         ],
       },
       workbox: {

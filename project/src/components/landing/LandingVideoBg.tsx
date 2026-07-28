@@ -1,14 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
-/** Slow Earth — 1920×1080 landscape (CURSOR BOSS / IMG_7445.MP4). */
+/** CURSOR BOSS Earth video (IMG_7445) — same file on mobile + desktop. */
 const LANDING_VIDEO = '/landing/sg16-earth-slow.mp4';
-const LANDING_VIDEO_FALLBACK = '/landing/sg16home-landscape.mp4';
-const LANDING_POSTER = '/landing/hero-background.webp';
 
 /** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
 export function LandingVideoBg() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [src, setSrc] = useState(LANDING_VIDEO);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -26,6 +23,7 @@ export function LandingVideoBg() {
 
     play();
     video.addEventListener('canplay', play, { once: true });
+    video.addEventListener('loadeddata', play, { once: true });
 
     const onVis = () => {
       if (document.visibilityState === 'visible' && video.paused) play();
@@ -34,26 +32,23 @@ export function LandingVideoBg() {
 
     return () => {
       video.removeEventListener('canplay', play);
+      video.removeEventListener('loadeddata', play);
       document.removeEventListener('visibilitychange', onVis);
     };
-  }, [src]);
+  }, []);
 
   return (
     <div className="landing-video-bg" aria-hidden>
       <video
         ref={videoRef}
         className="landing-video-bg__video"
-        src={src}
-        poster={LANDING_POSTER}
+        src={LANDING_VIDEO}
         autoPlay
         muted
         loop
         playsInline
         preload="auto"
         disablePictureInPicture
-        onError={() => {
-          if (src !== LANDING_VIDEO_FALLBACK) setSrc(LANDING_VIDEO_FALLBACK);
-        }}
       />
       <div className="landing-video-bg__shade" />
     </div>

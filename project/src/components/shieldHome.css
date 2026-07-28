@@ -482,3 +482,52 @@
   .shield-node--featured strong { font-size: 17px; }
   .shield-clock__time { font-size: 28px; }
 }
+
+/* Phone landscape — fit all five shields in one view */
+@media (max-width: 932px) and (orientation: landscape) {
+  .shield-home {
+    overflow-y: auto;
+  }
+
+  .shield-home__topbar {
+    padding-top: calc(6px + var(--safe-top));
+    padding-bottom: 6px;
+  }
+
+  .hud-welcome {
+    height: 40px;
+    min-height: 40px;
+    font-size: 10px;
+  }
+
+  .shield-home__stage {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 8px;
+    max-width: 100%;
+    padding: 4px calc(8px + var(--safe-right)) calc(100px + var(--safe-bottom)) calc(8px + var(--safe-left));
+  }
+
+  .shield-node,
+  .shield-node--featured {
+    grid-column: auto;
+    width: min(120px, 18vw);
+    height: min(150px, 24vw);
+  }
+
+  .shield-node--ai { order: 0; }
+
+  .shield-clock {
+    grid-column: 1 / -1;
+    height: 72px;
+    margin-top: 0;
+  }
+
+  .shield-clock__time { font-size: 26px; }
+  .shield-clock__date { font-size: 11px; }
+
+  .shield-status {
+    grid-template-columns: repeat(6, 1fr);
+    min-height: 64px;
+  }
+}

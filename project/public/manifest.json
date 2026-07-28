@@ -1,7 +1,7 @@
 {
   "name": "SG16 AI Engine",
   "short_name": "SG16",
-  "description": "Most Powerful AI Platform by SaifTech Global Limited — coding, chat, images, documents & more.",
+  "description": "SG16 AI Engine — five shields in one secure app. AI Chat, Coding, Health, Student, and Market.",
   "start_url": "/",
   "scope": "/",
   "id": "/",
@@ -52,25 +52,30 @@
       "sizes": "1024x682",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "SG16 AI Engine - desktop dashboard with all workspaces"
+      "label": "SG16 AI Engine — desktop"
     },
     {
       "src": "/screenshot-mobile.png",
       "sizes": "474x1024",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "SG16 AI Engine - mobile home screen and navigation"
+      "label": "SG16 AI Engine — mobile portrait"
     }
   ],
   "shortcuts": [
     {
-      "name": "SG16 Chatting",
-      "url": "/?workspace=general",
+      "name": "Shield Home",
+      "url": "/app",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     },
     {
-      "name": "Image Studio",
-      "url": "/?workspace=image",
+      "name": "AI Chat",
+      "url": "/app?workspace=general",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Coding Hub",
+      "url": "/app?workspace=coding",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]

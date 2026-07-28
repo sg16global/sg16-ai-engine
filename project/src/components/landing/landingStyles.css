@@ -13,7 +13,7 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #000 center / cover no-repeat url('/landing/hero-background.webp');
+  background: #000;
 }
 
 .landing-video-bg__video {
@@ -559,6 +559,7 @@
 @media (max-width: 767px) {
   .landing-hero-section {
     min-height: calc(100dvh - 70px);
+    min-height: calc(100svh - 70px);
     padding-top: clamp(20px, 5vh, 36px);
     padding-bottom: clamp(112px, 20vh, 168px);
   }
@@ -566,6 +567,51 @@
   .landing-page__content > .landing-section:first-of-type {
     margin-top: 8px;
     border-radius: 16px 16px 0 0;
+  }
+
+  .landing-feature-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Phone landscape — keep Earth hero readable, 2-col features */
+@media (max-width: 932px) and (orientation: landscape) {
+  .landing-hero-section {
+    min-height: auto;
+    padding-top: clamp(16px, 4vh, 28px);
+    padding-bottom: clamp(64px, 12vh, 96px);
+  }
+
+  .landing-hero-title {
+    font-size: clamp(28px, 5vw, 40px);
+  }
+
+  .landing-feature-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .landing-feature-row:last-child {
+    grid-column: 1 / -1;
+    max-width: 50%;
+    margin-inline: auto;
+  }
+}
+
+/* Small phones — any orientation */
+@media (max-width: 380px) {
+  .landing-shell {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .landing-hero-cta {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .landing-btn-primary,
+  .landing-btn-ghost {
+    width: 100%;
   }
 }
 

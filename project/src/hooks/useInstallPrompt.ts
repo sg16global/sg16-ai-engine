@@ -1,17 +1,30 @@
 import { useCallback, useEffect, useState } from 'react';
 
 const DISMISS_KEY = 'sg16_pwa_install_dismissed';
+const DISMISS_EPOCH_KEY = 'sg16_pwa_install_epoch';
+/** Keep in sync with main.tsx SG16_CACHE_EPOCH when forcing re-prompt after deploy. */
+const PROMPT_EPOCH = '20260728-pilot-landing-v2';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
 }
 
+function readDismissed(): boolean {
+  if (typeof window === 'undefined') return false;
+  if (localStorage.getItem(DISMISS_EPOCH_KEY) !== PROMPT_EPOCH) {
+    localStorage.removeItem(DISMISS_KEY);
+    localStorage.setItem(DISMISS_EPOCH_KEY, PROMPT_EPOCH);
+    return false;
+  }
+  return localStorage.getItem(DISMISS_KEY) === '1';
+}
+
 export function useInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isInstalled, setIsInstalled] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
-  const [dismissed, setDismissed] = useState(() => localStorage.getItem(DISMISS_KEY) === '1');
+  const [dismissed, setDismissed] = useState(() => readDismissed());
 
   useEffect(() => {
     const standalone =

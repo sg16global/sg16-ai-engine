@@ -485,6 +485,7 @@ function App() {
       <>
         <SeoCanonical />
         <LandingPage />
+        <InstallPrompt />
       </>
     );
   }

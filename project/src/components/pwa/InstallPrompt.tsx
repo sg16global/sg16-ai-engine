@@ -9,20 +9,25 @@ export function InstallPrompt() {
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
   const [visible, setVisible] = useState(false);
   const onHome = currentWorkspace === 'home';
+  const pathname = typeof window !== 'undefined' ? window.location.pathname : '';
+  const flushBottom =
+    onHome || pathname === '/' || pathname === '/welcome' || pathname === '/app';
 
   useEffect(() => {
     if (!canPrompt) return;
-    const isMobile = window.matchMedia('(max-width: 1023px)').matches;
-    if (!isMobile) return;
 
-    const timer = window.setTimeout(() => setVisible(true), 2500);
+    const isCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const isNarrow = window.matchMedia('(max-width: 1023px)').matches;
+    const delay = isCoarsePointer || isNarrow ? 2500 : 4000;
+
+    const timer = window.setTimeout(() => setVisible(true), delay);
     return () => window.clearTimeout(timer);
   }, [canPrompt]);
 
   if (!visible || !canPrompt) return null;
 
-  /* Home has no bottom nav — sit above status / safe area only */
-  const bottomClass = onHome
+  /* Landing / Shield Home have no bottom nav — sit above safe area only */
+  const bottomClass = flushBottom
     ? 'bottom-[max(1rem,calc(env(safe-area-inset-bottom)+0.75rem))]'
     : 'bottom-[calc(4.5rem+env(safe-area-inset-bottom))]';
 
@@ -36,11 +41,11 @@ export function InstallPrompt() {
             <p className="text-xs text-gray-400 mt-1 leading-relaxed">
               {isIOS && !hasNativePrompt ? (
                 <>
-                  Tap <Share className="w-3.5 h-3.5 inline -mt-0.5" /> Share, then &quot;Add to Home Screen&quot; for a
-                  fullscreen app experience.
+                  Tap <Share className="w-3.5 h-3.5 inline -mt-0.5" /> Share, then &quot;Add to Home Screen&quot; —
+                  works in portrait or landscape on any iPhone or iPad.
                 </>
               ) : (
-                'Add to your home screen for a native app experience — no browser bar, works offline.'
+                'Add SG16 to your home screen or desktop — fullscreen app, portrait or landscape, any phone size.'
               )}
             </p>
             <div className="flex gap-2 mt-3">
