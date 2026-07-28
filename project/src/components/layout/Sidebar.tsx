@@ -8,7 +8,7 @@ import { Sg16Logo } from '../ui/Sg16Logo';
 import type { WorkspaceType } from '../../core/types';
 
 /** Maroon side panel — shown after leaving Home (working modules). */
-export const Sidebar = () => {
+export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
   const subscription = useAppStore((s) => s.subscription);
   const authUser = useAppStore((s) => s.authUser);
@@ -27,6 +27,12 @@ export const Sidebar = () => {
   const openBottom = (id: WorkspaceType) => {
     if (id === 'help') openHelp('overview');
     else setWorkspace(id);
+    onNavSelect?.();
+  };
+
+  const goWorkspace = (id: WorkspaceType) => {
+    setWorkspace(id);
+    onNavSelect?.();
   };
 
   const isLocked = (id: string) => {
@@ -36,7 +42,7 @@ export const Sidebar = () => {
   };
 
   return (
-    <aside className="hidden lg:flex w-[16.5rem] sg16-side-maroon flex-col shrink-0 h-full">
+    <aside className="flex w-full sg16-side-maroon flex-col shrink-0 h-full">
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <Sg16Logo className="w-11 h-11 rounded-xl shrink-0" />
@@ -60,7 +66,7 @@ export const Sidebar = () => {
             <button
               key={item.id}
               type="button"
-              onClick={() => setWorkspace(item.id)}
+              onClick={() => goWorkspace(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
                 isActive
                   ? 'bg-black/40 text-white shadow-[0_0_16px_rgba(0,0,0,0.35)]'
@@ -123,7 +129,10 @@ export const Sidebar = () => {
 
         <button
           type="button"
-          onClick={openPricing}
+          onClick={() => {
+            openPricing();
+            onNavSelect?.();
+          }}
           className="w-full text-left rounded-xl bg-black/30 hover:bg-black/45 border border-white/10 p-3 transition"
         >
           <div className="text-xs font-semibold text-white">Plans from $0/mo</div>

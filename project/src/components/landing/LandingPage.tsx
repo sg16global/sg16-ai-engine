@@ -12,13 +12,11 @@ import {
 import { SG16_BRAND } from '../../core/branding';
 import { SG16_PUBLIC_URL } from '../../core/routes';
 import { Sg16Logo } from '../ui/Sg16Logo';
-import { OptimizedImage } from '../ui/OptimizedImage';
 import { useAppStore } from '../../core/appState';
-import { LandingGoogleSignIn } from './LandingGoogleSignIn';
 import { LandingHeader } from './LandingHeader';
+import { LandingVideoBg } from './LandingVideoBg';
+import { LandingBrandLogo } from './LandingBrandLogo';
 import './landingStyles.css';
-
-const HERO_BACKGROUND = '/landing/hero-background.png';
 
 const features = [
   { icon: MessageSquare, title: 'AI Chat', desc: 'Fast, clear conversations across every workspace.' },
@@ -35,14 +33,16 @@ const trustItems = [
 ] as const;
 
 export function LandingPage() {
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
-  const enterLocalPreview = useAppStore((s) => s.enterLocalPreview);
+  const enterGuestTour = useAppStore((s) => s.enterGuestTour);
 
   return (
     <div className="landing-page relative min-h-[100dvh] overflow-x-hidden">
+      <LandingVideoBg />
+
+      <div className="landing-page__content relative z-[1]">
       <LandingHeader />
 
-      {/* Hero — one composition: brand signal + headline + line + CTA + visual */}
+      {/* Hero — video full background; logo + copy on top */}
       <section className="landing-hero-section">
         <div className="landing-shell landing-hero-copy">
           <p className="landing-kicker">{SG16_BRAND.company}</p>
@@ -55,36 +55,16 @@ export function LandingPage() {
             One application. Unlimited intelligence — chat, code, docs, and images in a single secure workspace.
           </p>
           <div className="landing-hero-cta">
-            <button type="button" onClick={() => openLoginModal()} className="landing-btn-primary">
-              Get Started
+            <button type="button" onClick={() => enterGuestTour()} className="landing-btn-primary">
+              Start Tour
             </button>
             <a href="#features" className="landing-btn-ghost">
               See features
             </a>
           </div>
-          <button
-            type="button"
-            onClick={() => enterLocalPreview()}
-            className="mt-3 text-xs uppercase tracking-wider text-white/45 hover:text-[#7CFC00] transition"
-          >
-            Enter app without Google →
-          </button>
-          <div className="landing-hero-signin">
-            <LandingGoogleSignIn compact />
-          </div>
-        </div>
-
-        <div className="landing-hero-visual" aria-label="SG16 AI Engine">
-          <OptimizedImage
-            src={HERO_BACKGROUND}
-            alt="SG16 AI Engine"
-            className="landing-hero-img"
-            width={1240}
-            height={720}
-            fetchPriority="high"
-            decoding="async"
-          />
-          <div className="landing-hero-fade" aria-hidden />
+          <p className="mt-4 text-xs text-white/40">
+            Explore Shield Home free — sign in with Google only when you open a workspace.
+          </p>
         </div>
       </section>
 
@@ -170,6 +150,7 @@ export function LandingPage() {
 
       <footer className="landing-footer">
         <div className="landing-shell">
+          <LandingBrandLogo compact className="landing-footer-logo mx-auto mb-4 opacity-90" />
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-white/45">
             <a href="/privacy" className="hover:text-[#7CFC00] transition">
               Privacy
@@ -189,6 +170,7 @@ export function LandingPage() {
           </p>
         </div>
       </footer>
+      </div>
     </div>
   );
 }

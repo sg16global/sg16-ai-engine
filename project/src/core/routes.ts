@@ -5,6 +5,8 @@ export const SG16_PUBLIC_URL = 'https://sg16engine.com';
 /** Clean URLs for Google, checkout, and footer links. */
 export const APP_PATHS = {
   home: '/',
+  /** Shield Home — work homepage (guest tour or signed-in app). */
+  app: '/app',
   pricing: '/pricing',
   terms: '/terms',
   privacy: '/privacy',
@@ -20,6 +22,7 @@ type RouteTarget = {
 
 const PATH_ROUTES: Record<string, RouteTarget> = {
   [APP_PATHS.home]: { workspace: 'home' },
+  [APP_PATHS.app]: { workspace: 'home' },
   [APP_PATHS.pricing]: { workspace: 'pricing' },
   [APP_PATHS.terms]: { workspace: 'help', helpSection: 'terms' },
   [APP_PATHS.privacy]: { workspace: 'help', helpSection: 'privacy' },
@@ -38,7 +41,7 @@ export function pathToRoute(pathname: string): RouteTarget | null {
 }
 
 export function routeToPath(workspace: WorkspaceType, helpSection?: HelpSection): string | null {
-  if (workspace === 'home') return APP_PATHS.home;
+  if (workspace === 'home') return APP_PATHS.app;
   if (workspace === 'pricing') return APP_PATHS.pricing;
   if (workspace === 'settings') return APP_PATHS.settings;
   if (workspace === 'help') {

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Lock, Menu, Rocket, X } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { pushAppPath } from '../../core/routes';
+import { LandingBrandLogo } from './LandingBrandLogo';
 
 const NAV_LINKS = [
   { id: 'home', label: 'Home', href: '/' },
@@ -12,20 +13,12 @@ const NAV_LINKS = [
 ] as const;
 
 function BrandMark() {
-  return (
-    <div className="text-left">
-      <div className="text-[22px] font-black leading-none tracking-wide text-[#7CFC00] landing-brand-glow sm:text-2xl">
-        SG16
-      </div>
-      <div className="mt-0.5 text-[9px] font-semibold tracking-[0.28em] text-white/80 sm:text-[10px]">
-        AI ENGINE
-      </div>
-    </div>
-  );
+  return <LandingBrandLogo compact />;
 }
 
 export function LandingHeader() {
   const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const enterGuestTour = useAppStore((s) => s.enterGuestTour);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const onNav = (href: string) => {
@@ -42,7 +35,7 @@ export function LandingHeader() {
   };
 
   return (
-    <header className="landing-header sticky top-0 z-50 min-h-[70px] border-b border-white/[0.06] bg-black/85 backdrop-blur-2xl backdrop-saturate-150">
+    <header className="landing-header sticky top-0 z-50 min-h-[70px] border-b border-white/[0.08] bg-black/45 backdrop-blur-xl backdrop-saturate-150">
       <div className="mx-auto flex min-h-[70px] max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-5 lg:px-6">
         <button type="button" onClick={() => onNav('/')} className="shrink-0">
           <BrandMark />
@@ -74,11 +67,11 @@ export function LandingHeader() {
           </button>
           <button
             type="button"
-            onClick={() => openLoginModal()}
+            onClick={() => enterGuestTour()}
             className="hidden items-center gap-1.5 rounded-md bg-[#7CFC00] px-4 py-[9px] text-[13px] font-semibold text-black transition hover:bg-[#8dff20] sm:inline-flex"
           >
             <Rocket className="h-4 w-4" />
-            Get Started
+            Start Tour
           </button>
           <button
             type="button"
@@ -129,12 +122,12 @@ export function LandingHeader() {
               type="button"
               onClick={() => {
                 setMenuOpen(false);
-                openLoginModal();
+                enterGuestTour();
               }}
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-[#7CFC00] py-3 text-sm font-bold text-black"
             >
               <Rocket className="h-4 w-4" />
-              Get Started
+              Start Tour
             </button>
           </div>
         </div>

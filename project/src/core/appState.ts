@@ -69,6 +69,8 @@ interface AppState {
   setAuthSession: (token: string, user: AuthUser) => void;
   /** Local / preview enter — no Google. Use when OAuth is blocked. */
   enterLocalPreview: () => void;
+  /** Public tour — open Shield Home without sign-in; shields prompt Google login. */
+  enterGuestTour: () => void;
   refreshAuthUser: () => Promise<void>;
   restoreAuthSession: () => Promise<void>;
   logout: () => void;
@@ -209,6 +211,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
     getState().setWorkspace('home');
   },
 
+  enterGuestTour: () => {
+    set({ currentWorkspace: 'home', error: null });
+    pushAppPath('/app');
+  },
+
   syncSubscriptionFromServer: async () => {
     const token = getState().authToken;
     if (!token) return;
@@ -331,7 +338,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
 
   goToHome: () => {
     set({ currentWorkspace: 'home', error: null });
-    pushAppPath('/');
+    pushAppPath('/app');
   },
 
   navigateToWorkspace: (workspace, prompt, imageUrl) => {

@@ -12,8 +12,11 @@ import {
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useAppStore } from '../core/appState';
+import { isAuthenticated } from '../core/access';
+import { pushAppPath } from '../core/routes';
 import { usePilotStore } from '../core/pilotState';
 import type { WorkspaceId } from '../core/types';
+import { ShieldBgSlides } from './home/ShieldBgSlides';
 import './shieldHome.css';
 
 type ShieldItem = {
@@ -102,6 +105,7 @@ export const HomePage = () => {
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const logout = useAppStore((s) => s.logout);
   const togglePilot = usePilotStore((s) => s.toggleOpen);
+  const isGuest = !isAuthenticated(authUser);
 
   useEffect(() => {
     const timer = window.setInterval(() => setNow(new Date()), 1000);
@@ -109,9 +113,10 @@ export const HomePage = () => {
   }, []);
 
   const displayName = useMemo(() => {
+    if (isGuest) return 'GUEST';
     const raw = authUser?.name || settings.displayName || 'SG16 User';
     return raw.trim().split(/\s+/)[0].toUpperCase();
-  }, [authUser?.name, settings.displayName]);
+  }, [authUser?.name, settings.displayName, isGuest]);
 
   const openShield = (item: ShieldItem) => {
     requireAuth(() => {
@@ -122,7 +127,7 @@ export const HomePage = () => {
 
   return (
     <section className="shield-home" aria-label="SG16 Shield Home">
-      <div className="shield-home__backdrop" />
+      <ShieldBgSlides />
       <div className="shield-home__stars" />
       <div className="shield-home__scanlines" />
 
@@ -144,14 +149,18 @@ export const HomePage = () => {
           <button
             className="hud-icon"
             type="button"
-            onClick={() => setWorkspace('settings')}
+            onClick={() => requireAuth(() => setWorkspace('settings'))}
             aria-label="Settings"
           >
             <Settings size={20} />
           </button>
-          <button className="hud-logout" type="button" onClick={logout}>
+          <button
+            className="hud-logout"
+            type="button"
+            onClick={() => (isGuest ? pushAppPath('/', true) : logout())}
+          >
             <LogOut size={19} />
-            <span>LOGOUT</span>
+            <span>{isGuest ? 'EXIT TOUR' : 'LOGOUT'}</span>
           </button>
         </div>
       </header>

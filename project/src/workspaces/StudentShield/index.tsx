@@ -14,10 +14,13 @@ import {
   ChevronLeft,
   ArrowRight,
   GraduationCap,
+  PanelLeft,
+  ChevronUp,
 } from 'lucide-react';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { useAppStore } from '../../core/appState';
 import { SG16_SHIELD_RED } from '../../core/pilot';
+import { useAutoHideChrome } from '../../hooks/useAutoHideChrome';
 
 type StudentView =
   | 'dashboard'
@@ -59,26 +62,65 @@ export const StudentShieldWorkspace = () => {
   const settings = useAppStore((s) => s.settings);
   const openHelp = useAppStore((s) => s.openHelp);
   const name = authUser?.name || settings.displayName || 'SG16 USER';
+  const chrome = useAutoHideChrome(`student-${view}`, true);
+  const chromeOpen = chrome.open;
 
   const openTool = (id: StudentView, prompt?: string) => {
     if (id === 'dashboard') {
       setView('dashboard');
+      chrome.onNavSelect();
       return;
     }
     if (id === 'settings') {
       setWorkspace('settings');
+      chrome.onNavSelect();
       return;
     }
     if (prompt) {
       useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
     }
     setView('chat');
+    chrome.onNavSelect();
   };
 
   return (
-    <div className="sg16-earth-stage h-full flex overflow-hidden">
-      {/* Picture 1 — maroon side panel */}
-      <aside className="sg16-side-maroon hidden md:flex w-56 lg:w-60 flex-col shrink-0 relative z-10">
+    <div className="sg16-earth-stage sg16-student-chrome h-full flex overflow-hidden relative">
+      {!chromeOpen && (
+        <>
+          <button
+            type="button"
+            className="sg16-chrome-tab sg16-chrome-tab--left hidden md:flex"
+            onMouseEnter={chrome.openChrome}
+            onClick={chrome.openChrome}
+            aria-label="Open student menu"
+          >
+            <PanelLeft className="h-3.5 w-3.5" />
+            <span>Menu</span>
+          </button>
+          <button
+            type="button"
+            className="sg16-chrome-tab sg16-chrome-tab--top hidden md:flex"
+            onMouseEnter={chrome.openChrome}
+            onClick={chrome.openChrome}
+            aria-label="Open student header"
+          >
+            <ChevronUp className="h-3.5 w-3.5" />
+            <span>Student Shield</span>
+          </button>
+        </>
+      )}
+      <div
+        className="sg16-chrome-edge sg16-chrome-edge--left hidden md:block"
+        onMouseEnter={chrome.openChrome}
+        aria-hidden
+      />
+
+      <div
+        className={`sg16-student-sidebar-wrap hidden md:flex ${chromeOpen ? 'sg16-student-sidebar-wrap--open' : ''}`}
+        onMouseEnter={chrome.onChromeEnter}
+        onMouseLeave={chrome.onChromeLeave}
+      >
+      <aside className="sg16-side-maroon flex w-full flex-col shrink-0 h-full relative z-10">
         <div className="p-4 border-b border-white/10">
           <div className="flex items-center gap-2">
             <span
@@ -128,10 +170,16 @@ export const StudentShieldWorkspace = () => {
           </button>
         </div>
       </aside>
+      </div>
 
       {/* Main field */}
       <div className="relative z-10 flex-1 min-w-0 flex flex-col min-h-0">
         <div className="m-3 sm:m-4 flex-1 min-h-0 flex flex-col sg16-neon-frame rounded-2xl overflow-hidden">
+          <div
+            className={`sg16-student-header-wrap ${chromeOpen ? 'sg16-student-header-wrap--open' : ''}`}
+            onMouseEnter={chrome.onChromeEnter}
+            onMouseLeave={chrome.onChromeLeave}
+          >
           <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[rgba(128,0,0,0.5)] bg-black/40">
             <div
               className="text-xs sm:text-sm font-bold tracking-[0.18em] px-3 py-1 rounded-md"
@@ -159,6 +207,7 @@ export const StudentShieldWorkspace = () => {
                 <X className="w-4 h-4 text-white/70" />
               </button>
             </div>
+          </div>
           </div>
 
           {view === 'dashboard' ? (

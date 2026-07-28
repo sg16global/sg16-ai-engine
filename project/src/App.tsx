@@ -5,6 +5,7 @@ import { GoogleLoginModal } from './components/auth/GoogleLoginModal';
 import { TopBar } from './components/layout/TopBar';
 
 import { LaunchBanner } from './components/layout/LaunchBanner';
+import { WorkspaceChrome } from './components/layout/WorkspaceChrome';
 
 import { LaunchSubscriptionModal } from './components/layout/LaunchSubscriptionModal';
 
@@ -42,14 +43,14 @@ import { useAppStore } from './core/appState';
 
 import { isAuthenticated } from './core/access';
 
-import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
+import { APP_PATHS, normalizePath, pathToRoute, pushAppPath } from './core/routes';
 
 import { useTrialSync } from './hooks/useTrialSync';
 
 import type { WorkspaceType } from './core/types';
 import { PilotOrb } from './components/pilot/PilotOrb';
+import { ShieldBgSlides } from './components/home/ShieldBgSlides';
 import { skinForWorkspace } from './core/sectionThemes';
-import { isShieldWorkspace } from './core/pilot';
 
 
 
@@ -80,9 +81,11 @@ function applyBrowserRoute() {
 
 
 function isLandingRoute(pathname: string) {
-
   return normalizePath(pathname) === APP_PATHS.home;
+}
 
+function isGuestAppRoute(pathname: string) {
+  return normalizePath(pathname) === APP_PATHS.app;
 }
 
 
@@ -238,7 +241,11 @@ function AppShell() {
   /** Student Shield uses Picture-1 own maroon panel — hide global chrome. */
   const isStudentShell = currentWorkspace === 'student-shield';
   const hideGlobalChrome = isHome || isStudentShell;
-  const inShield = isShieldWorkspace(currentWorkspace);
+  const chromeAutoHide = !hideGlobalChrome;
+  const workspaceChromeLabel =
+    currentWorkspace === 'general'
+      ? 'SG16 Chatting'
+      : `${String(currentWorkspace).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`;
   const isChatWorkspace = !(
     ['home', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
   ).includes(currentWorkspace);
@@ -264,32 +271,52 @@ function AppShell() {
 
     <div
       data-skin={sectionSkin}
-      className={`sg16-app-shell sg16-skin-${sectionSkin} flex h-[100dvh] text-white overflow-hidden ${
-        inShield ? 'bg-black' : ''
-      }`}
+      className={`sg16-app-shell sg16-workspace-shell sg16-skin-${sectionSkin} relative flex flex-col h-[100dvh] max-h-[100dvh] text-white overflow-hidden`}
     >
+      <ShieldBgSlides />
 
-      {!hideGlobalChrome && <Sidebar />}
+      <div className="sg16-workspace-frame sg16-chrome-auto relative z-[1] flex min-h-0 flex-1 w-full">
 
       {!hideGlobalChrome && <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
 
-      <div className={`flex-1 flex flex-col min-w-0 ${!isStudentShell ? 'sg16-work-field' : ''}`}>
-
-        {!hideGlobalChrome && <TopBar onMenuClick={() => setDrawerOpen(true)} />}
-
-        {!hideGlobalChrome && <LaunchBanner />}
-
-        <main
-          className={`flex-1 overscroll-contain mobile-scroll-main ${
-            hideGlobalChrome ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'
-          } min-h-0 ${
-            isChatWorkspace || isStudentShell ? 'overflow-hidden' : 'overflow-auto'
-          }`}
+      {hideGlobalChrome ? (
+        <div className={`sg16-work-panel flex flex-1 flex-col min-w-0 ${!isStudentShell ? 'sg16-work-field' : ''}`}>
+          <main
+            className={`flex-1 overscroll-contain mobile-scroll-main pb-0 min-h-0 ${
+              isChatWorkspace || isStudentShell ? 'overflow-hidden' : 'overflow-auto'
+            }`}
+          >
+            {mainContent()}
+          </main>
+        </div>
+      ) : (
+        <WorkspaceChrome
+          workspaceKey={currentWorkspace}
+          enabled={chromeAutoHide}
+          workspaceLabel={workspaceChromeLabel}
+          sidebar={({ onNavSelect }) => <Sidebar onNavSelect={onNavSelect} />}
+          header={
+            <>
+              <TopBar onMenuClick={() => setDrawerOpen(true)} />
+              <LaunchBanner />
+            </>
+          }
+          mobileHeader={
+            <>
+              <TopBar onMenuClick={() => setDrawerOpen(true)} />
+              <LaunchBanner />
+            </>
+          }
         >
-
-          {mainContent()}
-
-        </main>
+          <main
+            className={`flex-1 overscroll-contain mobile-scroll-main pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 min-h-0 ${
+              isChatWorkspace ? 'overflow-hidden' : 'overflow-auto'
+            }`}
+          >
+            {mainContent()}
+          </main>
+        </WorkspaceChrome>
+      )}
 
       </div>
 
@@ -361,8 +388,15 @@ function App() {
 
 
   const showLanding = !isAuthenticated(authUser) && isLandingRoute(pathname);
-
+  const showGuestApp = !isAuthenticated(authUser) && isGuestAppRoute(pathname);
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
+
+  useEffect(() => {
+    if (!authHydrated) return;
+    if (isAuthenticated(authUser) && isLandingRoute(pathname)) {
+      pushAppPath(APP_PATHS.app, true);
+    }
+  }, [authHydrated, authUser, pathname]);
 
 
 
@@ -402,7 +436,7 @@ function App() {
 
 
 
-  if (!authHydrated && !isLandingRoute(pathname) && !isPublicLegalPath(pathname)) {
+  if (!authHydrated && !isLandingRoute(pathname) && !isGuestAppRoute(pathname) && !isPublicLegalPath(pathname)) {
     return (
       <>
         <SeoCanonical />
@@ -425,7 +459,15 @@ function App() {
       <>
         <SeoCanonical />
         <LandingPage />
-        <GoogleLoginModal />
+      </>
+    );
+  }
+
+  if (showGuestApp) {
+    return (
+      <>
+        <SeoCanonical />
+        <AppShell />
       </>
     );
   }

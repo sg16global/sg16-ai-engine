@@ -22,28 +22,15 @@
   box-sizing: border-box;
 }
 
-.shield-home__backdrop {
-  position: absolute;
-  inset: 0;
-  z-index: -4;
-  background-color: #05060d;
-  background-image:
-    linear-gradient(180deg, rgba(2, 3, 10, .28), rgba(2, 3, 10, .58)),
-    image-set(
-      url('/shield-home/earth-dna.webp') type('image/webp'),
-      url('/shield-home/earth-dna.png') type('image/png')
-    );
-  background-position: center 46%;
-  background-size: cover;
-  background-repeat: no-repeat;
-  filter: saturate(1.08) contrast(1.06) brightness(.84);
-  transform: scale(1.035);
+.shield-home .sg16-shield-bg-slides,
+.shield-home .sg16-shield-bg-overlay {
+  z-index: 0;
 }
 
 .shield-home__stars {
   position: absolute;
   inset: 0;
-  z-index: -3;
+  z-index: 1;
   opacity: .36;
   background-image:
     radial-gradient(circle at 14% 18%, rgba(255,255,255,.95) 0 1px, transparent 1.4px),
@@ -301,12 +288,6 @@
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
-  }
-
-  .shield-home__backdrop {
-    background-position: center 40%;
-    background-size: cover;
-    transform: none;
   }
 
   .shield-home__scanlines { opacity: .05; }
