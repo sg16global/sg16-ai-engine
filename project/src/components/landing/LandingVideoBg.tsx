@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
-/** Desktop boss Earth — boss_7445 (1).mp4 @ 2560×1440 → sg16-earth-slow.mp4 */
-const LANDING_VIDEO = '/landing/sg16-earth-slow.mp4';
+/** boss_7445 (2560×1440) — new filename bypasses Cloudflare cache of broken LFS pointer. */
+const LANDING_VIDEO = '/landing/sg16-earth-boss.mp4';
 
 /** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
 export function LandingVideoBg() {

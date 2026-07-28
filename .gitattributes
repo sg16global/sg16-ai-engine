@@ -1,3 +1,4 @@
 *.mp4 filter=lfs diff=lfs merge=lfs -text
-# Hero Earth video must be real bytes on Railway (no LFS pull in deploy).
+# Hero Earth videos must be real bytes on Railway (no LFS pull in deploy).
 project/public/landing/sg16-earth-slow.mp4 -filter -diff -merge
+project/public/landing/sg16-earth-boss.mp4 -filter -diff -merge

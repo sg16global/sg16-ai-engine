@@ -3,7 +3,7 @@ import { useCallback, useEffect, useState } from 'react';
 const DISMISS_KEY = 'sg16_pwa_install_dismissed';
 const DISMISS_EPOCH_KEY = 'sg16_pwa_install_epoch';
 /** Keep in sync with main.tsx SG16_CACHE_EPOCH when forcing re-prompt after deploy. */
-const PROMPT_EPOCH = '20260728-boss-earth-v3';
+const PROMPT_EPOCH = '20260728-boss-earth-v4';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;

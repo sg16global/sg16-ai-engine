@@ -12,7 +12,7 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
 }
 
 /** Bump when public landing must break old phone/PWA cache. */
-const SG16_CACHE_EPOCH = '20260728-boss-earth-v3';
+const SG16_CACHE_EPOCH = '20260728-boss-earth-v4';
 
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   const epochKey = 'sg16-cache-epoch';

@@ -164,6 +164,9 @@ app.use(
       ) {
         res.setHeader('Cache-Control', 'no-cache');
       }
+      if (filePath.includes(`${path.sep}landing${path.sep}`) && base.endsWith('.mp4')) {
+        res.setHeader('Cache-Control', 'public, max-age=3600');
+      }
     },
   }),
 );
