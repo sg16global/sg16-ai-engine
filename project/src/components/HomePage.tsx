@@ -1,80 +1,67 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   Bell,
-  Bot,
-  Braces,
-  ChartNoAxesCombined,
-  GraduationCap,
-  HeartPulse,
   LogOut,
   Settings,
   UserRound,
 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
 import { useAppStore } from '../core/appState';
 import { isAuthenticated } from '../core/access';
 import { pushAppPath } from '../core/routes';
 import { usePilotStore } from '../core/pilotState';
 import type { WorkspaceId } from '../core/types';
-import { ShieldBgSlides } from './home/ShieldBgSlides';
+import { ShieldHomeBg } from './home/ShieldHomeBg';
 import './shieldHome.css';
 
 type ShieldItem = {
   key: string;
-  title: string;
-  subtitle: string;
-  icon: LucideIcon;
+  label: string;
+  logo: string;
   className: string;
   workspace: WorkspaceId;
   prompt?: string;
   featured?: boolean;
 };
 
-/** AIO Shield Home look — wired to main engine workspaces. */
+/** AIO Shield Home — custom shield logos from CURSOR BOSS/logo. */
 const shields: ShieldItem[] = [
   {
     key: 'student',
-    title: 'STUDENT',
-    subtitle: 'SHIELD',
-    icon: GraduationCap,
+    label: 'Student Shield',
+    logo: '/shield-home/logos/student-shield.jpg',
     className: 'student',
     workspace: 'student-shield',
   },
   {
     key: 'health',
-    title: 'HEALTH',
-    subtitle: 'SHIELD',
-    icon: HeartPulse,
+    label: 'Health Shield',
+    logo: '/shield-home/logos/health-shield.jpg',
     className: 'health',
     workspace: 'health',
   },
   {
     key: 'ai',
-    title: 'AI',
-    subtitle: 'CHAT',
-    icon: Bot,
+    label: 'AI Chat Shield',
+    logo: '/shield-home/logos/ai-chat.jpg',
     className: 'ai',
     workspace: 'general',
     featured: true,
   },
   {
     key: 'coding',
-    title: 'CODING',
-    subtitle: 'HUB',
-    icon: Braces,
+    label: 'Coding Hub Shield',
+    logo: '/shield-home/logos/coding-hub.jpg',
     className: 'coding',
     workspace: 'coding',
   },
   {
     key: 'market',
-    title: 'MARKET',
-    subtitle: 'SHIELD',
-    icon: ChartNoAxesCombined,
+    label: 'Market Shield',
+    logo: '/shield-home/logos/market-shield.jpg',
     className: 'market',
     workspace: 'market',
   },
 ];
-
 function formatTime(date: Date) {
   return new Intl.DateTimeFormat('en-GB', {
     hour: '2-digit',
@@ -127,7 +114,7 @@ export const HomePage = () => {
 
   return (
     <section className="shield-home" aria-label="SG16 Shield Home">
-      <ShieldBgSlides />
+      <ShieldHomeBg />
       <div className="shield-home__stars" />
       <div className="shield-home__scanlines" />
 
@@ -169,9 +156,7 @@ export const HomePage = () => {
         <div className="circuit circuit--left" />
         <div className="circuit circuit--right" />
 
-        {shields.map((item) => {
-          const Icon = item.icon;
-          return (
+        {shields.map((item) => (
             <button
               key={item.key}
               type="button"
@@ -179,19 +164,17 @@ export const HomePage = () => {
                 item.featured ? ' shield-node--featured' : ''
               }`}
               onClick={() => openShield(item)}
-              aria-label={`${item.title} ${item.subtitle}`}
+              aria-label={item.label}
             >
-              <span className="shield-node__aura" />
-              <span className="shield-node__frame">
-                <span className="shield-node__inner">
-                  <Icon className="shield-node__icon" strokeWidth={1.75} />
-                  <strong>{item.title}</strong>
-                  <small>{item.subtitle}</small>
-                </span>
-              </span>
+              <img
+                src={item.logo}
+                alt={item.label}
+                className="shield-node__logo"
+                draggable={false}
+                loading="eager"
+              />
             </button>
-          );
-        })}
+          ))}
 
         <div className="shield-clock" aria-live="polite">
           <div className="shield-clock__time">{formatTime(now)}</div>

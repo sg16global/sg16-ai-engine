@@ -50,7 +50,7 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
             <div className="font-bold text-sm tracking-tight leading-tight text-white truncate">
               SG16 AI ENGINE
             </div>
-            <div className="text-[10px] text-white/70 mt-0.5">5 shields · worldwide</div>
+            <div className="text-[10px] text-white/70 mt-0.5">5 shields</div>
           </div>
         </div>
       </div>

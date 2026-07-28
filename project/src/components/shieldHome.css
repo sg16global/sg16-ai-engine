@@ -16,22 +16,37 @@
   min-height: 0;
   overflow: hidden;
   isolation: isolate;
-  background: #05060d;
+  background: #1a0208;
   color: #fff;
   font-family: 'Orbitron', system-ui, sans-serif;
   box-sizing: border-box;
 }
 
-.shield-home .sg16-shield-bg-slides,
-.shield-home .sg16-shield-bg-overlay {
+.shield-home .shield-home__red-bg,
+.shield-home .shield-home__red-overlay {
   z-index: 0;
+}
+
+.shield-home__red-bg {
+  position: absolute;
+  inset: 0;
+  background: #120208 url('/shield-home/red-deep-bg.jpg') center center / cover no-repeat;
+}
+
+.shield-home__red-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse 90% 70% at 50% 45%, rgba(0, 0, 0, 0.08) 0%, rgba(0, 0, 0, 0.42) 100%),
+    linear-gradient(180deg, rgba(20, 0, 6, 0.35) 0%, rgba(10, 0, 4, 0.2) 45%, rgba(8, 0, 3, 0.55) 100%);
 }
 
 .shield-home__stars {
   position: absolute;
   inset: 0;
   z-index: 1;
-  opacity: .36;
+  opacity: .12;
   background-image:
     radial-gradient(circle at 14% 18%, rgba(255,255,255,.95) 0 1px, transparent 1.4px),
     radial-gradient(circle at 77% 11%, rgba(255,255,255,.8) 0 1px, transparent 1.5px),
@@ -98,8 +113,8 @@
 
 .shield-node {
   position: absolute;
-  width: 236px;
-  height: 290px;
+  width: 218px;
+  height: 268px;
   padding: 0;
   border: 0;
   background: transparent;
@@ -110,13 +125,26 @@
   transition: filter .25s ease, transform .25s cubic-bezier(.2,.75,.2,1);
 }
 
-.shield-node--student { left: 29.5%; top: 34%; }
-.shield-node--health { left: 70.5%; top: 34%; }
-.shield-node--ai { left: 50%; top: 40.5%; }
-.shield-node--coding { left: 34.5%; top: 67.5%; }
-.shield-node--market { left: 65.5%; top: 67.5%; }
+.shield-node--student { left: 23%; top: 28%; }
+.shield-node--health { left: 77%; top: 28%; }
+.shield-node--ai { left: 50%; top: 36%; }
+.shield-node--coding { left: 26%; top: 68%; }
+.shield-node--market { left: 74%; top: 68%; }
 
-.shield-node--featured { width: 266px; height: 326px; z-index: 7; }
+.shield-node--featured { width: 246px; height: 302px; z-index: 7; }
+
+.shield-node__logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center center;
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  mix-blend-mode: screen;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
+}
 
 .shield-node__aura {
   position: absolute;
@@ -184,7 +212,7 @@
 .shield-clock {
   position: absolute;
   left: 50%;
-  top: 79%;
+  top: 84%;
   width: 390px;
   height: 126px;
   transform: translate(-50%, -50%);
@@ -263,10 +291,13 @@
   .hud-icon, .hud-logout { height: 48px; min-height: 44px; }
   .hud-icon { width: 48px; min-width: 44px; }
   .hud-logout { width: 120px; }
-  .shield-node { width: 200px; height: 248px; }
-  .shield-node--featured { width: 228px; height: 282px; }
+  .shield-node { width: 198px; height: 244px; }
+  .shield-node--featured { width: 224px; height: 276px; }
+  .shield-node__logo { max-height: 100%; }
   .shield-node__icon { width: 58px; height: 58px; margin-bottom: 10px; }
   .shield-node--featured .shield-node__icon { width: 68px; height: 68px; }
+  .shield-node__logo { width: 100%; height: auto; max-height: 118px; }
+  .shield-node--featured .shield-node__logo { max-height: 132px; }
   .shield-node strong { font-size: 20px; }
   .shield-node--featured strong { font-size: 28px; }
   .shield-node small { font-size: 12px; margin-top: 8px; }
@@ -339,7 +370,7 @@
     transform: none;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px 10px;
+    gap: 16px 14px;
     align-items: center;
     justify-items: center;
     padding: 8px calc(12px + var(--safe-right)) calc(150px + var(--safe-bottom)) calc(12px + var(--safe-left));
@@ -353,15 +384,15 @@
     left: auto !important;
     top: auto !important;
     transform: none;
-    width: min(148px, 42vw);
-    height: min(188px, 54vw);
+    width: min(142px, 40vw);
+    height: min(182px, 52vw);
     z-index: 5;
   }
 
   .shield-node--featured {
     grid-column: 1 / -1;
-    width: min(168px, 48vw);
-    height: min(214px, 60vw);
+    width: min(160px, 46vw);
+    height: min(204px, 58vw);
     z-index: 7;
   }
 
@@ -371,6 +402,13 @@
   .shield-node--health { order: 3; }
   .shield-node--coding { order: 4; }
   .shield-node--market { order: 5; }
+
+  .shield-node__logo {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    object-fit: contain;
+  }
 
   .shield-node__icon { width: 44px; height: 44px; margin-bottom: 8px; }
   .shield-node--featured .shield-node__icon { width: 52px; height: 52px; }
