@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-/** CURSOR BOSS Earth video (IMG_7445) — same file on mobile + desktop. */
+/** Desktop boss Earth — boss_7445 (1).mp4 @ 2560×1440 → sg16-earth-slow.mp4 */
 const LANDING_VIDEO = '/landing/sg16-earth-slow.mp4';
 
 /** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
