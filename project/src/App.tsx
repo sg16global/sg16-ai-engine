@@ -95,11 +95,6 @@ function isWelcomeRoute(pathname: string) {
   return normalizePath(pathname) === APP_PATHS.welcome;
 }
 
-function isShieldHomeRoute(pathname: string) {
-  const path = normalizePath(pathname);
-  return path === APP_PATHS.app || path === APP_PATHS.home;
-}
-
 
 
 function AuthSplash() {
