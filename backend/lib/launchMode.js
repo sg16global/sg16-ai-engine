@@ -5,6 +5,20 @@ export function isLaunchFree() {
   return true;
 }
 
+/** Same as launch-free — everyone gets full access until paid checkout opens. */
+export function isFullAccessOpen() {
+  return isLaunchFree();
+}
+
+/** Dodo checkout is live when launch mode is off and server keys + product id are set. */
+export function isPaymentsLive() {
+  if (isLaunchFree()) return false;
+  const apiKey =
+    process.env.DODO_PAYMENTS_API_KEY?.trim() || process.env.DODO_API_KEY?.trim() || '';
+  const productId = process.env.DODO_PRODUCT_ID_PRO?.trim() || '';
+  return Boolean(apiKey && productId);
+}
+
 export function getLaunchPublicConfig() {
   const launchFree = isLaunchFree();
   return {

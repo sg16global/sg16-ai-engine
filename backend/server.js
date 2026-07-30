@@ -22,7 +22,7 @@ import {
   handleBillingEntitlements,
   handleBillingPortal,
   handleBillingWebhook,
-} from './lib/billing.js';
+} from './lib/billing/room.js';
 import { isLaunchFree } from './lib/launchMode.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
@@ -78,7 +78,7 @@ const apiRateLimit = rateLimit({
 
 app.use('/api/', apiRateLimit);
 
-// Billing webhook (provider-agnostic raw body; currently returns 410 until Dodo is wired)
+// Billing webhook — Dodo Standard Webhooks (raw body required for signature verify)
 app.post(
   '/api/v1/billing/webhook',
   express.raw({ type: 'application/json' }),

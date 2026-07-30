@@ -41,10 +41,11 @@ export interface BillingEntitlementsResponse {
 }
 
 export interface CheckoutSessionResponse {
-  priceId: string;
+  checkoutUrl: string;
+  sessionId?: string | null;
   plan: 'student' | 'pro';
-  googleSub: string;
-  customData: { googleSub: string };
+  provider?: string;
+  room?: string;
 }
 
 export async function fetchBillingConfig(): Promise<BillingPublicConfig> {

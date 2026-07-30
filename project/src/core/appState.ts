@@ -26,6 +26,7 @@ import {
 } from '../lib/utils';
 import { clearAuthToken, fetchAuthMe, loadAuthToken, saveAuthToken as persistToken } from '../lib/authApi';
 import {
+  createCheckoutSession,
   fetchBillingConfig,
   fetchBillingEntitlements,
   subscriptionFromApi,
@@ -407,14 +408,30 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   startCheckout: async (plan) => {
-    const { authUser, requireAuth } = getState();
+    const { authUser, requireAuth, launchFree, checkoutEnabled } = getState();
     if (!isAuthenticated(authUser)) {
       requireAuth(() => void getState().startCheckout(plan));
       return;
     }
-    // Paddle removed — pricing stays visible; live checkout waits for new provider (e.g. Dodo)
-    void plan;
-    set({ launchNoticeOpen: true, error: null, loading: false });
+    if (launchFree || !checkoutEnabled) {
+      set({ launchNoticeOpen: true, error: null, loading: false });
+      return;
+    }
+
+    set({ loading: true, error: null });
+    try {
+      const session = await createCheckoutSession(plan);
+      if (session.checkoutUrl) {
+        window.location.href = session.checkoutUrl;
+        return;
+      }
+      throw new Error('Checkout URL missing from server.');
+    } catch (err) {
+      set({
+        loading: false,
+        error: err instanceof Error ? err.message : 'Checkout could not start.',
+      });
+    }
   },
 
   applyStudentVerification: (result) => {

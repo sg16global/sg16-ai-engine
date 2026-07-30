@@ -261,10 +261,85 @@ export async function applyPaddleSubscription(googleSub, {
   paddleCustomerId,
   paddleSubscriptionId,
 }) {
-  return updateUserRecord(googleSub, {
-    planTier: ACTIVE_SUBSCRIPTION_STATUSES.has(status) ? planTier : 'free',
-    subscriptionStatus: status,
-    paddleCustomerId: paddleCustomerId ?? undefined,
-    paddleSubscriptionId: paddleSubscriptionId ?? undefined,
+  return applyBillingSubscription(googleSub, {
+    provider: 'paddle',
+    planTier,
+    status,
+    externalCustomerId: paddleCustomerId,
+    externalSubscriptionId: paddleSubscriptionId,
   });
+}
+
+async function syncWebSubscriptionPg(googleSub, {
+  provider,
+  plan,
+  status,
+  externalSubscriptionId,
+  externalCustomerId,
+  currentPeriodEnd,
+}) {
+  const pool = getPool();
+  const user = await pool.query('SELECT id FROM users WHERE google_sub = $1', [googleSub]);
+  const userId = user.rows[0]?.id;
+  if (!userId) return;
+
+  const periodEnd = currentPeriodEnd ? new Date(currentPeriodEnd) : null;
+  const validPeriodEnd = periodEnd && !Number.isNaN(periodEnd.getTime()) ? periodEnd : null;
+
+  await pool.query(
+    `INSERT INTO web_subscriptions (
+      user_id, provider, external_subscription_id, external_customer_id,
+      plan, status, current_period_end, updated_at
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+    ON CONFLICT (user_id, provider) DO UPDATE SET
+      external_subscription_id = EXCLUDED.external_subscription_id,
+      external_customer_id = EXCLUDED.external_customer_id,
+      plan = EXCLUDED.plan,
+      status = EXCLUDED.status,
+      current_period_end = COALESCE(EXCLUDED.current_period_end, web_subscriptions.current_period_end),
+      updated_at = NOW()`,
+    [
+      userId,
+      provider,
+      externalSubscriptionId ?? null,
+      externalCustomerId ?? null,
+      plan === 'student' ? 'student' : 'pro',
+      status,
+      validPeriodEnd,
+    ],
+  );
+}
+
+/** Provider-agnostic billing update (Dodo, Paddle legacy, future providers). */
+export async function applyBillingSubscription(googleSub, {
+  provider = 'dodo',
+  planTier,
+  status,
+  externalSubscriptionId,
+  externalCustomerId,
+  currentPeriodEnd,
+}) {
+  const current = await getUserRecord(googleSub);
+  const active = ACTIVE_SUBSCRIPTION_STATUSES.has(status);
+  const record = await updateUserRecord(googleSub, {
+    planTier: active ? planTier : 'free',
+    subscriptionStatus: status,
+    paddleCustomerId: externalCustomerId ?? undefined,
+    paddleSubscriptionId: externalSubscriptionId ?? undefined,
+  });
+
+  if (isDatabaseReady() && provider) {
+    const webPlan =
+      (active ? planTier : current?.planTier) === 'student' ? 'student' : 'pro';
+    await syncWebSubscriptionPg(googleSub, {
+      provider,
+      plan: webPlan,
+      status,
+      externalSubscriptionId,
+      externalCustomerId,
+      currentPeriodEnd,
+    });
+  }
+
+  return record;
 }
