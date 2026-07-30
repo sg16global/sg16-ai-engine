@@ -12,88 +12,67 @@ import {
 import { SG16_BRAND } from '../../core/branding';
 import { SG16_PUBLIC_URL } from '../../core/routes';
 import { Sg16Logo } from '../ui/Sg16Logo';
-import { OptimizedImage } from '../ui/OptimizedImage';
 import { useAppStore } from '../../core/appState';
-import { LandingGoogleSignIn } from './LandingGoogleSignIn';
 import { LandingHeader } from './LandingHeader';
+import { AnimatedProductTour } from './AnimatedProductTour';
 import './landingStyles.css';
 
-const HERO_BACKGROUND = '/landing/hero-background.png';
 
 const features = [
-  { icon: MessageSquare, title: 'AI Chat', desc: 'Fast, clear conversations across every workspace.' },
-  { icon: Code2, title: 'Coding Hub', desc: 'Generate, debug, and ship code with SG16.' },
-  { icon: ImageIcon, title: 'Image Studio', desc: 'Create and edit visuals in one place.' },
-  { icon: FileText, title: 'Document Lab', desc: 'Summarize, rewrite, and work through files.' },
+  { icon: MessageSquare, title: 'دردشة AI', desc: 'محادثات سريعة وواضحة في كل مساحة عمل.' },
+  { icon: Code2, title: 'مركز البرمجة', desc: 'ولّد، صحّح، وانشر الكود مع SG16.' },
+  { icon: ImageIcon, title: 'استوديو الصور', desc: 'أنشئ وحرّر الصور في مكان واحد.' },
+  { icon: FileText, title: 'مختبر المستندات', desc: 'لخّص، أعد الصياغة، واعمل على ملفاتك.' },
 ] as const;
 
 const trustItems = [
-  { icon: Shield, title: 'Trusted technology', desc: 'Reliable. Secure. Advanced.' },
-  { icon: Star, title: 'Verified platform', desc: 'Official. Protected. Ready.' },
-  { icon: Globe, title: 'Global standard', desc: 'Built for users worldwide.' },
-  { icon: Lock, title: 'Private by design', desc: 'Google Sign-In. No password asks.' },
+  { icon: Shield, title: 'تقنية موثوقة', desc: 'موثوق. آمن. متقدّم.' },
+  { icon: Star, title: 'منصة معتمدة', desc: 'رسمية. محمية. جاهزة.' },
+  { icon: Globe, title: 'معيار عالمي', desc: 'مبني للمستخدمين حول العالم.' },
+  { icon: Lock, title: 'خصوصية بالتصميم', desc: 'Google Sign-In — لا نطلب كلمة مرور.' },
 ] as const;
 
 export function LandingPage() {
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
   const enterLocalPreview = useAppStore((s) => s.enterLocalPreview);
 
   return (
-    <div className="landing-page relative min-h-[100dvh] overflow-x-hidden">
+    <div className="landing-page relative min-h-[100dvh] overflow-x-hidden" lang="ar" dir="rtl">
       <LandingHeader />
 
-      {/* Hero — one composition: brand signal + headline + line + CTA + visual */}
-      <section className="landing-hero-section">
+      {/* Public hero — the page itself is the live animated product tour. */}
+      <section className="landing-hero-section landing-hero-live">
         <div className="landing-shell landing-hero-copy">
-          <p className="landing-kicker">{SG16_BRAND.company}</p>
+          <div className="landing-hero-brand">
+            <Sg16Logo className="landing-hero-brand-logo" glow />
+            <p className="landing-kicker">{SG16_BRAND.company}</p>
+          </div>
           <h1 className="landing-hero-title">
-            Most Powerful
+            أقوى
             <br />
-            <span className="text-[#7CFC00]">AI Engine</span>
+            <span className="text-[#7CFC00]">محرّك AI</span>
           </h1>
           <p className="landing-hero-sub">
-            One application. Unlimited intelligence — chat, code, docs, and images in a single secure workspace.
+            تطبيق واحد. ذكاء بلا حدود — دردشة، برمجة، مستندات، وصور في مساحة عمل آمنة واحدة.
           </p>
           <div className="landing-hero-cta">
-            <button type="button" onClick={() => openLoginModal()} className="landing-btn-primary">
-              Get Started
+            <button type="button" onClick={() => enterLocalPreview()} className="landing-btn-primary">
+              ادخل SG16
             </button>
             <a href="#features" className="landing-btn-ghost">
-              See features
+              استكشف الميزات
             </a>
-          </div>
-          <button
-            type="button"
-            onClick={() => enterLocalPreview()}
-            className="mt-3 text-xs uppercase tracking-wider text-white/45 hover:text-[#7CFC00] transition"
-          >
-            Enter app without Google →
-          </button>
-          <div className="landing-hero-signin">
-            <LandingGoogleSignIn compact />
           </div>
         </div>
 
-        <div className="landing-hero-visual" aria-label="SG16 AI Engine">
-          <OptimizedImage
-            src={HERO_BACKGROUND}
-            alt="SG16 AI Engine"
-            className="landing-hero-img"
-            width={1240}
-            height={720}
-            fetchPriority="high"
-            decoding="async"
-          />
-          <div className="landing-hero-fade" aria-hidden />
-        </div>
+        <AnimatedProductTour />
       </section>
 
       {/* Features */}
       <section id="features" className="landing-section">
         <div className="landing-shell landing-section-head">
-          <h2 className="landing-section-title">Everything in one engine</h2>
+          <h2 className="landing-section-title">كل شيء في محرّك واحد</h2>
           <p className="landing-section-sub">
-            Clean workspaces for real work — not a pile of separate AI tabs.
+            مساحات عمل نظيفة للعمل الحقيقي — لا مزيد من تبويبات AI المتفرقة.
           </p>
         </div>
         <div className="landing-shell landing-feature-grid">
@@ -114,16 +93,16 @@ export function LandingPage() {
       {/* Security + proof */}
       <section className="landing-section landing-section-tight">
         <div className="landing-shell landing-section-head">
-          <h2 className="landing-section-title">Your security, our priority</h2>
+          <h2 className="landing-section-title">أمانك أولويتنا</h2>
           <p className="landing-section-sub">
-            Built for trusted access. Sign in with Google — we never ask for your password.
+            وصول موثوق. سجّل الدخول بـ Google — لا نطلب كلمة مرور أبداً.
           </p>
         </div>
         <div className="landing-shell landing-proof-grid">
           <div className="landing-proof">
             <div className="landing-proof-label">
               <Globe className="h-3.5 w-3.5 text-[#7CFC00]" />
-              Official website
+              الموقع الرسمي
             </div>
             <div className="landing-proof-url">
               <Lock className="h-3.5 w-3.5 shrink-0 text-[#7CFC00]" />
@@ -139,11 +118,11 @@ export function LandingPage() {
           >
             <div className="landing-proof-label">
               <span className="text-[#7CFC00]">𝕏</span>
-              Official account
+              الحساب الرسمي
             </div>
             <div className="flex items-center gap-3">
               <Sg16Logo className="h-10 w-10 rounded-full" />
-              <div className="min-w-0 text-left">
+              <div className="min-w-0 text-start">
                 <div className="flex items-center gap-1.5">
                   <span className="text-[14px] font-semibold text-white">SG16_AIEngine</span>
                   <CheckCircle2 className="h-4 w-4 text-[#7CFC00]" />
@@ -170,22 +149,29 @@ export function LandingPage() {
 
       <footer className="landing-footer">
         <div className="landing-shell">
+          <div className="landing-footer-brand">
+            <Sg16Logo className="landing-footer-brand-logo" />
+            <div>
+              <p className="landing-footer-brand-title">{SG16_BRAND.name}</p>
+              <p className="landing-footer-brand-company">{SG16_BRAND.company}</p>
+            </div>
+          </div>
           <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-white/45">
             <a href="/privacy" className="hover:text-[#7CFC00] transition">
-              Privacy
+              الخصوصية
             </a>
             <a href="/terms" className="hover:text-[#7CFC00] transition">
-              Terms
+              الشروط
             </a>
             <a href="/contact" className="hover:text-[#7CFC00] transition">
-              Contact
+              تواصل
             </a>
             <a href={`mailto:${SG16_BRAND.contactEmail}`} className="hover:text-[#7CFC00] transition">
               {SG16_BRAND.contactEmail}
             </a>
           </div>
           <p className="mt-3 text-center text-[11px] text-white/35">
-            © {new Date().getFullYear()} {SG16_BRAND.company}. All rights reserved.
+            © {new Date().getFullYear()} {SG16_BRAND.company}. جميع الحقوق محفوظة.
           </p>
         </div>
       </footer>

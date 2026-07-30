@@ -6,7 +6,6 @@ import { CodingWorkspace } from '../../workspaces/Coding';
 import { StudentShieldWorkspace } from '../../workspaces/StudentShield';
 import { GeneralWorkspace } from '../../workspaces/General';
 import { HealthWorkspace } from '../../workspaces/Health';
-import { MarketWorkspace } from '../../workspaces/Market';
 
 export const WorkspaceContainer = () => {
   const currentWorkspace = useAppStore((state) => state.currentWorkspace);
@@ -19,7 +18,7 @@ export const WorkspaceContainer = () => {
   }
 
   return (
-    <div key={currentWorkspace} className="h-full min-h-0 bg-black text-white">
+    <div key={currentWorkspace} className="h-full min-h-0">
       {(() => {
         switch (currentWorkspace) {
           case 'coding':
@@ -30,8 +29,6 @@ export const WorkspaceContainer = () => {
             return <GeneralWorkspace />;
           case 'health':
             return <HealthWorkspace />;
-          case 'market':
-            return <MarketWorkspace />;
           default:
             return <GeneralWorkspace />;
         }

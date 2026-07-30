@@ -6,8 +6,8 @@ export const SG16_BRAND = {
   company: 'SaifTech Global Limited',
   contactEmail: 'contact@sg16engine.com',
   publicUrl: 'https://sg16engine.com',
-  logo: '/hero.png',
-  logoFallback: '/hero-globe.png',
+  logo: '/hero.webp',
+  logoFallback: '/hero-globe.webp',
   logoAlt: 'SG16 AI Engine',
 } as const;
 export const SG16_IDENTITY_RULES = `You are part of ${SG16_BRAND.name} by ${SG16_BRAND.company}.

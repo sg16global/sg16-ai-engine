@@ -20,8 +20,6 @@ import { WorkspaceContainer } from './components/layout/WorkspaceContainer';
 
 import { HistoryPanel } from './components/panels/HistoryPanel';
 
-import { UserRoomPanel } from './components/panels/UserRoomPanel';
-
 import { SettingsPanel } from './components/panels/SettingsPanel';
 
 import { HelpPanel } from './components/panels/HelpPanel';
@@ -29,6 +27,8 @@ import { HelpPanel } from './components/panels/HelpPanel';
 import { PricingPanel } from './components/panels/PricingPanel';
 
 import { StudentVerifyPanel } from './components/panels/StudentVerifyPanel';
+
+import { UserRoomPanel } from './components/panels/UserRoomPanel';
 
 import { InstallPrompt } from './components/pwa/InstallPrompt';
 
@@ -45,14 +45,12 @@ import { useAppStore } from './core/appState';
 import { isAuthenticated } from './core/access';
 
 import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
-import { loadAuthToken } from './lib/authApi';
 
 import { useTrialSync } from './hooks/useTrialSync';
 
 import type { WorkspaceType } from './core/types';
-import { PilotOrb } from './components/pilot/PilotOrb';
+import { HelperBot } from './components/help/HelperBot';
 import { skinForWorkspace } from './core/sectionThemes';
-import { isShieldWorkspace } from './core/pilot';
 
 
 
@@ -82,13 +80,10 @@ function applyBrowserRoute() {
 
 
 
-function isWelcomeRoute(pathname: string) {
-  return normalizePath(pathname) === APP_PATHS.welcome;
-}
+function isLandingRoute(pathname: string) {
 
-function isShieldHomeRoute(pathname: string) {
-  const path = normalizePath(pathname);
-  return path === APP_PATHS.home || path === APP_PATHS.welcome;
+  return normalizePath(pathname) === APP_PATHS.home;
+
 }
 
 
@@ -214,10 +209,6 @@ function AppShell() {
 
         return <HomePage />;
 
-      case 'user-room':
-
-        return <UserRoomPanel />;
-
       case 'history':
 
         return <HistoryPanel />;
@@ -238,6 +229,10 @@ function AppShell() {
 
         return <StudentVerifyPanel />;
 
+      case 'user-room':
+
+        return <UserRoomPanel />;
+
       default:
 
         return <WorkspaceContainer />;
@@ -246,56 +241,36 @@ function AppShell() {
 
   };
 
-  const isHome = currentWorkspace === 'home';
-  /** Student Shield uses Picture-1 own maroon panel — hide global chrome. */
-  const isStudentShell = currentWorkspace === 'student-shield';
-  const hideGlobalChrome = isHome || isStudentShell;
-  const inShield = isShieldWorkspace(currentWorkspace);
   const isChatWorkspace = !(
     ['home', 'user-room', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
   ).includes(currentWorkspace);
 
 
 
-  /* AIO Shield Home: full-bleed, no sidebar/topbar chrome */
-  if (isHome) {
-    return (
-      <div
-        data-skin={sectionSkin}
-        className="sg16-app-shell sg16-home-shell h-[100dvh] max-h-[100dvh] text-white overflow-hidden bg-[#05060D] supports-[height:100dvh]:h-[100dvh]"
-      >
-        <HomePage />
-        <GoogleLoginModal />
-        <LaunchSubscriptionModal />
-        <InstallPrompt />
-      </div>
-    );
-  }
-
   return (
 
     <div
       data-skin={sectionSkin}
-      className={`sg16-app-shell sg16-skin-${sectionSkin} flex h-[100dvh] text-white overflow-hidden ${
-        inShield ? 'bg-black' : ''
-      }`}
+      className={`sg16-app-shell sg16-skin-${sectionSkin} flex h-[100dvh] text-white overflow-hidden`}
     >
 
-      {!hideGlobalChrome && <Sidebar />}
+      <Sidebar />
 
-      {!hideGlobalChrome && <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
 
-      <div className={`flex-1 flex flex-col min-w-0 ${!isStudentShell ? 'sg16-work-field' : ''}`}>
 
-        {!hideGlobalChrome && <TopBar onMenuClick={() => setDrawerOpen(true)} />}
+      <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-        {!hideGlobalChrome && <LaunchBanner />}
+
+
+      <div className="flex-1 flex flex-col min-w-0">
+
+        <TopBar onMenuClick={() => setDrawerOpen(true)} />
+
+        <LaunchBanner />
 
         <main
-          className={`flex-1 overscroll-contain mobile-scroll-main ${
-            hideGlobalChrome ? 'pb-0' : 'pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0'
-          } min-h-0 ${
-            isChatWorkspace || isStudentShell ? 'overflow-hidden' : 'overflow-auto'
+          className={`flex-1 overscroll-contain mobile-scroll-main pb-[calc(4rem+env(safe-area-inset-bottom))] lg:pb-0 min-h-0 ${
+            isChatWorkspace ? 'overflow-hidden' : 'overflow-auto'
           }`}
         >
 
@@ -305,9 +280,11 @@ function AppShell() {
 
       </div>
 
-      {!hideGlobalChrome && <MobileBottomNav />}
 
-      <PilotOrb />
+
+      <MobileBottomNav />
+
+      <HelperBot />
 
       <InstallPrompt />
 
@@ -372,21 +349,21 @@ function App() {
 
 
 
-  const showWelcome = !isAuthenticated(authUser) && isWelcomeRoute(pathname);
+  const showLanding = !isAuthenticated(authUser) && isLandingRoute(pathname);
+
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
-  const restoringSession = !authHydrated && Boolean(loadAuthToken()) && isShieldHomeRoute(pathname);
 
 
 
   useEffect(() => {
 
-    if (showWelcome) {
+    if (showLanding) {
 
-      document.title = 'SG16 AI Engine — Most Powerful AI Engine';
+      document.title = 'SG16 AI Engine — أقوى محرّك AI';
 
     }
 
-  }, [showWelcome]);
+  }, [showLanding]);
 
 
 
@@ -414,16 +391,7 @@ function App() {
 
 
 
-  if (restoringSession) {
-    return (
-      <>
-        <SeoCanonical />
-        <AuthSplash />
-      </>
-    );
-  }
-
-  if (!authHydrated && !isShieldHomeRoute(pathname) && !isPublicLegalPath(pathname) && !isWelcomeRoute(pathname)) {
+  if (!authHydrated && !isLandingRoute(pathname) && !isPublicLegalPath(pathname)) {
     return (
       <>
         <SeoCanonical />
@@ -441,7 +409,7 @@ function App() {
     );
   }
 
-  if (showWelcome) {
+  if (showLanding) {
     return (
       <>
         <SeoCanonical />

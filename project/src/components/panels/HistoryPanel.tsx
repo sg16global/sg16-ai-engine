@@ -6,9 +6,9 @@ import type { WorkspaceId } from '../../core/types';
 const workspaceLabels: Record<WorkspaceId, string> = {
   general: SG16_BRAND.chatName,
   coding: 'Coding Hub',
-  health: 'Health Shield',
-  'student-shield': 'Student Shield',
+  health: 'Health Guide',
   market: 'Market Shield',
+  'student-shield': 'Student Shield',
   image: 'Image Studio',
   document: 'Document Lab',
   translate: 'Translate',
@@ -36,10 +36,10 @@ export function HistoryPanel() {
   return (
     <div className="p-6 lg:p-8 max-w-4xl mx-auto">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">History</h1>
+        <h1 className="text-2xl font-bold">This session</h1>
         <p className="text-sm text-gray-500 mt-1 flex items-center gap-2">
           <Shield className="w-4 h-4 text-emerald-400" />
-          Each workspace has its own chat. Saved to your user room when signed in — restores on any device.
+          Each workspace has its own chat. Saved on this device only — not on SG16 servers.
         </p>
       </div>
 
@@ -62,7 +62,7 @@ export function HistoryPanel() {
                 <h3 className="font-semibold text-emerald-400">{label}</h3>
                 <p className="text-sm text-gray-400 mt-1 line-clamp-2">{last.content}</p>
                 <p className="text-xs text-gray-600 mt-2">
-                  {msgs.length} message{msgs.length !== 1 ? 's' : ''} · synced to your room
+                  {msgs.length} message{msgs.length !== 1 ? 's' : ''} · session only
                 </p>
               </button>
             );

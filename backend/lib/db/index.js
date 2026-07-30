@@ -38,7 +38,7 @@ export async function initDatabase() {
   await migrateJsonLedgerIfNeeded(pool);
 
   ready = true;
-  console.log('[SG16 db] PostgreSQL ready — users, user_rooms, subscriptions, webhook_events');
+  console.log('[SG16 db] PostgreSQL ready — users, subscriptions, webhook_events');
   return { enabled: true, ready: true };
 }
 

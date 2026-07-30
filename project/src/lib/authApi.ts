@@ -8,14 +8,6 @@ export interface AuthConfigResponse {
 
 const AUTH_TOKEN_KEY = 'sg16_auth_token';
 
-function readStoredToken(): string | null {
-  try {
-    return localStorage.getItem(AUTH_TOKEN_KEY) ?? sessionStorage.getItem(AUTH_TOKEN_KEY);
-  } catch {
-    return null;
-  }
-}
-
 export async function fetchAuthConfig(): Promise<AuthConfigResponse> {
   const res = await fetch('/api/v1/auth/config');
   const data = await res.json();
@@ -48,29 +40,18 @@ export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subs
 }
 
 export function loadAuthToken(): string | null {
-  const token = readStoredToken();
-  if (token) {
-    try {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
-      sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    } catch {
-      /* ignore storage errors */
-    }
+  try {
+    return sessionStorage.getItem(AUTH_TOKEN_KEY);
+  } catch {
+    return null;
   }
-  return token;
 }
 
 export function saveAuthToken(token: string) {
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
-  try {
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
-  } catch {
-    /* ignore */
-  }
+  sessionStorage.setItem(AUTH_TOKEN_KEY, token);
 }
 
 export function clearAuthToken() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
   sessionStorage.removeItem(AUTH_TOKEN_KEY);
 }
 

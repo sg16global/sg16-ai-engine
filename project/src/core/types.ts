@@ -1,11 +1,11 @@
 export type WorkspaceType =
   | 'home'
-  | 'user-room'
   | 'history'
   | 'settings'
   | 'help'
   | 'pricing'
   | 'student-verify'
+  | 'user-room'
   | 'coding'
   | 'student-shield'
   | 'general'
@@ -46,7 +46,6 @@ export interface AuthUser {
   id?: string;
   signupDate: number;
   name: string;
-  email?: string;
   picture?: string;
   launchFree?: boolean;
   trialActive: boolean;

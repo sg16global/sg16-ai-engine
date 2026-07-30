@@ -115,7 +115,7 @@ export function GoogleLoginModal() {
         <div className="mt-6 pt-4 border-t border-white/10 space-y-2">
           <p className="text-[11px] text-gray-500 flex items-start gap-2">
             <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-            Strict privacy: Google Sign-In only. Your chat history saves to your personal user room when signed in.
+            Strict privacy: we only store your signup date for your account. No chat history or messages are saved.
           </p>
           <p className="text-[11px] text-gray-500 text-center">
             {launchFree

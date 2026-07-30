@@ -4,7 +4,7 @@ import {
   Bot,
   Braces,
   Calendar,
-  ChartNoAxesCombined,
+  BarChart3,
   Clock,
   Crown,
   GraduationCap,
@@ -40,7 +40,7 @@ const workspaceIcons: Record<string, typeof Bot> = {
   coding: Braces,
   health: HeartPulse,
   'student-shield': GraduationCap,
-  market: ChartNoAxesCombined,
+  market: BarChart3,
 };
 
 function formatMemberSince(ts: number) {

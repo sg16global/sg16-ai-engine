@@ -1,0 +1,316 @@
+/* SG16 tour — stable two-column Arabic layout + music only */
+
+.landing-tour {
+  width: 100%;
+  position: relative;
+  z-index: 1;
+  font-family: 'Segoe UI', Tahoma, 'Noto Sans Arabic', Arial, sans-serif;
+}
+
+.landing-tour-stage {
+  position: relative;
+  overflow: hidden;
+  min-height: 520px;
+  border-top: 1px solid rgba(124, 252, 0, 0.12);
+  border-bottom: 1px solid rgba(124, 252, 0, 0.08);
+  background:
+    radial-gradient(ellipse 120% 80% at 50% 110%, rgba(20, 120, 60, 0.5), transparent 55%),
+    linear-gradient(180deg, #030a06, #020805);
+}
+
+.landing-tour-bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.landing-tour-stars {
+  position: absolute;
+  inset: 0;
+  opacity: 0.35;
+  background-image: radial-gradient(rgba(124, 252, 0, 0.35) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+.landing-tour-voice {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 20;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(124, 252, 0, 0.35);
+  background: rgba(0, 0, 0, 0.75);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.landing-tour-voice.is-on {
+  border-color: rgba(124, 252, 0, 0.55);
+  color: #7cfc00;
+}
+
+.landing-tour-grid {
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: center;
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: 24px 20px 88px;
+  min-height: 520px;
+  box-sizing: border-box;
+}
+
+.landing-tour-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.landing-tour-orbit-hub {
+  position: relative;
+  width: min(360px, 100%);
+  aspect-ratio: 1;
+}
+
+.landing-tour-orbit-spin {
+  position: absolute;
+  inset: 0;
+}
+
+.landing-tour-orbit-ring {
+  position: absolute;
+  inset: 10%;
+  border: 1px solid rgba(124, 252, 0, 0.25);
+  border-radius: 50%;
+}
+
+.landing-tour-orbit-pill {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 11px;
+  margin: -14px -36px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.8);
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 10px;
+  font-weight: 600;
+  transform: rotate(var(--orbit-angle)) translateY(-155px) rotate(calc(-1 * var(--orbit-angle)));
+  transition: 0.3s ease;
+}
+
+.landing-tour-orbit-pill.is-active {
+  border-color: var(--scene-accent, #7cfc00);
+  color: #fff;
+  box-shadow: 0 0 18px color-mix(in srgb, var(--scene-accent, #7cfc00) 40%, transparent);
+}
+
+.landing-tour-earth-orb {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 56%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 2;
+}
+
+.landing-tour-earth-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: tour-earth-spin 90s linear infinite;
+}
+
+.landing-tour-earth-glow {
+  position: absolute;
+  inset: -12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 252, 0, 0.35), transparent 65%);
+  pointer-events: none;
+}
+
+.landing-tour-ai-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid rgba(167, 139, 250, 0.45);
+  background: rgba(8, 6, 18, 0.85);
+  color: #e9d5ff;
+  font-size: 10px;
+  font-weight: 700;
+  transform: translate(-50%, -50%);
+}
+
+.landing-tour-copy {
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.landing-tour-eyebrow {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 700;
+  color: rgba(124, 252, 0, 0.8);
+}
+
+.landing-tour-punch {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 42px);
+  line-height: 1.35;
+  font-weight: 700;
+  color: #fff;
+}
+
+.landing-tour-lead {
+  margin: 12px 0 0;
+  font-size: 15px;
+  line-height: 1.7;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.landing-tour-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  direction: rtl;
+  border: 1px solid rgba(124, 252, 0, 0.15);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.landing-tour-stat {
+  padding: 14px;
+  text-align: center;
+  border: 1px solid rgba(124, 252, 0, 0.08);
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.landing-tour-stat strong {
+  display: block;
+  font-size: clamp(20px, 3vw, 28px);
+  color: #7cfc00;
+}
+
+.landing-tour-stat span {
+  display: block;
+  margin-top: 4px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.landing-tour-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  padding: 14px 16px;
+  text-align: center;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+}
+
+.landing-tour-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.landing-tour-dots span {
+  display: block;
+  width: 28px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(124, 252, 0, 0.22);
+}
+
+.landing-tour-dots span.is-active {
+  width: 44px;
+  background: #7cfc00;
+}
+
+.landing-tour-caption {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  direction: rtl;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.landing-tour-caption svg,
+.landing-tour-caption span:first-of-type {
+  color: #7cfc00;
+}
+
+@keyframes tour-earth-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 768px) {
+  .landing-tour-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 12px 10px 80px;
+    min-height: 460px;
+  }
+
+  .landing-tour-orbit-hub {
+    width: min(200px, 42vw);
+  }
+
+  .landing-tour-orbit-pill {
+    font-size: 8px;
+    padding: 4px 7px;
+    transform: rotate(var(--orbit-angle)) translateY(-88px) rotate(calc(-1 * var(--orbit-angle)));
+  }
+
+  .landing-tour-punch {
+    font-size: clamp(15px, 3.8vw, 22px);
+  }
+
+  .landing-tour-lead {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .landing-tour-stat {
+    padding: 8px 4px;
+  }
+
+  .landing-tour-stat strong {
+    font-size: 16px;
+  }
+
+  .landing-tour-stat span {
+    font-size: 8px;
+  }
+
+  .landing-tour-voice span {
+    display: none;
+  }
+}

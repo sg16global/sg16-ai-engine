@@ -1,5 +1,5 @@
 import crypto from 'crypto';
-import { buildSubscriptionPayload, ensureSignupDate, getUserRecord } from './userLedger.js';
+import { buildSubscriptionPayload, ensureSignupDate } from './userLedger.js';
 import { trialDaysRemaining, trialIsActive, trialMsRemaining } from './access.js';
 import { isLaunchFree } from './launchMode.js';
 
@@ -98,12 +98,10 @@ export async function buildUserPayload(session) {
   const signupDate = session.signupDate;
   const launchFree = isLaunchFree();
   const trialActive = !launchFree && trialIsActive(signupDate);
-  const record = await getUserRecord(session.sub);
   return {
     id: session.sub,
     signupDate,
-    name: session.name || record?.name || 'SG16 User',
-    email: record?.email ?? undefined,
+    name: session.name || 'SG16 User',
     picture: session.picture,
     launchFree,
     trialActive,

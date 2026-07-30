@@ -18,7 +18,7 @@ export function hasPaidAccess(subscription: Subscription): boolean {
   return false;
 }
 
-export function isAuthenticated(authUser: AuthUser | null): boolean {
+export function isAuthenticated(authUser: AuthUser | null): authUser is AuthUser {
   return authUser != null && authUser.signupDate > 0;
 }
 
@@ -33,7 +33,6 @@ export function canAccessWorkspace(
 ): boolean {
   if (
     workspace === 'home' ||
-    workspace === 'user-room' ||
     workspace === 'history' ||
     workspace === 'settings' ||
     workspace === 'help' ||
@@ -106,9 +105,9 @@ function workspaceLabel(id: WorkspaceId): string {
   const labels: Record<WorkspaceId, string> = {
     coding: 'Coding Hub',
     health: 'Health Guide',
+    market: 'Market Shield',
     general: SG16_BRAND.chatName,
     'student-shield': 'Student Shield',
-    market: 'Market Shield',
     image: 'Image Studio',
     document: 'Document Lab',
     voice: 'Voice AI',

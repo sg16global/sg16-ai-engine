@@ -1,4 +1,4 @@
-import { Bell, Moon, Crown, GraduationCap, Menu, LogOut, Home } from 'lucide-react';
+import { Bell, Moon, Crown, GraduationCap, Menu, LogOut } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { isAuthenticated, isStudentVerified } from '../../core/access';
 import { planLabel } from '../../core/plans';
@@ -20,7 +20,6 @@ const titles: Record<string, string> = {
   translate: 'Translate',
   memory: 'Memory Vault',
   'student-shield': 'Student Shield',
-  market: 'Market Shield',
 };
 
 interface TopBarProps {
@@ -37,21 +36,20 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const openPricing = useAppStore((s) => s.openPricing);
   const openLoginModal = useAppStore((s) => s.openLoginModal);
   const logout = useAppStore((s) => s.logout);
-  const goToHome = useAppStore((s) => s.goToHome);
 
   const title = titles[currentWorkspace] ?? `${currentWorkspace.replace('-', ' ')} Workspace`;
 
   const planBadge = (compact = false) => {
     if (launchFree || authUser?.launchFree) {
       return (
-        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg whitespace-nowrap">
+        <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg whitespace-nowrap">
           Launch · Full access
         </span>
       );
     }
     if (authUser?.trialActive) {
       return (
-        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg">
+        <span className="text-xs bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-1 rounded-lg">
           Trial · {authUser.trialDaysRemaining}d left
         </span>
       );
@@ -95,7 +93,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
       <button
         type="button"
         onClick={openPricing}
-        className="text-xs bg-zinc-800 border border-white/10 text-gray-400 px-2 py-1 rounded-lg hover:border-[#FF2E2E]/30 hover:text-white transition"
+        className="text-xs bg-zinc-800 border border-white/10 text-gray-400 px-2 py-1 rounded-lg hover:border-emerald-500/30 hover:text-white transition"
       >
         {compact ? 'Free' : planLabel(subscription.plan)}
       </button>
@@ -114,17 +112,6 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
       </button>
 
       <div className="flex-1 flex items-center gap-2 min-w-0 justify-center lg:justify-start">
-        {currentWorkspace !== 'home' && (
-          <button
-            type="button"
-            onClick={goToHome}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#FF8A8A] border border-[#FF2E2E]/35 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 px-2.5 py-1.5 rounded-lg shrink-0"
-            title="Back to Shield Home"
-          >
-            <Home className="w-3.5 h-3.5" />
-            Shields
-          </button>
-        )}
         <Sg16Logo className="w-8 h-8 lg:hidden shrink-0" />
           <div className="min-w-0 text-center lg:text-left flex-1">
           <div className="text-sm lg:text-lg font-semibold truncate leading-tight">{title}</div>
@@ -155,8 +142,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <div className="text-sm font-medium truncate max-w-[8rem]">
               {isAuthenticated(authUser) ? authUser!.name : settings.displayName}
             </div>
-            <div className="text-xs text-[#FF8A8A] flex items-center gap-1 justify-end">
-              <span className="w-2 h-2 bg-[#FF2E2E] rounded-full inline-block" />
+            <div className="text-xs text-emerald-400 flex items-center gap-1 justify-end">
+              <span className="w-2 h-2 bg-emerald-400 rounded-full inline-block" />
               {isAuthenticated(authUser) ? 'Signed in' : 'Guest'}
             </div>
           </div>
@@ -164,7 +151,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <button
               type="button"
               onClick={logout}
-              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-[#FF2E2E]/40 transition focus:outline-none focus-visible:ring-[#FF2E2E]/60"
+              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-emerald-500/40 transition focus:outline-none focus-visible:ring-emerald-500/60"
               title="Sign out"
               aria-label="Sign out"
             >

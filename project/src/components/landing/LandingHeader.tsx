@@ -1,24 +1,28 @@
 import { useState } from 'react';
 import { Lock, Menu, Rocket, X } from 'lucide-react';
+import { SG16_BRAND } from '../../core/branding';
 import { useAppStore } from '../../core/appState';
 import { pushAppPath } from '../../core/routes';
+import { Sg16Logo } from '../ui/Sg16Logo';
 
 const NAV_LINKS = [
-  { id: 'home', label: 'Home', href: '/' },
-  { id: 'features', label: 'Features', href: '#features' },
-  { id: 'pricing', label: 'Pricing', href: '/pricing' },
-  { id: 'help', label: 'Help', href: '/help' },
-  { id: 'about', label: 'About', href: '/contact' },
+  { id: 'home', label: 'الرئيسية', href: '/' },
+  { id: 'features', label: 'الميزات', href: '#features' },
+  { id: 'pricing', label: 'الأسعار', href: '/pricing' },
+  { id: 'help', label: 'المساعدة', href: '/help' },
+  { id: 'about', label: 'من نحن', href: '/contact' },
 ] as const;
 
-function BrandMark() {
+function BrandMark({ showCompany = true }: { showCompany?: boolean }) {
   return (
-    <div className="text-left">
-      <div className="text-[22px] font-black leading-none tracking-wide text-[#7CFC00] landing-brand-glow sm:text-2xl">
-        SG16
-      </div>
-      <div className="mt-0.5 text-[9px] font-semibold tracking-[0.28em] text-white/80 sm:text-[10px]">
-        AI ENGINE
+    <div className="landing-header-brand">
+      <Sg16Logo className="landing-header-brand-logo" glow />
+      <div className="landing-header-brand-text">
+        <div className="landing-header-brand-title landing-brand-glow">SG16</div>
+        <div className="landing-header-brand-sub">AI ENGINE</div>
+        {showCompany ? (
+          <div className="landing-header-brand-company">{SG16_BRAND.company}</div>
+        ) : null}
       </div>
     </div>
   );
@@ -70,7 +74,7 @@ export function LandingHeader() {
             className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2 text-[13px] font-medium text-white/90 transition hover:bg-white/10"
           >
             <Lock className="h-3.5 w-3.5 text-[#7CFC00]" />
-            Login
+            تسجيل الدخول
           </button>
           <button
             type="button"
@@ -78,13 +82,13 @@ export function LandingHeader() {
             className="hidden items-center gap-1.5 rounded-md bg-[#7CFC00] px-4 py-[9px] text-[13px] font-semibold text-black transition hover:bg-[#8dff20] sm:inline-flex"
           >
             <Rocket className="h-4 w-4" />
-            Get Started
+            ابدأ الآن
           </button>
           <button
             type="button"
             className="flex h-10 w-10 items-center justify-center rounded-md text-white/90 hover:bg-white/10 lg:hidden"
             onClick={() => setMenuOpen(true)}
-            aria-label="Open menu"
+            aria-label="فتح القائمة"
           >
             <Menu className="h-5 w-5" />
           </button>
@@ -97,16 +101,16 @@ export function LandingHeader() {
             type="button"
             className="absolute inset-0 bg-black/70 backdrop-blur-sm"
             onClick={() => setMenuOpen(false)}
-            aria-label="Close menu"
+            aria-label="إغلاق"
           />
           <div className="absolute right-0 top-0 h-full w-[min(88vw,320px)] border-l border-white/10 bg-[#050505] p-5 shadow-2xl">
             <div className="mb-6 flex items-center justify-between">
-              <BrandMark />
+              <BrandMark showCompany={false} />
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
                 className="rounded-lg p-2 hover:bg-white/10"
-                aria-label="Close"
+                aria-label="إغلاق"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -134,7 +138,7 @@ export function LandingHeader() {
               className="mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-[#7CFC00] py-3 text-sm font-bold text-black"
             >
               <Rocket className="h-4 w-4" />
-              Get Started
+              ابدأ الآن
             </button>
           </div>
         </div>

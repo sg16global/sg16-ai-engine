@@ -204,7 +204,7 @@ export function SettingsPanel() {
       <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-3">
         <h2 className="font-semibold text-red-400">Privacy</h2>
         <p className="text-xs text-gray-500">
-          Your chat history syncs to your user room when signed in. Sign out clears this session on this device only.
+          SG16 stores only your Google signup date for account access. No chat history, messages, or conversations are saved to disk.
         </p>
         <button
           type="button"

@@ -68,7 +68,7 @@ export const PLANS: PlanDefinition[] = [
 ];
 
 /** Always free forever after sign-in. */
-export const FREE_WORKSPACES: WorkspaceId[] = ['general', 'health', 'market'];
+export const FREE_WORKSPACES: WorkspaceId[] = ['general', 'health'];
 
 export const PREMIUM_WORKSPACES: WorkspaceId[] = [
   'coding',

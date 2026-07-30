@@ -2,7 +2,13 @@ import { useState } from 'react';
 import { SG16_BRAND } from '../../core/branding';
 import { OptimizedImage } from './OptimizedImage';
 
-const LOGO_SOURCES = [SG16_BRAND.logo, SG16_BRAND.logoFallback, '/logo.svg'];
+const LOGO_SOURCES = [
+  SG16_BRAND.logo,
+  SG16_BRAND.logoFallback,
+  '/hero.png',
+  '/hero-globe.png',
+  '/logo.svg',
+];
 
 interface Sg16LogoProps {
   className?: string;

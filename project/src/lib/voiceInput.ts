@@ -2,6 +2,40 @@ import { transcribeVoiceAudio } from './speechApi';
 
 const MAX_RECORD_MS = 30_000;
 
+/** Pre-rendered Microsoft Neural voice — cinematic SaaS tour tone. */
+export const TOUR_VOICE_CLIPS = {
+  intro: '/assets/tour-voice/intro.mp3',
+  ai: '/assets/tour-voice/ai.mp3',
+  student: '/assets/tour-voice/student.mp3',
+  coding: '/assets/tour-voice/coding.mp3',
+  health: '/assets/tour-voice/health.mp3',
+  market: '/assets/tour-voice/market.mp3',
+} as const;
+
+export type TourVoiceClipKey = keyof typeof TOUR_VOICE_CLIPS;
+
+/** Looping tour bed — extracted from reference pin (music only, no voiceover). */
+export const TOUR_MUSIC_SRC = '/assets/tour-voice/tour-bg-music.mp3';
+
+let tourMusic: HTMLAudioElement | null = null;
+let tourAudio: HTMLAudioElement | null = null;
+let tourVoiceCache: SpeechSynthesisVoice | null | undefined;
+
+const TOUR_VOICE_HINTS = [
+  'Hamdan',
+  'Fatima',
+  'Hamed',
+  'Zariyah',
+  'Salma',
+  'Shakir',
+  'ar-AE',
+  'ar-SA',
+  'Guy Online',
+  'Jenny Neural',
+  'Microsoft Guy',
+  'Google US English',
+];
+
 export function isIOSDevice(): boolean {
   if (typeof navigator === 'undefined') return false;
   return (
@@ -172,11 +206,119 @@ function startMediaRecorderCapture(language: string): VoiceCaptureSession {
   };
 }
 
-export function speakText(text: string, lang = 'en-US'): void {
+export function speakText(text: string, lang = 'en-US', rate = 1, pitch = 1): void {
   if (!('speechSynthesis' in window) || !text.trim()) return;
   window.speechSynthesis.cancel();
   const utter = new SpeechSynthesisUtterance(text.slice(0, 800));
   utter.lang = lang;
-  utter.rate = 1;
+  utter.rate = rate;
+  utter.pitch = pitch;
   window.speechSynthesis.speak(utter);
+}
+
+export function stopSpeaking(): void {
+  stopTourMusic();
+  if (tourAudio) {
+    tourAudio.pause();
+    tourAudio.currentTime = 0;
+    tourAudio = null;
+  }
+  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+}
+
+/** Looping cinematic bed for homepage tour. */
+export function playTourMusic(): void {
+  if (typeof window === 'undefined') return;
+  if (tourMusic && !tourMusic.paused) return;
+  if (!tourMusic) {
+    tourMusic = new Audio(TOUR_MUSIC_SRC);
+    tourMusic.loop = true;
+    tourMusic.preload = 'auto';
+    tourMusic.volume = 0.38;
+  }
+  void tourMusic.play().catch(() => {});
+}
+
+export function stopTourMusic(): void {
+  if (!tourMusic) return;
+  tourMusic.pause();
+  tourMusic.currentTime = 0;
+}
+
+function pickTourVoice(voices: SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
+  const arabic = voices.filter((voice) => voice.lang.toLowerCase().startsWith('ar'));
+  const english = voices.filter((voice) => voice.lang.toLowerCase().startsWith('en'));
+  const pool = arabic.length ? arabic : english.length ? english : voices;
+
+  for (const hint of TOUR_VOICE_HINTS) {
+    const match = pool.find((voice) => voice.name.includes(hint));
+    if (match) return match;
+  }
+
+  return (
+    pool.find((voice) => /natural|neural|premium|online/i.test(voice.name)) ||
+    pool.find((voice) => voice.localService === false) ||
+    pool[0] ||
+    null
+  );
+}
+
+function ensureTourVoice(): Promise<SpeechSynthesisVoice | null> {
+  if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    return Promise.resolve(null);
+  }
+  if (tourVoiceCache !== undefined) {
+    return Promise.resolve(tourVoiceCache);
+  }
+
+  return new Promise((resolve) => {
+    const sync = () => {
+      tourVoiceCache = pickTourVoice(window.speechSynthesis.getVoices());
+      resolve(tourVoiceCache);
+    };
+
+    const voices = window.speechSynthesis.getVoices();
+    if (voices.length) {
+      sync();
+      return;
+    }
+
+    window.speechSynthesis.onvoiceschanged = () => {
+      window.speechSynthesis.onvoiceschanged = null;
+      sync();
+    };
+    window.setTimeout(sync, 400);
+  });
+}
+
+async function playTourClip(src: string): Promise<void> {
+  tourAudio = new Audio(src);
+  tourAudio.preload = 'auto';
+  tourAudio.volume = 0.94;
+  await tourAudio.play();
+}
+
+function speakTourFallback(text: string): void {
+  if (!('speechSynthesis' in window) || !text.trim()) return;
+  window.speechSynthesis.cancel();
+  const utter = new SpeechSynthesisUtterance(text.slice(0, 800));
+  utter.lang = 'ar-SA';
+  utter.rate = 0.88;
+  utter.pitch = 0.96;
+  utter.volume = 1;
+  void ensureTourVoice().then((voice) => {
+    if (voice) utter.voice = voice;
+    window.speechSynthesis.speak(utter);
+  });
+}
+
+/** Cinematic homepage tour — neural MP3 first, premium browser voice fallback. */
+export function speakTourNarration(text: string, clipKey?: TourVoiceClipKey): void {
+  stopSpeaking();
+  const src = clipKey ? TOUR_VOICE_CLIPS[clipKey] : undefined;
+  if (src) {
+    void playTourClip(src).catch(() => speakTourFallback(text));
+    return;
+  }
+  speakTourFallback(text);
 }

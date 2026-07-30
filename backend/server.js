@@ -46,21 +46,29 @@ app.disable('x-powered-by');
 const allowedOrigins = new Set([
   'https://sg16engine.com',
   'https://www.sg16engine.com',
-  ...(isProd ? [] : ['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:5173']),
+  ...(isProd
+    ? []
+    : [
+        'http://localhost:5173',
+        'http://localhost:8000',
+        'http://localhost:4173',
+        'http://127.0.0.1:5173',
+        'http://127.0.0.1:8000',
+        'http://127.0.0.1:4173',
+      ]),
 ]);
 
-app.use(
-  cors({
-    origin(origin, callback) {
-      if (!origin || allowedOrigins.has(origin)) {
-        callback(null, true);
-        return;
-      }
-      callback(new Error('Not allowed by CORS'));
-    },
-    credentials: true,
-  }),
-);
+// CORS only for API — do not wrap static assets (breaks JS/CSS on 127.0.0.1:8000).
+const apiCors = cors({
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.has(origin)) {
+      callback(null, true);
+      return;
+    }
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+});
 
 app.use((req, res, next) => {
   req.id = randomUUID();
@@ -76,7 +84,7 @@ const apiRateLimit = rateLimit({
   message: { error: 'Too many requests. Please try again later.' },
 });
 
-app.use('/api/', apiRateLimit);
+app.use('/api/', apiCors, apiRateLimit);
 
 // Billing webhook (provider-agnostic raw body; currently returns 410 until Dodo is wired)
 app.post(
