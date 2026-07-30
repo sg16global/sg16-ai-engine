@@ -17,6 +17,8 @@ backend/public/workbox-*.js
 backend/public/manifest.webmanifest
 backend/public/manifest.json
 backend/public/*.mjs
+backend/public/landing/sg16-*
+backend/public/shield-home/
 
 # OS / editor
 .DS_Store
