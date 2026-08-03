@@ -8,16 +8,19 @@
    Landing page: do not depend on these classes.
 ═══════════════════════════════════════════════════════════ */
 :root {
-  --sg16-bg: #010103;
-  --sg16-surface: #0c0a0e;
-  --sg16-surface-2: #12080e;
-  --sg16-border: #2a1218;
-  --sg16-border-soft: rgba(255, 255, 255, 0.07);
-  --sg16-red: #800000;
-  --sg16-maroon: #800000;
-  --sg16-red-soft: #c45c5c;
-  --sg16-text: #f1f5f9;
-  --sg16-muted: rgba(255, 255, 255, 0.42);
+  --sg16-bg: #050508;
+  --sg16-surface: #16161c;
+  --sg16-surface-2: #1c1218;
+  --sg16-border: rgba(255, 23, 61, 0.28);
+  --sg16-border-soft: rgba(255, 255, 255, 0.1);
+  --sg16-red: #ff173d;
+  --sg16-maroon: #ff173d;
+  --sg16-red-soft: #ff8a8a;
+  --sg16-text: #e8eaef;
+  --sg16-muted: rgba(232, 234, 239, 0.55);
+  --sg16-write-bg: rgba(24, 24, 32, 0.72);
+  --sg16-write-border: rgba(255, 255, 255, 0.1);
+  --sg16-caret: #c4c8d0;
 
   /* Radius standard */
   --sg16-r-card: 1.25rem; /* 20px — solution / hub cards */
@@ -116,19 +119,19 @@
 
 .sg16-skin-student {
   background:
-    radial-gradient(ellipse at 30% 10%, rgba(16, 185, 129, 0.08), transparent 45%),
+    radial-gradient(ellipse at 30% 10%, rgba(255, 23, 61, 0.08), transparent 45%),
     var(--sg16-bg);
 }
 
 .sg16-skin-coding {
   background:
-    radial-gradient(ellipse at 30% 10%, rgba(59, 130, 246, 0.1), transparent 45%),
+    radial-gradient(ellipse at 30% 10%, rgba(255, 23, 61, 0.08), transparent 45%),
     var(--sg16-bg);
 }
 
 .sg16-skin-health {
   background:
-    radial-gradient(ellipse at 30% 10%, rgba(45, 212, 191, 0.09), transparent 45%),
+    radial-gradient(ellipse at 30% 10%, rgba(255, 23, 61, 0.08), transparent 45%),
     var(--sg16-bg);
 }
 
@@ -332,10 +335,10 @@
 }
 
 .sg16-neon-frame {
-  border: 1px solid rgba(128, 0, 0, 0.85);
+  border: 1px solid rgba(255, 23, 61, 0.75);
   box-shadow:
-    0 0 0 1px rgba(128, 0, 0, 0.25) inset,
-    0 0 18px rgba(128, 0, 0, 0.35);
+    0 0 0 1px rgba(255, 23, 61, 0.22) inset,
+    0 0 18px rgba(255, 23, 61, 0.32);
   background: rgba(0, 0, 0, 0.45);
   backdrop-filter: blur(10px);
 }
@@ -426,9 +429,10 @@
 }
 
 .sg16-work-panel {
-  background: rgba(0, 0, 0, 0.52);
-  backdrop-filter: blur(14px) saturate(1.1);
-  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  background: linear-gradient(180deg, rgba(18, 18, 24, 0.62) 0%, rgba(12, 12, 18, 0.78) 100%);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+  border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 /* Rotating shield backgrounds (home + workspaces) */
@@ -684,26 +688,49 @@
 
 .sg16-work-field {
   background: transparent;
-  color: #fff;
+  color: var(--sg16-text);
+}
+
+.sg16-write-zone {
+  flex: 1;
+  min-height: 0;
+  margin: 0.35rem 0.75rem 0;
+  border-radius: 1rem;
+  background: var(--sg16-write-bg);
+  border: 1px solid var(--sg16-write-border);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .sg16-work-field .sg16-bar,
 .sg16-work-field .sg16-card,
 .sg16-work-field .sg16-composer,
 .sg16-work-field .sg16-bar-soft {
-  background: #0a0a0a;
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: none;
+  background: rgba(30, 30, 38, 0.82);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .sg16-work-field .sg16-bar-accent {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 23, 61, 0.12);
+  border-color: rgba(255, 23, 61, 0.28);
   color: #fff;
 }
 
 .sg16-work-field .sg16-send {
-  background: #800000;
+  background: var(--sg16-red);
+}
+
+.sg16-composer-input {
+  color: var(--sg16-text);
+  caret-color: var(--sg16-caret);
+}
+
+.sg16-composer-input::placeholder {
+  color: rgba(196, 200, 208, 0.45);
 }
 
 @layer utilities {

@@ -1,7 +1,7 @@
 /* SG16 landing — Screen Studio structure, SG16 black + neon green */
 
 .landing-page {
-  background-color: #000000;
+  background-color: #08080e;
   color: #ffffff;
 }
 
@@ -13,7 +13,7 @@
   z-index: 0;
   overflow: hidden;
   pointer-events: none;
-  background: #000;
+  background: #08080e;
 }
 
 .landing-video-bg__video {
@@ -34,9 +34,9 @@
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.35) 40%,
-    rgba(0, 0, 0, 0.62) 100%
+    rgba(8, 8, 14, 0.42) 0%,
+    rgba(8, 8, 14, 0.22) 40%,
+    rgba(8, 8, 14, 0.48) 100%
   );
 }
 
@@ -49,8 +49,8 @@
 
   .landing-video-bg__shade {
     background:
-      linear-gradient(180deg, rgba(0, 0, 0, 0.48) 0%, rgba(0, 0, 0, 0.2) 42%, rgba(0, 0, 0, 0.55) 78%, rgba(0, 0, 0, 0.9) 100%),
-      radial-gradient(ellipse 85% 60% at 50% 42%, rgba(0, 0, 0, 0.12) 0%, rgba(0, 0, 0, 0.4) 100%);
+      linear-gradient(180deg, rgba(8, 8, 14, 0.38) 0%, rgba(8, 8, 14, 0.12) 42%, rgba(8, 8, 14, 0.42) 78%, rgba(8, 8, 14, 0.72) 100%),
+      radial-gradient(ellipse 85% 60% at 50% 42%, rgba(8, 8, 14, 0.08) 0%, rgba(8, 8, 14, 0.28) 100%);
   }
 }
 
@@ -62,10 +62,10 @@
   .landing-video-bg__shade {
     background: linear-gradient(
       180deg,
-      rgba(0, 0, 0, 0.38) 0%,
-      rgba(0, 0, 0, 0.04) 28%,
-      rgba(0, 0, 0, 0.35) 72%,
-      rgba(0, 0, 0, 0.88) 100%
+      rgba(8, 8, 14, 0.28) 0%,
+      rgba(8, 8, 14, 0.02) 28%,
+      rgba(8, 8, 14, 0.26) 72%,
+      rgba(8, 8, 14, 0.68) 100%
     );
   }
 }
@@ -79,6 +79,7 @@
   min-height: calc(100dvh - 70px);
   position: relative;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* Soft ramp — hero stays full cover; black glass starts below the fold */
@@ -92,9 +93,9 @@
   background: linear-gradient(
     to bottom,
     transparent 0%,
-    rgba(0, 0, 0, 0.35) 35%,
-    rgba(0, 0, 0, 0.82) 72%,
-    #000 100%
+    rgba(8, 8, 14, 0.22) 35%,
+    rgba(8, 8, 14, 0.58) 72%,
+    #0c0c14 100%
   );
   pointer-events: none;
 }
@@ -257,8 +258,8 @@
   padding: 72px 0 40px;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.72) 0%,
-    rgba(0, 0, 0, 0.9) 100%
+    rgba(12, 12, 18, 0.55) 0%,
+    rgba(10, 10, 16, 0.72) 100%
   );
   backdrop-filter: blur(14px) saturate(130%);
   -webkit-backdrop-filter: blur(14px) saturate(130%);
@@ -268,27 +269,27 @@
 .landing-page__content > .landing-section:first-of-type {
   margin-top: clamp(20px, 4vh, 40px);
   padding-top: clamp(48px, 8vh, 72px);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 20px 20px 0 0;
   background: linear-gradient(
     180deg,
-    rgba(4, 4, 6, 0.94) 0%,
-    rgba(0, 0, 0, 0.92) 100%
+    rgba(18, 18, 28, 0.62) 0%,
+    rgba(12, 12, 20, 0.55) 100%
   );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 -24px 48px rgba(0, 0, 0, 0.45);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 -24px 48px rgba(0, 0, 0, 0.25);
 }
 
 .landing-section + .landing-section {
-  background: rgba(0, 0, 0, 0.92);
+  background: rgba(12, 12, 20, 0.48);
 }
 
 .landing-footer {
   padding: 28px 0 max(28px, env(safe-area-inset-bottom));
   border-top: 1px solid rgba(255, 255, 255, 0.06);
   margin-top: 0;
-  background: rgba(0, 0, 0, 0.95);
+  background: rgba(10, 10, 16, 0.82);
   backdrop-filter: blur(12px);
 }
 
@@ -338,8 +339,8 @@
 .landing-glass {
   background: linear-gradient(
     145deg,
-    rgba(6, 6, 8, 0.88) 0%,
-    rgba(0, 0, 0, 0.82) 100%
+    rgba(22, 22, 30, 0.72) 0%,
+    rgba(14, 14, 20, 0.65) 100%
   );
   backdrop-filter: blur(18px) saturate(140%);
   -webkit-backdrop-filter: blur(18px) saturate(140%);
@@ -357,15 +358,15 @@
   border-radius: 12px;
   background: linear-gradient(
     145deg,
-    rgba(6, 6, 8, 0.88) 0%,
-    rgba(0, 0, 0, 0.82) 100%
+    rgba(26, 26, 36, 0.58) 0%,
+    rgba(16, 16, 24, 0.48) 100%
   );
-  backdrop-filter: blur(18px) saturate(140%);
-  -webkit-backdrop-filter: blur(18px) saturate(140%);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  backdrop-filter: blur(20px) saturate(140%);
+  -webkit-backdrop-filter: blur(20px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.11);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 12px 40px rgba(0, 0, 0, 0.55);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 40px rgba(0, 0, 0, 0.28);
 }
 
 .landing-feature-row h3 {

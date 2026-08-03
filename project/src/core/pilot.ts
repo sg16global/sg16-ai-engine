@@ -1,7 +1,7 @@
 import type { WorkspaceId, WorkspaceType } from './types';
 
-/** Brand accent for shields / home identity — runtime work stays B&W. */
-export const SG16_SHIELD_RED = '#800000';
+/** Brand accent for shields / home identity — matches Shield Home pure red. */
+export const SG16_SHIELD_RED = '#ff173d';
 
 export type PilotId =
   | 'study'

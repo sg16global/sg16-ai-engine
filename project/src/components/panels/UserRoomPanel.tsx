@@ -64,11 +64,11 @@ function ActivityRow({ item, onOpen }: { item: UserRoomActivity; onOpen: () => v
     <button
       type="button"
       onClick={onOpen}
-      className="w-full text-left rounded-xl border border-white/10 bg-zinc-900/60 p-4 hover:border-emerald-500/30 transition"
+      className="w-full text-left rounded-xl border border-white/10 bg-zinc-900/60 p-4 hover:border-[#FF2E2E]/30 transition"
     >
       <div className="flex items-start gap-3">
-        <span className="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-          <Icon className="w-5 h-5 text-emerald-400" />
+        <span className="w-10 h-10 rounded-lg bg-[#FF2E2E]/10 flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5 text-[#FF8A8A]" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
@@ -124,7 +124,7 @@ export function UserRoomPanel() {
   if (!isAuthenticated(authUser)) {
     return (
       <div className="p-6 lg:p-8 max-w-2xl mx-auto text-center space-y-4">
-        <Shield className="w-12 h-12 mx-auto text-emerald-400/60" />
+        <Shield className="w-12 h-12 mx-auto text-[#FF8A8A]/60" />
         <h1 className="text-2xl font-bold">Your User Room</h1>
         <p className="text-sm text-gray-400">
           Sign in with Google to open your personal room. Your history and account restore every time you return.
@@ -132,7 +132,7 @@ export function UserRoomPanel() {
         <button
           type="button"
           onClick={() => openLoginModal()}
-          className="bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 rounded-xl text-sm font-medium"
+          className="bg-[#FF2E2E] hover:bg-[#FF5C5C] px-5 py-2.5 rounded-xl text-sm font-medium"
         >
           Sign in with Google
         </button>
@@ -157,7 +157,7 @@ export function UserRoomPanel() {
         </button>
       </div>
 
-      <section className="rounded-2xl border border-emerald-500/20 bg-gradient-to-br from-emerald-950/40 to-zinc-950 p-6">
+      <section className="rounded-2xl border border-[#FF2E2E]/25 bg-gradient-to-br from-[#1a080c] to-zinc-950 p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {authUser.picture ? (
             <img
@@ -166,12 +166,12 @@ export function UserRoomPanel() {
               className="w-16 h-16 rounded-2xl border border-white/10 object-cover"
             />
           ) : (
-            <div className="w-16 h-16 rounded-2xl bg-emerald-500/15 flex items-center justify-center">
-              <UserRound className="w-8 h-8 text-emerald-400" />
+            <div className="w-16 h-16 rounded-2xl bg-[#FF2E2E]/15 flex items-center justify-center">
+              <UserRound className="w-8 h-8 text-[#FF8A8A]" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-xs uppercase tracking-wider text-emerald-400/80">Your User Room</p>
+            <p className="text-xs uppercase tracking-wider text-[#FF8A8A]/80">Your User Room</p>
             <h1 className="text-2xl font-bold truncate">{authUser.name}</h1>
             {email && <p className="text-sm text-gray-400 truncate">{email}</p>}
             <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
@@ -188,8 +188,8 @@ export function UserRoomPanel() {
         </div>
 
         {launchFree && (
-          <div className="mt-4 rounded-xl border border-emerald-500/20 bg-black/30 p-3 text-xs text-gray-400 flex gap-2">
-            <Sparkles className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+          <div className="mt-4 rounded-xl border border-[#FF2E2E]/20 bg-black/30 p-3 text-xs text-gray-400 flex gap-2">
+            <Sparkles className="w-4 h-4 text-[#FF8A8A] shrink-0 mt-0.5" />
             <span>{launchMessage}</span>
           </div>
         )}
@@ -224,7 +224,7 @@ export function UserRoomPanel() {
             <button
               type="button"
               onClick={goToHome}
-              className="mt-4 text-xs bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg font-medium"
+              className="mt-4 text-xs bg-[#FF2E2E] hover:bg-[#FF5C5C] px-4 py-2 rounded-lg font-medium"
             >
               Go to Shield Home
             </button>
@@ -246,14 +246,14 @@ export function UserRoomPanel() {
         <button
           type="button"
           onClick={() => setWorkspace('history')}
-          className="text-xs border border-white/10 hover:border-emerald-500/30 px-3 py-2 rounded-lg text-gray-300"
+          className="text-xs border border-white/10 hover:border-[#FF2E2E]/30 px-3 py-2 rounded-lg text-gray-300"
         >
           Session history
         </button>
         <button
           type="button"
           onClick={() => setWorkspace('settings')}
-          className="text-xs border border-white/10 hover:border-emerald-500/30 px-3 py-2 rounded-lg text-gray-300"
+          className="text-xs border border-white/10 hover:border-[#FF2E2E]/30 px-3 py-2 rounded-lg text-gray-300"
         >
           Settings
         </button>
@@ -261,7 +261,7 @@ export function UserRoomPanel() {
           <button
             type="button"
             onClick={openPricing}
-            className="text-xs border border-white/10 hover:border-emerald-500/30 px-3 py-2 rounded-lg text-gray-300"
+            className="text-xs border border-white/10 hover:border-[#FF2E2E]/30 px-3 py-2 rounded-lg text-gray-300"
           >
             Subscription
           </button>

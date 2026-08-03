@@ -17,6 +17,7 @@ import { useAppStore } from '../../core/appState';
 import { LandingHeader } from './LandingHeader';
 import { LandingVideoBg } from './LandingVideoBg';
 import { LandingBrandLogo } from './LandingBrandLogo';
+import { LandingNetworkCards } from './LandingNetworkCards';
 import './landingStyles.css';
 
 const features = [
@@ -109,6 +110,7 @@ export function LandingPage() {
             Explore Shield Home free — sign in with Google only when you open a workspace.
           </p>
         </div>
+        <LandingNetworkCards />
       </section>
 
       {/* Features */}

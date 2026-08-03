@@ -272,7 +272,7 @@ export function ChatPanel({
 
       <div
         ref={scrollRef}
-        className="flex-1 overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 mobile-scroll-main"
+        className="sg16-write-zone overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 mobile-scroll-main"
       >
         <div className="sg16-chat-col space-y-3">
           {messages.length === 0 && suggestions.length > 0 && (
@@ -347,7 +347,7 @@ export function ChatPanel({
         </div>
       </div>
 
-      <div className="px-4 sm:px-5 py-3 sm:py-4 border-t border-white/[0.06] bg-gradient-to-t from-black/50 to-transparent">
+      <div className="px-4 sm:px-5 py-3 sm:py-4 border-t border-white/[0.08] bg-[rgba(12,12,18,0.55)] backdrop-blur-md">
         <div className="sg16-chat-col space-y-2">
           {error && <div className="sg16-bar-error">{error}</div>}
 
@@ -449,7 +449,7 @@ export function ChatPanel({
               }}
               placeholder={placeholder}
               rows={1}
-              className="flex-1 min-w-0 bg-transparent border-0 px-2 sm:px-3 py-2.5 text-base outline-none resize-none min-h-[44px] max-h-32 text-white placeholder:text-white/30"
+              className="sg16-composer-input flex-1 min-w-0 bg-transparent border-0 px-2 sm:px-3 py-2.5 text-base outline-none resize-none min-h-[44px] max-h-32"
             />
 
             <button
