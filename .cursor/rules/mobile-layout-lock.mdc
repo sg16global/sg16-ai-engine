@@ -1,0 +1,22 @@
+---
+description: Never break mobile viewport, breakpoints, or safe-area layout
+alwaysApply: true
+---
+
+# Mobile layout lock
+
+Do **not** change mobile sizing, viewport setup, or responsive breakpoints unless the user explicitly asks.
+
+## Locked (no edits without approval)
+
+- `project/src/App.tsx`: `100dvh` workspace/home shells, mobile scroll padding
+- `project/src/components/shieldHome.css`: safe-area vars and full-height home
+- `project/src/index.css`: mobile bottom nav padding `calc(4rem + env(safe-area-inset-bottom))`
+- `TopBar.tsx` safe-area top padding on mobile
+- PWA install prompt safe-area positioning
+
+## When adding UI
+
+- Follow existing `lg:` breakpoint split (mobile bottom nav vs desktop sidebar)
+- New sections must not break `100dvh` overflow-hidden workspace shell
+- Test at ~375px — no clipped input bars or double scroll

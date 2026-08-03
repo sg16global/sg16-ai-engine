@@ -3,19 +3,28 @@ import { ArrowUpRight, Globe2, TrendingUp } from 'lucide-react';
 import './landingNetworkCards.css';
 
 const GEO_URL = 'https://saifglobal16.info';
+const GEO_NEWS = 'https://saifglobal16.info/api/news?topic=war';
 const FINANCE_URL = 'https://sg16finance.com';
 const FINANCE_TICKER = 'https://sg16finance.com/api/ticker';
 
 type TickerItem = { name: string; value: number; changePct: number };
+type NewsArticle = { title?: string; source?: { name?: string } };
 
-const geoHeadlines = [
-  'Tension zone · Middle East watch',
-  'USGS M4.2 · Pacific Ring alert',
-  'Breaking · NATO summit coverage',
-  'Live flights · European corridor',
-  'Markets · Asia open sentiment',
-  'News wire · geopolitical brief',
+type FeedLine = { text: string; tone?: 'up' | 'down' | 'neutral' };
+
+const financeFallback: FeedLine[] = [
+  { text: 'Connecting to sg16finance.com…', tone: 'neutral' },
 ];
+
+const geoFallback: FeedLine[] = [
+  { text: 'Connecting to Geo Monitor wire…', tone: 'neutral' },
+];
+
+function truncate(text: string, max: number) {
+  const clean = text.replace(/\s+/g, ' ').trim();
+  if (clean.length <= max) return clean;
+  return `${clean.slice(0, max - 1).trim()}…`;
+}
 
 function formatPrice(n: number) {
   if (n >= 1000) return n.toLocaleString(undefined, { maximumFractionDigits: 0 });
@@ -35,7 +44,7 @@ function RollList({
   lines,
   accent,
 }: {
-  lines: { text: string; tone?: 'up' | 'down' | 'neutral' }[];
+  lines: FeedLine[];
   accent: 'geo' | 'finance';
 }) {
   const loop = useMemo(() => [...lines, ...lines], [lines]);
@@ -59,7 +68,7 @@ type SideCardProps = {
   desc: string;
   accent: 'geo' | 'finance';
   icon: typeof Globe2;
-  lines: { text: string; tone?: 'up' | 'down' | 'neutral' }[];
+  lines: FeedLine[];
   updatedLabel: string;
 };
 
@@ -94,10 +103,10 @@ function SideCard({ href, title, tag, desc, accent, icon: Icon, lines, updatedLa
 }
 
 export function LandingNetworkCards() {
-  const [financeLines, setFinanceLines] = useState<{ text: string; tone?: 'up' | 'down' | 'neutral' }[]>([]);
+  const [financeLines, setFinanceLines] = useState<FeedLine[]>([]);
   const [financeUpdated, setFinanceUpdated] = useState('Connecting…');
-  const [geoIndex, setGeoIndex] = useState(0);
-  const [clock, setClock] = useState(() => new Date());
+  const [geoLines, setGeoLines] = useState<FeedLine[]>([]);
+  const [geoUpdated, setGeoUpdated] = useState('Connecting…');
 
   useEffect(() => {
     let cancelled = false;
@@ -117,17 +126,12 @@ export function LandingNetworkCards() {
         );
         setFinanceUpdated(
           data.source === 'finnhub'
-            ? `Live · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-            : `Markets · updated ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+            ? `Live Finnhub · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+            : `Markets · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         );
       } catch {
         if (!cancelled) {
-          setFinanceLines([
-            { text: 'NASDAQ 100 · loading markets…', tone: 'neutral' },
-            { text: 'S&P 500 · sg16finance.com', tone: 'neutral' },
-            { text: 'Bitcoin · live dashboard', tone: 'neutral' },
-            { text: 'Gold · sector research', tone: 'neutral' },
-          ]);
+          setFinanceLines(financeFallback);
           setFinanceUpdated('Tap to open live dashboard');
         }
       }
@@ -142,20 +146,42 @@ export function LandingNetworkCards() {
   }, []);
 
   useEffect(() => {
-    const geoId = window.setInterval(() => setGeoIndex((i) => (i + 1) % geoHeadlines.length), 4500);
-    const clockId = window.setInterval(() => setClock(new Date()), 1000);
+    let cancelled = false;
+
+    async function loadGeoNews() {
+      try {
+        const res = await fetch(GEO_NEWS);
+        if (!res.ok) throw new Error('geo news failed');
+        const data = (await res.json()) as { articles?: NewsArticle[] };
+        const articles = (data.articles ?? []).filter((a) => a.title).slice(0, 10);
+        if (cancelled || articles.length === 0) throw new Error('no headlines');
+        setGeoLines(
+          articles.map((article) => {
+            const source = article.source?.name ? ` · ${article.source.name}` : '';
+            return {
+              text: truncate(article.title ?? '', 72) + source,
+              tone: 'neutral' as const,
+            };
+          }),
+        );
+        setGeoUpdated(
+          `Live wire · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
+        );
+      } catch {
+        if (!cancelled) {
+          setGeoLines(geoFallback);
+          setGeoUpdated('Tap to open Geo Monitor');
+        }
+      }
+    }
+
+    loadGeoNews();
+    const id = window.setInterval(loadGeoNews, 180_000);
     return () => {
-      window.clearInterval(geoId);
-      window.clearInterval(clockId);
+      cancelled = true;
+      window.clearInterval(id);
     };
   }, []);
-
-  const geoLines = useMemo(() => {
-    const ordered = geoHeadlines.map((_, i) => geoHeadlines[(geoIndex + i) % geoHeadlines.length]);
-    return ordered.map((text) => ({ text, tone: 'neutral' as const }));
-  }, [geoIndex]);
-
-  const geoUpdated = `Live feed · ${clock.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}`;
 
   return (
     <div className="landing-network-cards" aria-label="SG16 live platforms">
@@ -166,7 +192,7 @@ export function LandingNetworkCards() {
         desc="Geopolitical world command map"
         accent="geo"
         icon={Globe2}
-        lines={geoLines}
+        lines={geoLines.length > 0 ? geoLines : [{ text: 'Loading geo wire…', tone: 'neutral' }]}
         updatedLabel={geoUpdated}
       />
       <SideCard
