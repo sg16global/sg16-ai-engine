@@ -1,11 +1,13 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 /** boss_7445 (2560×1440) — new filename bypasses Cloudflare cache of broken LFS pointer. */
 const LANDING_VIDEO = '/landing/sg16-earth-boss.mp4';
+const LANDING_POSTER = '/landing/hero-background.webp';
 
 /** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
 export function LandingVideoBg() {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -38,17 +40,19 @@ export function LandingVideoBg() {
   }, []);
 
   return (
-    <div className="landing-video-bg" aria-hidden>
+    <div className={`landing-video-bg${failed ? ' landing-video-bg--poster' : ''}`} aria-hidden>
       <video
         ref={videoRef}
         className="landing-video-bg__video"
         src={LANDING_VIDEO}
+        poster={LANDING_POSTER}
         autoPlay
         muted
         loop
         playsInline
         preload="auto"
         disablePictureInPicture
+        onError={() => setFailed(true)}
       />
       <div className="landing-video-bg__shade" />
     </div>

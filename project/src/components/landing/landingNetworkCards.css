@@ -1,4 +1,4 @@
-/* Wide glass side cards — Geo + Finance live feed */
+/* Edge glass tickers — Geo + Finance live feed (Earth video stays hero) */
 
 .landing-network-cards {
   position: absolute;
@@ -10,63 +10,53 @@
 .landing-network-card {
   pointer-events: auto;
   position: absolute;
-  top: 50%;
-  transform: translateY(-46%);
+  bottom: clamp(72px, 14vh, 120px);
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
-  width: min(17rem, 30vw);
-  min-height: 3.5in;
-  max-height: 4.25in;
-  padding: 1rem 1.05rem 0.85rem;
+  gap: 0.45rem;
+  width: min(13.5rem, 22vw);
+  min-height: 2.65in;
+  max-height: 3.1in;
+  padding: 0.75rem 0.85rem 0.7rem;
   text-align: left;
-  border-radius: 16px;
+  border-radius: 14px;
   cursor: pointer;
   transition: transform 0.22s ease, border-color 0.22s ease, box-shadow 0.22s ease;
   background: linear-gradient(
     155deg,
-    rgba(255, 255, 255, 0.11) 0%,
-    rgba(255, 255, 255, 0.04) 28%,
-    rgba(12, 12, 18, 0.42) 100%
+    rgba(255, 255, 255, 0.08) 0%,
+    rgba(255, 255, 255, 0.03) 32%,
+    rgba(12, 12, 18, 0.28) 100%
   );
-  backdrop-filter: blur(22px) saturate(1.35);
-  -webkit-backdrop-filter: blur(22px) saturate(1.35);
-  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(16px) saturate(1.25);
+  -webkit-backdrop-filter: blur(16px) saturate(1.25);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04),
-    0 20px 56px rgba(0, 0, 0, 0.38);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 36px rgba(0, 0, 0, 0.28);
   color: #e8eaef;
 }
 
 .landing-network-card--geo {
-  left: max(12px, env(safe-area-inset-left, 0px));
-  border-color: rgba(255, 23, 61, 0.35);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 0 0 1px rgba(255, 23, 61, 0.08),
-    0 20px 56px rgba(0, 0, 0, 0.38);
+  left: max(10px, env(safe-area-inset-left, 0px));
+  border-color: rgba(255, 23, 61, 0.28);
 }
 
 .landing-network-card--finance {
-  right: max(12px, env(safe-area-inset-right, 0px));
-  border-color: rgba(255, 154, 60, 0.35);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.12),
-    0 0 0 1px rgba(255, 154, 60, 0.08),
-    0 20px 56px rgba(0, 0, 0, 0.38);
+  right: max(10px, env(safe-area-inset-right, 0px));
+  border-color: rgba(255, 154, 60, 0.28);
 }
 
 .landing-network-card:hover {
-  transform: translateY(calc(-46% - 4px));
+  transform: translateY(-3px);
 }
 
 .landing-network-card--geo:hover {
-  border-color: rgba(255, 23, 61, 0.55);
+  border-color: rgba(255, 23, 61, 0.48);
 }
 
 .landing-network-card--finance:hover {
-  border-color: rgba(255, 154, 60, 0.55);
+  border-color: rgba(255, 154, 60, 0.48);
 }
 
 .landing-network-live-dot {
@@ -101,29 +91,29 @@
 .landing-network-card__head {
   display: flex;
   align-items: flex-start;
-  gap: 0.55rem;
+  gap: 0.5rem;
 }
 
 .landing-network-card__icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  border-radius: 10px;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 9px;
   flex-shrink: 0;
 }
 
 .landing-network-card__icon--geo {
-  background: rgba(255, 23, 61, 0.16);
+  background: rgba(255, 23, 61, 0.14);
   color: #ff6b7a;
-  border: 1px solid rgba(255, 23, 61, 0.25);
+  border: 1px solid rgba(255, 23, 61, 0.22);
 }
 
 .landing-network-card__icon--finance {
-  background: rgba(255, 154, 60, 0.16);
+  background: rgba(255, 154, 60, 0.14);
   color: #ff9a3c;
-  border: 1px solid rgba(255, 154, 60, 0.25);
+  border: 1px solid rgba(255, 154, 60, 0.22);
 }
 
 .landing-network-card__titles {
@@ -133,7 +123,7 @@
 
 .landing-network-card__titles strong {
   display: block;
-  font-size: 0.92rem;
+  font-size: 0.84rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   color: #fff;
@@ -143,46 +133,46 @@
 .landing-network-card__tag {
   display: inline-flex;
   align-items: center;
-  margin-bottom: 0.25rem;
-  padding: 0.15rem 0.45rem;
+  margin-bottom: 0.2rem;
+  padding: 0.12rem 0.4rem;
   border-radius: 999px;
-  font-size: 0.58rem;
+  font-size: 0.55rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;
 }
 
 .landing-network-card__tag--geo {
-  background: rgba(255, 23, 61, 0.18);
+  background: rgba(255, 23, 61, 0.16);
   color: #ff8a8a;
 }
 
 .landing-network-card__tag--finance {
-  background: rgba(255, 154, 60, 0.18);
+  background: rgba(255, 154, 60, 0.16);
   color: #ff9a3c;
 }
 
 .landing-network-card__go {
-  width: 1.1rem;
-  height: 1.1rem;
-  color: rgba(255, 255, 255, 0.5);
+  width: 1rem;
+  height: 1rem;
+  color: rgba(255, 255, 255, 0.45);
   flex-shrink: 0;
-  margin-top: 0.2rem;
+  margin-top: 0.15rem;
 }
 
 .landing-network-card__desc {
   margin: 0;
-  font-size: 0.72rem;
-  line-height: 1.4;
-  color: rgba(232, 234, 239, 0.62);
+  font-size: 0.66rem;
+  line-height: 1.35;
+  color: rgba(232, 234, 239, 0.55);
 }
 
 .landing-network-card__updated {
   margin: 0;
-  font-size: 0.6rem;
+  font-size: 0.58rem;
   font-weight: 600;
   letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.38);
+  color: rgba(255, 255, 255, 0.34);
   font-variant-numeric: tabular-nums;
 }
 
@@ -190,28 +180,28 @@
   flex: 1;
   min-height: 0;
   overflow: hidden;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-  padding: 0.25rem 0.45rem;
-  mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 90%, transparent);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  padding: 0.2rem 0.4rem;
+  mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 12%, #000 88%, transparent);
 }
 
 .landing-network-roll {
   margin: 0;
   padding: 0;
   list-style: none;
-  animation: landingNetworkRoll 16s linear infinite;
+  animation: landingNetworkRoll 14s linear infinite;
 }
 
 .landing-network-roll li {
-  padding: 0.38rem 0;
-  font-size: 0.68rem;
-  line-height: 1.35;
+  padding: 0.32rem 0;
+  font-size: 0.64rem;
+  line-height: 1.32;
   font-variant-numeric: tabular-nums;
-  color: rgba(232, 234, 239, 0.82);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: rgba(232, 234, 239, 0.78);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -228,8 +218,8 @@
 .landing-network-roll--geo li::before,
 .landing-network-roll--finance li::before {
   content: '●';
-  margin-right: 0.35rem;
-  font-size: 0.45rem;
+  margin-right: 0.3rem;
+  font-size: 0.42rem;
   vertical-align: middle;
 }
 
@@ -242,18 +232,18 @@
 }
 
 .landing-network-card__cta {
-  font-size: 0.64rem;
+  font-size: 0.6rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .landing-network-card__cta--geo {
-  color: rgba(255, 107, 122, 0.95);
+  color: rgba(255, 107, 122, 0.9);
 }
 
 .landing-network-card__cta--finance {
-  color: rgba(255, 154, 60, 0.95);
+  color: rgba(255, 154, 60, 0.9);
 }
 
 @keyframes landingNetworkRoll {
@@ -275,19 +265,16 @@
   }
 
   .landing-network-card {
-    position: absolute;
-    top: 50%;
-    width: min(17.5rem, 28vw);
-    min-height: 3.5in;
-    max-height: 4.25in;
+    bottom: clamp(80px, 16vh, 132px);
+    width: min(14rem, 24vw);
   }
 
   .landing-network-card--geo {
-    left: max(8px, env(safe-area-inset-left, 0px));
+    left: max(6px, env(safe-area-inset-left, 0px));
   }
 
   .landing-network-card--finance {
-    right: max(8px, env(safe-area-inset-right, 0px));
+    right: max(6px, env(safe-area-inset-right, 0px));
   }
 }
 
@@ -295,11 +282,11 @@
   .landing-network-cards {
     position: static;
     display: grid;
-    grid-template-columns: 1fr;
-    gap: 12px;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
     width: 100%;
-    max-width: min(100%, 22rem);
-    margin: 1.25rem auto 0;
+    max-width: min(100%, 28rem);
+    margin: 1rem auto 0;
     padding: 0 8px;
     pointer-events: auto;
   }
@@ -308,8 +295,8 @@
     position: static;
     transform: none;
     width: 100%;
-    min-height: 3in;
-    max-height: none;
+    min-height: 2.35in;
+    max-height: 2.75in;
   }
 
   .landing-network-card:hover {
