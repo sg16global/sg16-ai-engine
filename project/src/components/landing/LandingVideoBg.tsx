@@ -1,8 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-/** boss_7445 (2560×1440) — new filename bypasses Cloudflare cache of broken LFS pointer. */
-const LANDING_VIDEO = '/landing/sg16-earth-boss.mp4';
-const LANDING_POSTER = '/landing/hero-background.webp';
+import { LANDING_VIDEO, LANDING_POSTER } from '../../core/landingAssets';
 
 /** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
 export function LandingVideoBg() {

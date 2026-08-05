@@ -116,7 +116,7 @@ export const HomePage = () => {
 
   return (
     <section className="shield-home" aria-label="SG16 Shield Home">
-      <ShieldHomeBg />
+      <ShieldHomeBg guestTour={isGuest} />
       <div className="shield-home__stars" />
       <div className="shield-home__scanlines" />
 
