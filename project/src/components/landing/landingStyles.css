@@ -148,6 +148,8 @@
   align-items: center;
   gap: 14px;
   width: min(100%, 36rem);
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .landing-hero-brand {
@@ -156,6 +158,7 @@
 
 .landing-hero-brand-box {
   display: inline-block;
+  max-width: 100%;
   padding: 0.5em 1.25em 0.55em;
   border-radius: 10px;
   background: rgba(0, 0, 0, 0.94);
@@ -170,6 +173,7 @@
   color: #7cfc00;
   text-shadow: 0 0 16px rgba(124, 252, 0, 0.45);
   white-space: nowrap;
+  box-sizing: border-box;
 }
 
 .landing-hero-title {
@@ -618,11 +622,60 @@
 }
 
 @media (max-width: 767px) {
+  .landing-video-bg__video {
+    object-position: center center;
+  }
+
   .landing-hero-section {
     min-height: calc(100dvh - 70px);
     min-height: calc(100svh - 70px);
     padding-top: clamp(20px, 5vh, 36px);
     padding-bottom: clamp(112px, 20vh, 168px);
+  }
+
+  .landing-hero-copy {
+    width: 100%;
+    max-width: 100%;
+    padding-left: max(10px, env(safe-area-inset-left, 0px));
+    padding-right: max(10px, env(safe-area-inset-right, 0px));
+    gap: 12px;
+  }
+
+  .landing-hero-stack {
+    width: 100%;
+    gap: 10px;
+    padding-inline: 2px;
+  }
+
+  .landing-hero-brand-box {
+    font-size: clamp(0.82rem, 4.6vw, 1.35rem);
+    letter-spacing: clamp(0.06em, 1.2vw, 0.12em);
+    padding: 0.42em 0.85em 0.48em;
+  }
+
+  .landing-hero-title {
+    transform: none;
+    gap: 6px;
+  }
+
+  .landing-hero-title-row {
+    gap: 6px;
+    max-width: 100%;
+  }
+
+  .landing-hero-word-box {
+    font-size: clamp(12px, 3.5vw, 18px);
+    padding: 0.2em 0.62em 0.24em;
+  }
+
+  .landing-hero-word-box--green {
+    font-size: clamp(13px, 4vw, 22px);
+  }
+
+  .landing-hero-sub {
+    font-size: clamp(13px, 3.8vw, 16px);
+    max-width: 100%;
+    line-height: 1.4;
   }
 
   .landing-page__content > .landing-section:first-of-type {
@@ -635,7 +688,7 @@
   }
 }
 
-/* Phone landscape — keep Earth hero readable, 2-col features */
+/* Phone landscape — compact hero, 2-col features */
 @media (max-width: 932px) and (orientation: landscape) {
   .landing-hero-section {
     min-height: auto;
@@ -643,8 +696,20 @@
     padding-bottom: clamp(64px, 12vh, 96px);
   }
 
-  .landing-hero-title {
-    font-size: clamp(28px, 5vw, 40px);
+  .landing-hero-brand-box {
+    font-size: clamp(0.78rem, 2.8vw, 1.15rem);
+  }
+
+  .landing-hero-word-box {
+    font-size: clamp(11px, 2.4vw, 16px);
+  }
+
+  .landing-hero-word-box--green {
+    font-size: clamp(12px, 2.8vw, 18px);
+  }
+
+  .landing-hero-sub {
+    font-size: clamp(12px, 2.6vw, 14px);
   }
 
   .landing-feature-grid {
@@ -661,8 +726,21 @@
 /* Small phones — any orientation */
 @media (max-width: 380px) {
   .landing-shell {
-    padding-left: 16px;
-    padding-right: 16px;
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .landing-hero-brand-box {
+    font-size: clamp(0.72rem, 4.2vw, 0.95rem);
+    letter-spacing: 0.05em;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.25;
+  }
+
+  .landing-hero-title-row {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .landing-hero-cta {
@@ -673,6 +751,7 @@
   .landing-btn-primary,
   .landing-btn-ghost {
     width: 100%;
+    max-width: 100%;
   }
 }
 
