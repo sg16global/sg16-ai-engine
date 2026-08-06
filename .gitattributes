@@ -2,3 +2,4 @@
 # Hero Earth videos must be real bytes on Railway (no LFS pull in deploy).
 project/public/landing/sg16-earth-slow.mp4 -filter -diff -merge
 project/public/landing/sg16-earth-boss.mp4 -filter -diff -merge
+project/public/landing/sg16-adobe-express.mp4 -filter -diff -merge
