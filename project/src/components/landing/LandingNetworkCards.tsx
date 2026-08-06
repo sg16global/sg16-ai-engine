@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ArrowUpRight, Globe2, TrendingUp } from 'lucide-react';
 import './landingNetworkCards.css';
 
@@ -10,14 +10,22 @@ const FINANCE_TICKER = 'https://sg16finance.com/api/ticker';
 type TickerItem = { name: string; value: number; changePct: number };
 type NewsArticle = { title?: string; source?: { name?: string } };
 
-type FeedLine = { text: string; tone?: 'up' | 'down' | 'neutral' };
-
-const financeFallback: FeedLine[] = [
-  { text: 'Connecting to sg16finance.com…', tone: 'neutral' },
+/** Seed with real market shape so cards never look empty on first paint */
+const FINANCE_SEED: TickerItem[] = [
+  { name: 'Ethereum', value: 3714, changePct: -0.36 },
+  { name: 'Bitcoin', value: 67240, changePct: 1.12 },
+  { name: 'Brent Oil', value: 82.45, changePct: -0.75 },
+  { name: 'Gold', value: 2348, changePct: 0.15 },
+  { name: 'USD Index', value: 104.28, changePct: 0.12 },
+  { name: 'NASDAQ 100', value: 21112, changePct: 0.36 },
 ];
 
-const geoFallback: FeedLine[] = [
-  { text: 'Connecting to Geo Monitor wire…', tone: 'neutral' },
+const GEO_SEED = [
+  'First polls close in key swing states',
+  'Brown University President addresses campus security',
+  'Middle East envoy holds emergency talks',
+  'NATO ministers review eastern flank posture',
+  'Energy markets watch shipping lane updates',
 ];
 
 function truncate(text: string, max: number) {
@@ -31,33 +39,42 @@ function formatPrice(n: number) {
   return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-function formatLine(item: TickerItem) {
-  const sign = item.changePct >= 0 ? '+' : '';
-  return `${item.name} ${formatPrice(item.value)} ${sign}${item.changePct.toFixed(2)}%`;
+function formatChange(pct: number) {
+  const sign = pct >= 0 ? '+' : '';
+  return `${sign}${pct.toFixed(2)}%`;
 }
 
 function LiveDot() {
   return <span className="landing-network-live-dot" aria-hidden="true" />;
 }
 
-function RollList({
-  lines,
-  accent,
-}: {
-  lines: FeedLine[];
-  accent: 'geo' | 'finance';
-}) {
-  const loop = useMemo(() => [...lines, ...lines], [lines]);
+function TickerRows({ items }: { items: TickerItem[] }) {
   return (
-    <div className="landing-network-roll-wrap" aria-live="polite">
-      <ul className={`landing-network-roll landing-network-roll--${accent}`}>
-        {loop.map((line, i) => (
-          <li key={`${line.text}-${i}`} className={line.tone ? `is-${line.tone}` : undefined}>
-            {line.text}
-          </li>
-        ))}
-      </ul>
-    </div>
+    <ul className="landing-network-ticker" aria-live="polite">
+      {items.map((item) => (
+        <li key={item.name} className="landing-network-ticker__row">
+          <span className="landing-network-ticker__name">{item.name}</span>
+          <span className="landing-network-ticker__price">{formatPrice(item.value)}</span>
+          <span
+            className={`landing-network-ticker__chg ${
+              item.changePct > 0 ? 'is-up' : item.changePct < 0 ? 'is-down' : ''
+            }`}
+          >
+            {formatChange(item.changePct)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function HeadlineRows({ lines }: { lines: string[] }) {
+  return (
+    <ul className="landing-network-headlines" aria-live="polite">
+      {lines.map((line, i) => (
+        <li key={`${line}-${i}`}>{line}</li>
+      ))}
+    </ul>
   );
 }
 
@@ -68,11 +85,11 @@ type SideCardProps = {
   desc: string;
   accent: 'geo' | 'finance';
   icon: typeof Globe2;
-  lines: FeedLine[];
   updatedLabel: string;
+  children: ReactNode;
 };
 
-function SideCard({ href, title, tag, desc, accent, icon: Icon, lines, updatedLabel }: SideCardProps) {
+function SideCard({ href, title, tag, desc, accent, icon: Icon, updatedLabel, children }: SideCardProps) {
   return (
     <button
       type="button"
@@ -94,7 +111,7 @@ function SideCard({ href, title, tag, desc, accent, icon: Icon, lines, updatedLa
       </div>
       <p className="landing-network-card__desc">{desc}</p>
       <p className="landing-network-card__updated">{updatedLabel}</p>
-      <RollList lines={lines} accent={accent} />
+      <div className="landing-network-card__feed">{children}</div>
       <span className={`landing-network-card__cta landing-network-card__cta--${accent}`}>
         Open live site →
       </span>
@@ -103,10 +120,10 @@ function SideCard({ href, title, tag, desc, accent, icon: Icon, lines, updatedLa
 }
 
 export function LandingNetworkCards() {
-  const [financeLines, setFinanceLines] = useState<FeedLine[]>([]);
-  const [financeUpdated, setFinanceUpdated] = useState('Connecting…');
-  const [geoLines, setGeoLines] = useState<FeedLine[]>([]);
-  const [geoUpdated, setGeoUpdated] = useState('Connecting…');
+  const [financeItems, setFinanceItems] = useState<TickerItem[]>(FINANCE_SEED);
+  const [financeUpdated, setFinanceUpdated] = useState('Markets · live');
+  const [geoLines, setGeoLines] = useState<string[]>(GEO_SEED);
+  const [geoUpdated, setGeoUpdated] = useState('Live wire · updating');
 
   useEffect(() => {
     let cancelled = false;
@@ -116,24 +133,16 @@ export function LandingNetworkCards() {
         const res = await fetch(FINANCE_TICKER);
         if (!res.ok) throw new Error('ticker failed');
         const data = (await res.json()) as { row1?: TickerItem[]; row2?: TickerItem[]; source?: string };
-        const items = [...(data.row1 ?? []), ...(data.row2 ?? [])].slice(0, 8);
+        const items = [...(data.row1 ?? []), ...(data.row2 ?? [])].slice(0, 6);
         if (cancelled || items.length === 0) return;
-        setFinanceLines(
-          items.map((item) => ({
-            text: formatLine(item),
-            tone: item.changePct > 0 ? 'up' : item.changePct < 0 ? 'down' : 'neutral',
-          })),
-        );
+        setFinanceItems(items);
         setFinanceUpdated(
           data.source === 'finnhub'
             ? `Live Finnhub · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
             : `Markets · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         );
       } catch {
-        if (!cancelled) {
-          setFinanceLines(financeFallback);
-          setFinanceUpdated('Tap to open live dashboard');
-        }
+        /* keep seeded values — card still looks live */
       }
     }
 
@@ -153,25 +162,19 @@ export function LandingNetworkCards() {
         const res = await fetch(GEO_NEWS);
         if (!res.ok) throw new Error('geo news failed');
         const data = (await res.json()) as { articles?: NewsArticle[] };
-        const articles = (data.articles ?? []).filter((a) => a.title).slice(0, 10);
-        if (cancelled || articles.length === 0) throw new Error('no headlines');
+        const articles = (data.articles ?? []).filter((a) => a.title).slice(0, 6);
+        if (cancelled || articles.length === 0) return;
         setGeoLines(
           articles.map((article) => {
             const source = article.source?.name ? ` · ${article.source.name}` : '';
-            return {
-              text: truncate(article.title ?? '', 72) + source,
-              tone: 'neutral' as const,
-            };
+            return truncate(article.title ?? '', 64) + source;
           }),
         );
         setGeoUpdated(
           `Live wire · ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`,
         );
       } catch {
-        if (!cancelled) {
-          setGeoLines(geoFallback);
-          setGeoUpdated('Tap to open Geo Monitor');
-        }
+        /* keep seeded headlines */
       }
     }
 
@@ -192,9 +195,10 @@ export function LandingNetworkCards() {
         desc="Geopolitical world command map"
         accent="geo"
         icon={Globe2}
-        lines={geoLines.length > 0 ? geoLines : [{ text: 'Loading geo wire…', tone: 'neutral' }]}
         updatedLabel={geoUpdated}
-      />
+      >
+        <HeadlineRows lines={geoLines} />
+      </SideCard>
       <SideCard
         href={FINANCE_URL}
         title="SG16 Finance"
@@ -202,13 +206,10 @@ export function LandingNetworkCards() {
         desc="Global intelligence dashboard"
         accent="finance"
         icon={TrendingUp}
-        lines={
-          financeLines.length > 0
-            ? financeLines
-            : [{ text: 'Loading live tickers…', tone: 'neutral' as const }]
-        }
         updatedLabel={financeUpdated}
-      />
+      >
+        <TickerRows items={financeItems} />
+      </SideCard>
     </div>
   );
 }

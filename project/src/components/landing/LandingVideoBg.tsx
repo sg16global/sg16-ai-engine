@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
-import { LANDING_VIDEO, LANDING_POSTER } from '../../core/landingAssets';
+import { LANDING_VIDEO_DESKTOP } from '../../core/landingAssets';
 
-/** Full-viewport hero video — muted autoplay loop (no sound — browser safe). */
+/** Full-screen bossss.mp4 — autoplay, muted, loop, object-fit cover. */
 export function LandingVideoBg() {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -14,16 +13,17 @@ export function LandingVideoBg() {
     video.muted = true;
     video.defaultMuted = true;
     video.playsInline = true;
+    video.loop = true;
 
     const play = () => {
       void video.play().catch(() => {
-        window.setTimeout(() => void video.play().catch(() => {}), 500);
+        window.setTimeout(() => void video.play().catch(() => {}), 600);
       });
     };
 
     play();
-    video.addEventListener('canplay', play, { once: true });
-    video.addEventListener('loadeddata', play, { once: true });
+    video.addEventListener('canplay', play);
+    video.addEventListener('loadeddata', play);
 
     const onVis = () => {
       if (document.visibilityState === 'visible' && video.paused) play();
@@ -38,19 +38,17 @@ export function LandingVideoBg() {
   }, []);
 
   return (
-    <div className={`landing-video-bg${failed ? ' landing-video-bg--poster' : ''}`} aria-hidden>
+    <div className="landing-video-bg" aria-hidden>
       <video
         ref={videoRef}
         className="landing-video-bg__video"
-        src={LANDING_VIDEO}
-        poster={LANDING_POSTER}
+        src={LANDING_VIDEO_DESKTOP}
         autoPlay
         muted
         loop
         playsInline
         preload="auto"
         disablePictureInPicture
-        onError={() => setFailed(true)}
       />
       <div className="landing-video-bg__shade" />
     </div>

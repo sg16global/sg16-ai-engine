@@ -89,15 +89,21 @@ export function LandingPage() {
       {/* Hero — video full background; logo + copy on top */}
       <section className="landing-hero-section">
         <div className="landing-shell landing-hero-copy">
-          <p className="landing-kicker">{SG16_BRAND.company}</p>
-          <h1 className="landing-hero-title">
-            Most Powerful
-            <br />
-            <span className="landing-hero-green">AI Engine</span>
-          </h1>
-          <p className="landing-hero-sub">
-            One application. Five shields — chat, code, health, student, and market in one secure engine.
-          </p>
+          <div className="landing-hero-stack">
+            <p className="landing-hero-brand">
+              <span className="landing-hero-brand-box">{SG16_BRAND.name}</span>
+            </p>
+            <h1 className="landing-hero-title">
+              <span className="landing-hero-title-row">
+                <span className="landing-hero-word-box">Most</span>
+                <span className="landing-hero-word-box">Powerful</span>
+              </span>
+              <span className="landing-hero-word-box landing-hero-word-box--green">AI Engine</span>
+            </h1>
+            <p className="landing-hero-sub">
+              One application. Five shields — chat, code, health, student, and market in one secure engine.
+            </p>
+          </div>
           <div className="landing-hero-cta">
             <button type="button" onClick={() => enterGuestTour()} className="landing-btn-primary">
               Start Tour
