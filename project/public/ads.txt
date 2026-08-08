@@ -1,0 +1,5 @@
+# SG16 AI Engine — ads.txt (sg16engine.com)
+# Google AdSense
+google.com, pub-7094633052216956, DIRECT, f08c47fec0942fa0
+
+# Raptive: add lines from your Raptive dashboard when approved
