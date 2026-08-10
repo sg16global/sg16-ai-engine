@@ -26,17 +26,25 @@ import {
 import { isLaunchFree } from './lib/launchMode.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
-import { getProviderStatus, getTextModelChain } from './lib/sg16Provider.js';
+import { getProviderStatus, getTextModelChain, isSovereignBrain } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
 import { handleGetUserRoom, handleGetUserHistory, handlePutUserHistory } from './lib/userRoom.js';
 import { handleSpeechTranscribe, speechTranscriptionAvailable } from './lib/speechEngine.js';
+import {
+  handleCodingShieldHealth,
+  handleCodingShieldScan,
+  handleCodingShieldProjectScan,
+} from './lib/codingShield/handlers.js';
+import { handlePlatformShieldHealth } from './lib/platformShield/handlers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
+const shieldLandingPath = path.join(frontendDist, 'shield', 'index.html');
 const isProd = process.env.NODE_ENV === 'production';
 const PORT = Number(process.env.PORT) || 8000;
 const HOST = process.env.HOST || '0.0.0.0';
+const SHIELD_HOST = (process.env.SG16_SHIELD_HOST || 'shield.sg16engine.com').toLowerCase();
 
 const app = express();
 
@@ -46,6 +54,7 @@ app.disable('x-powered-by');
 const allowedOrigins = new Set([
   'https://sg16engine.com',
   'https://www.sg16engine.com',
+  `https://${SHIELD_HOST}`,
   ...(isProd ? [] : ['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:5173']),
 ]);
 
@@ -115,7 +124,8 @@ app.get('/health', async (_req, res) => {
     database: db,
     launchFree: isLaunchFree(),
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
-    documentAnalysis: 'groq',
+    brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
+    documentAnalysis: isSovereignBrain() ? 'ollama' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     voice: speechTranscriptionAvailable() ? 'ready' : 'needs_api_key',
     providers: getProviderStatus(),
@@ -142,6 +152,12 @@ app.post('/api/v1/route', requireAuth, handleRouteRequest);
 app.post('/api/v1/chat', requireAuth, handleChatRequest);
 app.post('/api/v1/speech/transcribe', requireAuth, handleSpeechTranscribe);
 app.post('/api/v1/student/verify', requireAuth, handleStudentVerifyRequest);
+
+app.get('/api/v1/coding-shield/health', handleCodingShieldHealth);
+app.post('/api/v1/coding-shield/scan', requireAuth, handleCodingShieldScan);
+app.post('/api/v1/coding-shield/project', requireAuth, handleCodingShieldProjectScan);
+
+app.get('/api/v1/platform-shield/health', handlePlatformShieldHealth);
 
 const indexPath = path.join(frontendDist, 'index.html');
 const frontendBuilt = fs.existsSync(indexPath);
@@ -174,6 +190,9 @@ app.use(
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) {
     return next();
+  }
+  if (req.hostname.toLowerCase() === SHIELD_HOST && fs.existsSync(shieldLandingPath)) {
+    return res.sendFile(shieldLandingPath);
   }
   if (!frontendBuilt) {
     return res.status(503).send('SG16 AI Engine is starting — frontend build missing. Redeploy from repo root.');

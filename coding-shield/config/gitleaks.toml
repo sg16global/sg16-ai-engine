@@ -1,0 +1,26 @@
+# SG16 Coding Shield — Gitleaks config (extends defaults)
+title = "SG16 Coding Shield"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "sg16-generic-api-key"
+description = "Generic API key assignment"
+regex = '''(?i)(api[_-]?key|apikey)\s*[:=]\s*['"][a-z0-9_\-]{16,}['"]'''
+tags = ["key", "sg16"]
+
+[[rules]]
+id = "sg16-jwt"
+description = "JWT token in source"
+regex = '''eyJ[a-zA-Z0-9_-]*\.eyJ[a-zA-Z0-9_-]*\.[a-zA-Z0-9_-]*'''
+tags = ["jwt", "sg16"]
+
+[allowlist]
+paths = [
+  '''coding-shield/reports''',
+  '''\.env\.example''',
+  '''(?:^|[\\/])\.env$''',
+  '''(?:^|[\\/])\.env\.''',
+  '''node_modules''',
+]

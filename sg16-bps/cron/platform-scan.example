@@ -1,0 +1,4 @@
+# /etc/cron.d/sg16-platform-scan — weekly VPS + URL armor (your domains only)
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+0 3 * * 0 root SG16_SCAN_URL=https://sg16engine.com /opt/sg16/app/sg16-bps/scripts/scan-platform.sh >> /var/log/sg16-platform-scan.log 2>&1

@@ -1,0 +1,6 @@
+{
+  "ext": "js|jsx|ts|tsx|html|json",
+  "exitwithcode": false,
+  "verbose": false,
+  "nocache": true
+}

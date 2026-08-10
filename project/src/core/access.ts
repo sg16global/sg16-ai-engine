@@ -18,7 +18,7 @@ export function hasPaidAccess(subscription: Subscription): boolean {
   return false;
 }
 
-export function isAuthenticated(authUser: AuthUser | null): boolean {
+export function isAuthenticated(authUser: AuthUser | null): authUser is AuthUser {
   return authUser != null && authUser.signupDate > 0;
 }
 

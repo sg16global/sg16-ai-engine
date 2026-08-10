@@ -38,6 +38,45 @@ function getSpeedMode() {
   return 'speed';
 }
 
+export function isSovereignBrain() {
+  return process.env.SG16_BRAIN?.trim().toLowerCase() === 'ollama';
+}
+
+function getOllamaBaseUrl() {
+  return (process.env.OLLAMA_URL || process.env.SG16_OLLAMA_URL || 'http://127.0.0.1:11434').replace(
+    /\/$/,
+    '',
+  );
+}
+
+function getOllamaModel() {
+  return (
+    process.env.SG16_OLLAMA_MODEL ||
+    process.env.SG16_AI_MODEL_TEXT ||
+    'mistral:7b-instruct'
+  ).trim();
+}
+
+function getOllamaProvider() {
+  if (!isSovereignBrain() && !process.env.OLLAMA_URL && !process.env.SG16_OLLAMA_URL) {
+    return null;
+  }
+  if (!isSovereignBrain()) return null;
+
+  const model = getOllamaModel();
+  return {
+    id: 'ollama',
+    apiUrl: `${getOllamaBaseUrl()}/v1/chat/completions`,
+    apiKey: 'ollama',
+    models: {
+      text: model,
+      reasoning: model,
+      coding: model,
+      vision: null,
+    },
+  };
+}
+
 function getGroqProvider() {
   const groqKey =
     cleanKey(process.env.SG16_AI_API_KEY) || cleanKey(process.env.SG16_ROUTER_API_KEY);
@@ -85,6 +124,9 @@ function getCustomProvider() {
 }
 
 export function getPrimaryProvider() {
+  const ollama = getOllamaProvider();
+  if (ollama) return ollama;
+
   const groq = getGroqProvider();
   const xai = getXaiProvider();
   const custom = getCustomProvider();
@@ -188,6 +230,10 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
     ].filter(Boolean))];
   }
 
+  if (provider.id === 'ollama') {
+    return [provider.models.text].filter(Boolean);
+  }
+
   const primary = provider.models.text;
   const fallbacks = (process.env.SG16_AI_MODEL_FALLBACKS || 'llama-3.1-8b-instant,gemma2-9b-it')
     .split(',')
@@ -222,6 +268,9 @@ export function getVisionModelChain(provider = getPrimaryProvider()) {
 }
 
 export function getProviderChain() {
+  const ollama = getOllamaProvider();
+  if (ollama) return [ollama];
+
   const chain = [];
   const groq = getGroqProvider();
   const xai = getXaiProvider();
@@ -409,8 +458,10 @@ export function getProviderStatus() {
   const primary = getPrimaryProvider();
   const backup = getBackupProvider();
   return {
+    brain: isSovereignBrain() ? 'sovereign' : 'api',
     primary: primary ? primary.id : null,
-    backup: backup ? backup.id : null,
+    backup: isSovereignBrain() ? null : backup ? backup.id : null,
+    ollamaUrl: isSovereignBrain() ? getOllamaBaseUrl() : null,
     speedMode: getSpeedMode(),
     chatModel: primary?.models?.text || null,
     codingModel: primary?.models?.coding || primary?.models?.reasoning || null,

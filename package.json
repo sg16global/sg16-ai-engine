@@ -6,12 +6,37 @@
   "engines": {
     "node": ">=20.0.0"
   },
+  "devDependencies": {
+    "@eslint/js": "^9.39.1",
+    "acorn": "^8.15.0",
+    "depcheck": "^1.4.7",
+    "eslint": "^9.39.1",
+    "eslint-plugin-sonarjs": "^3.0.5",
+    "esprima": "^4.0.1",
+    "globals": "^16.5.0",
+    "nyc": "^17.1.0",
+    "retire": "^5.4.0",
+    "typescript-eslint": "^8.46.2"
+  },
   "scripts": {
     "build": "npm ci --prefix project && npm run build --prefix project && npm ci --prefix backend --omit=dev",
     "start": "node backend/server.js",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix project",
     "android:sync": "npm run build && npm run cap:sync --prefix project",
-    "android:open": "npm run cap:open --prefix project"
+    "android:open": "npm run cap:open --prefix project",
+    "shield": "node coding-shield/run.mjs",
+    "shield:eslint": "node coding-shield/run.mjs . eslint",
+    "shield:semgrep": "node coding-shield/run.mjs . semgrep",
+    "shield:gitleaks": "node coding-shield/run.mjs . gitleaks",
+    "shield:parsers": "node coding-shield/run.mjs . parsers",
+    "shield:retire": "node coding-shield/run.mjs . retire",
+    "shield:nyc": "node coding-shield/run.mjs . nyc",
+    "shield:sonar": "node coding-shield/run.mjs . sonar",
+    "shield:audit": "node coding-shield/run.mjs . audit",
+    "shield:tsc": "node coding-shield/run.mjs . tsc",
+    "shield:depcheck": "node coding-shield/run.mjs . depcheck",
+    "bps:bootstrap": "bash sg16-bps/bootstrap.sh",
+    "bps:deploy": "bash sg16-bps/deploy.sh"
   }
 }

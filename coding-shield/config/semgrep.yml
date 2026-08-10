@@ -1,0 +1,17 @@
+# SG16 Coding Shield — Semgrep rules
+rules:
+  - id: sg16-javascript-security
+    patterns:
+      - pattern-either:
+          - pattern: eval($X)
+          - pattern: new Function($X)
+          - pattern: document.write($X)
+    message: Avoid dynamic code execution or unsafe DOM writes
+    languages: [javascript, typescript]
+    severity: WARNING
+
+  - id: sg16-hardcoded-secret
+    pattern-regex: (?i)(api[_-]?key|secret|password|token)\s*=\s*['"][^'"]{8,}['"]
+    message: Possible hardcoded secret — use env vars
+    languages: [javascript, typescript, json]
+    severity: ERROR

@@ -34,3 +34,6 @@ project/android/build/
 project/android/.idea/
 project/android/capacitor-cordova-android-plugins/build/
 *.keystore
+
+# Coding Shield scan output
+coding-shield/reports/

@@ -23,17 +23,18 @@ export const CodingWorkspace = () => {
   const onAnalyze = (prompt: string) => {
     const codeMatch = prompt.match(/```([\s\S]*?)```/);
     const code = codeMatch?.[1] || prompt;
+    const score = Number(prompt.match(/SCORE: (\d+)/)?.[1] || 75);
+    const issueMatches = prompt.match(/^- .+: .+$/gm) || [];
     saveCodingReport({
-      title: 'Project check',
+      title: prompt.includes('Coding Shield') ? 'Coding Shield' : 'Project check',
       language: guessLanguage(code),
-      errors: Math.max(0, Math.min(12, Math.floor(code.length / 400))),
-      score: Math.max(55, 95 - Math.floor(code.length / 800)),
+      errors: issueMatches.filter((l) => !/0 error|no secret|valid|clean/i.test(l)).length,
+      score,
     });
     setReports(loadCodingReports());
     useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
     setView('chat');
   };
-
   const openChat = (prompt?: string) => {
     if (prompt) {
       useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
