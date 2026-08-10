@@ -1,6 +1,7 @@
-# Install Semgrep + Gitleaks on Railway (Linux build image)
+# Install Semgrep + Gitleaks on Railway (Linux build image).
+# Keep nodejs in setup — overriding nixPkgs replaces Nixpacks defaults.
 [phases.setup]
-nixPkgs = ["python3", "python3Packages.pip", "curl", "gnugrep"]
+nixPkgs = ["nodejs_20", "python3", "python3Packages.pip", "curl", "gnugrep"]
 
 [phases.install]
 dependsOn = ["setup"]
