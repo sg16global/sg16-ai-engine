@@ -37,6 +37,7 @@ import {
   handleCodingShieldProjectScan,
 } from './lib/codingShield/handlers.js';
 import { handlePlatformShieldHealth } from './lib/platformShield/handlers.js';
+import { isMasterRulesLoaded } from './lib/masterRules.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -125,6 +126,8 @@ app.get('/health', async (_req, res) => {
     launchFree: isLaunchFree(),
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
     brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
+    sovereign: isSovereignBrain(),
+    centralRules: isMasterRulesLoaded() ? 'loaded' : 'missing',
     documentAnalysis: isSovereignBrain() ? 'ollama' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     voice: speechTranscriptionAvailable() ? 'ready' : 'needs_api_key',

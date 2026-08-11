@@ -13,9 +13,13 @@ if ! command -v trivy >/dev/null 2>&1; then
 fi
 
 if ! command -v nuclei >/dev/null 2>&1; then
-  curl -sfL https://raw.githubusercontent.com/projectdiscovery/nuclei/main/cmd/nuclei/install.sh | bash
-  if [[ -x "${HOME}/go/bin/nuclei" ]]; then
-    ln -sf "${HOME}/go/bin/nuclei" /usr/local/bin/nuclei
+  # Optional — do not block bootstrap if install fails (needs Go on some images).
+  if curl -sfL https://raw.githubusercontent.com/projectdiscovery/nuclei/main/cmd/nuclei/install.sh | bash; then
+    if [[ -x "${HOME}/go/bin/nuclei" ]]; then
+      ln -sf "${HOME}/go/bin/nuclei" /usr/local/bin/nuclei
+    fi
+  else
+    echo "  nuclei: install skipped (optional)"
   fi
 fi
 

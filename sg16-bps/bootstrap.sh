@@ -60,7 +60,7 @@ if [[ -f "${REPO_ROOT}/package.json" && -f "${REPO_ROOT}/backend/server.js" ]]; 
 fi
 
 if [[ -f "${SCRIPT_DIR}/scripts/install-platform-tools.sh" ]]; then
-  bash "${SCRIPT_DIR}/scripts/install-platform-tools.sh"
+  bash "${SCRIPT_DIR}/scripts/install-platform-tools.sh" || echo "Platform tools partial — continuing bootstrap"
 fi
 
 mkdir -p /opt/sg16/scans

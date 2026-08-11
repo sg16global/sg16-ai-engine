@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SG16 Coding Shield — Super Brain Security Hub</title>
+  <meta name="description" content="SG16 Coding Shield — 10-tool code security, quality, and dependency scanner. Powered by sg16engine.com." />
+  <link rel="icon" href="/icons/icon-192.png" />
+  <style>
+    :root { --red: #ff2e2e; --bg: #05060d; --card: #0c0f1a; --text: #e8ecff; --muted: #8b93b0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: system-ui, -apple-system, Segoe UI, sans-serif; background: radial-gradient(circle at top, #1a1020, var(--bg)); color: var(--text); min-height: 100vh; }
+    .wrap { max-width: 920px; margin: 0 auto; padding: 2.5rem 1.25rem 4rem; }
+    .badge { display: inline-block; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--red); border: 1px solid rgba(255,46,46,.35); padding: .35rem .7rem; border-radius: 999px; margin-bottom: 1rem; }
+    h1 { font-size: clamp(1.8rem, 4vw, 2.6rem); line-height: 1.15; margin-bottom: .75rem; }
+    p.lead { color: var(--muted); font-size: 1.05rem; line-height: 1.6; max-width: 640px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: .85rem; margin: 2rem 0; }
+    .card { background: var(--card); border: 1px solid rgba(255,255,255,.06); border-radius: 14px; padding: 1rem; }
+    .card h3 { font-size: .95rem; margin-bottom: .35rem; }
+    .card p { font-size: .82rem; color: var(--muted); line-height: 1.45; }
+    .cta { display: inline-flex; align-items: center; gap: .5rem; margin-top: 1.5rem; padding: .85rem 1.25rem; border-radius: 999px; background: rgba(255,46,46,.12); border: 1px solid rgba(255,46,46,.35); color: #ffb4b4; text-decoration: none; font-weight: 600; }
+    .cta:hover { background: rgba(255,46,46,.2); }
+    footer { margin-top: 3rem; font-size: .8rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="badge">shield.sg16engine.com</div>
+    <h1>SG16 Coding Shield</h1>
+    <p class="lead">Super Brain stack — 7 core scanners + 3 power tools. Real scores from ESLint, Semgrep, Gitleaks, Sonar rules, Acorn/Esprima, Retire.js, NYC, npm audit, TypeScript, and depcheck.</p>
+
+    <div class="grid">
+      <div class="card"><h3>Security</h3><p>Semgrep · Gitleaks · secret patterns</p></div>
+      <div class="card"><h3>Quality</h3><p>ESLint · SonarJS (SonarLint rules)</p></div>
+      <div class="card"><h3>Syntax</h3><p>Acorn · Esprima AST validation</p></div>
+      <div class="card"><h3>Dependencies</h3><p>Retire.js · npm audit · depcheck</p></div>
+      <div class="card"><h3>Coverage</h3><p>Istanbul NYC (with tests)</p></div>
+      <div class="card"><h3>Types</h3><p>TypeScript compiler check</p></div>
+    </div>
+
+    <a class="cta" href="https://sg16engine.com">Open Coding Hub →</a>
+    <footer>Part of SG16 AI Engine · Saif Tech Global</footer>
+  </div>
+</body>
+</html>
