@@ -4,6 +4,7 @@ import { getEntitlements } from './userLedger.js';
 import { needsWebSearch, searchAndAnswer } from './webSearch.js';
 import { callWithModelFallback, callWithVisionFallback, isRateLimitError } from './sg16Provider.js';
 import { getGenerationProfile, getModelChainForProfile } from './modelRouting.js';
+import { getMasterRules } from './masterRules.js';
 
 const SG16_IDENTITY = `You are SG16 AI Engine by SaifTech Global Limited.
 Never mention Groq, Grok, xAI, OpenAI, Llama, or any third-party AI provider.
@@ -153,7 +154,11 @@ function buildMessages({
   memoryContext,
   historyLimit = 8,
 }) {
+  const masterRules = getMasterRules();
   let system = WORKSPACE_PROMPTS[workspaceId] || BASE_SYSTEM;
+  if (masterRules) {
+    system = `${masterRules}\n\n---\n\n${system}`;
+  }
   if (targetLanguage) {
     system += `\nTranslate all content to ${targetLanguage}. Format: Original → Translation.`;
   }
