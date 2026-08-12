@@ -221,9 +221,9 @@ export const HomePage = () => {
           </strong>
         </div>
         <div>
-          <span>DATA PROTECTION</span>
+          <span>SOVEREIGN BRAIN</span>
           <strong>
-            <i className="ok" /> SECURE
+            <i className="ok" /> MISTRAL
           </strong>
         </div>
         <div>

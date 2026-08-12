@@ -8,6 +8,7 @@ const PUBLIC_CANONICAL = new Set<string>([
   APP_PATHS.terms,
   APP_PATHS.privacy,
   APP_PATHS.contact,
+  APP_PATHS.license,
   APP_PATHS.help,
 ]);
 

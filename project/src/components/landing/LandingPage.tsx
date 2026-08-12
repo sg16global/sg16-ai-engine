@@ -18,6 +18,8 @@ import { LandingHeader } from './LandingHeader';
 import { LandingVideoBg } from './LandingVideoBg';
 import { LandingBrandLogo } from './LandingBrandLogo';
 import { LandingNetworkCards } from './LandingNetworkCards';
+import { SovereignBanner } from './SovereignBanner';
+import { SiteFooter } from './SiteFooter';
 import './landingStyles.css';
 
 const features = [
@@ -228,34 +230,9 @@ export function LandingPage() {
         </div>
       </section>
 
-      <footer className="landing-footer">
-        <div className="landing-shell">
-          <LandingBrandLogo compact className="landing-footer-logo mx-auto mb-4 opacity-90" />
-          <p className="mb-4 text-center text-[11px] leading-relaxed text-white/40 max-w-md mx-auto">
-            Chat history stays on your device. Messages are processed through SG16 Secure Room — we do not store chat content on our servers.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-[12px] text-white/45">
-            <a href="/help" className="hover:text-[#7CFC00] transition">
-              Help
-            </a>
-            <a href="/privacy" className="hover:text-[#7CFC00] transition">
-              Privacy
-            </a>
-            <a href="/terms" className="hover:text-[#7CFC00] transition">
-              Terms
-            </a>
-            <a href="/contact" className="hover:text-[#7CFC00] transition">
-              Contact
-            </a>
-            <a href={`mailto:${SG16_BRAND.contactEmail}`} className="hover:text-[#7CFC00] transition">
-              {SG16_BRAND.contactEmail}
-            </a>
-          </div>
-          <p className="mt-3 text-center text-[11px] text-white/35">
-            © {new Date().getFullYear()} {SG16_BRAND.company}. All rights reserved.
-          </p>
-        </div>
-      </footer>
+      <SovereignBanner />
+
+      <SiteFooter />
       </div>
     </div>
   );

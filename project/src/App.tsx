@@ -440,7 +440,7 @@ function App() {
       '/terms': 'Terms of Service — SG16 AI Engine',
 
       '/contact': 'Contact — SG16 AI Engine',
-
+      '/license': 'License & Sovereign Brain — SG16 AI Engine',
       '/help': 'Help — SG16 AI Engine',
 
     };

@@ -12,6 +12,7 @@ const SECTION_PATH: Record<LegalSection, string> = {
   privacy: '/privacy',
   terms: '/terms',
   contact: '/contact',
+  license: '/license',
 };
 
 export function LegalDocumentView({ section, showNav = true, onSelectSection }: LegalDocumentViewProps) {
