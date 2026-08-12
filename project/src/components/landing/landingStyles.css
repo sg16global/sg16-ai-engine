@@ -366,7 +366,15 @@
 
 @media (min-width: 768px) {
   .landing-sovereign-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 920px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .landing-sovereign-grid {
+    grid-template-columns: repeat(4, 1fr);
+    max-width: 1100px;
   }
 }
 

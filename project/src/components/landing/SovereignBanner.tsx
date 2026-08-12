@@ -1,4 +1,4 @@
-import { Cpu, ShieldCheck, Lock } from 'lucide-react';
+import { Cpu, ShieldCheck, Lock, Globe } from 'lucide-react';
 import { SG16_BRAND } from '../../core/branding';
 
 const items = [
@@ -17,6 +17,12 @@ const items = [
     title: 'Zero-Data Trace',
     desc: 'Messages processed live — chat content not stored in our database',
   },
+  {
+    icon: Globe,
+    title: 'Cloudflare + own brain',
+    desc:
+      'Cloudflare AI Gateway, Workers AI & Agents SDK now support bring-your-own-model — SG16 runs Mistral on our VPS; Cloudflare protects the edge',
+  },
 ] as const;
 
 export function SovereignBanner() {
@@ -26,7 +32,7 @@ export function SovereignBanner() {
         <h2 className="landing-section-title">Sovereign SG16 brain</h2>
         <p className="landing-section-sub">
           Self-hosted Mistral engine by {SG16_BRAND.company} — built for ownership, not dependency on third-party AI
-          APIs.
+          APIs. Same direction as Cloudflare&apos;s official bring-your-own-brain stack for AI assistants.
         </p>
       </div>
       <div className="landing-shell landing-sovereign-badge-wrap">
