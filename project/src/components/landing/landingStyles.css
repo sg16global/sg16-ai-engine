@@ -357,6 +357,26 @@
   backdrop-filter: blur(12px);
 }
 
+.landing-sovereign-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  max-width: 920px;
+}
+
+@media (min-width: 768px) {
+  .landing-sovereign-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.landing-sovereign-card {
+  padding: 18px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(124, 252, 0, 0.16);
+  background: linear-gradient(145deg, rgba(8, 12, 8, 0.88) 0%, rgba(0, 0, 0, 0.82) 100%);
+}
+
 .landing-section-tight {
   padding-top: 40px;
 }

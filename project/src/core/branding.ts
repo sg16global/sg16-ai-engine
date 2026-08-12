@@ -9,6 +9,9 @@ export const SG16_BRAND = {
   logo: '/hero.png',
   logoFallback: '/hero-globe.png',
   logoAlt: 'SG16 AI Engine',
+  /** Sovereign stack — shown on landing footer and trust strip. */
+  sovereignBrain: 'Mistral 7B Instruct',
+  sovereignLicense: 'Apache 2.0',
 } as const;
 export const SG16_IDENTITY_RULES = `You are part of ${SG16_BRAND.name} by ${SG16_BRAND.company}.
 Never mention Groq, Grok, xAI, OpenAI, Llama, Mixtral, or any third-party AI provider.

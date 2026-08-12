@@ -18,7 +18,7 @@ export type WorkspaceType =
   | 'voice'
   | 'memory';
 
-export type HelpSection = 'overview' | 'privacy' | 'terms' | 'contact';
+export type HelpSection = 'overview' | 'privacy' | 'terms' | 'contact' | 'license';
 
 export type PlanTier = 'free' | 'student' | 'pro';
 
