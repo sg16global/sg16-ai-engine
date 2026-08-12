@@ -29,6 +29,17 @@ export function SovereignBanner() {
           APIs.
         </p>
       </div>
+      <div className="landing-shell landing-sovereign-badge-wrap">
+        <img
+          src="/landing/sovereign-sg16-brain-badge.png"
+          alt="Sovereign SG16 Brain — Mistral 7B Instruct, Apache 2.0"
+          className="landing-sovereign-badge"
+          width={420}
+          height={420}
+          loading="lazy"
+          decoding="async"
+        />
+      </div>
       <div className="landing-shell landing-sovereign-grid">
         {items.map(({ icon: Icon, title, desc }) => (
           <div key={title} className="landing-sovereign-card">

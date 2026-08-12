@@ -377,6 +377,18 @@
   background: linear-gradient(145deg, rgba(8, 12, 8, 0.88) 0%, rgba(0, 0, 0, 0.82) 100%);
 }
 
+.landing-sovereign-badge-wrap {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.landing-sovereign-badge {
+  width: min(100%, 320px);
+  height: auto;
+  filter: drop-shadow(0 16px 40px rgba(0, 0, 0, 0.55));
+}
+
 .landing-section-tight {
   padding-top: 40px;
 }
