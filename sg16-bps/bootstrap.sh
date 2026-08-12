@@ -63,6 +63,10 @@ if [[ -f "${SCRIPT_DIR}/scripts/install-platform-tools.sh" ]]; then
   bash "${SCRIPT_DIR}/scripts/install-platform-tools.sh" || echo "Platform tools partial — continuing bootstrap"
 fi
 
+if [[ -f "${SCRIPT_DIR}/scripts/install-vm-security.sh" ]]; then
+  bash "${SCRIPT_DIR}/scripts/install-vm-security.sh" || echo "VM security partial — continuing bootstrap"
+fi
+
 mkdir -p /opt/sg16/scans
 id -u "${SG16_USER}" >/dev/null 2>&1 || useradd --system --home "${SG16_HOME}" --shell /usr/sbin/nologin "${SG16_USER}"
 mkdir -p "${SG16_APP}"
@@ -112,3 +116,4 @@ echo "  Logs:   journalctl -u sg16-ai-engine -f"
 echo "  Brain:  ollama list"
 echo "  Platform: curl -s http://127.0.0.1:8000/api/v1/platform-shield/health"
 echo "  Scan VPS: sudo bash sg16-bps/scripts/scan-platform.sh"
+echo "  VM ready: sudo bash sg16-bps/scripts/vm-ready.sh"
