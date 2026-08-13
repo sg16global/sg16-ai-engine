@@ -47,6 +47,10 @@ const PORT = Number(process.env.PORT) || 8000;
 const HOST = process.env.HOST || '0.0.0.0';
 const SHIELD_HOST = (process.env.SG16_SHIELD_HOST || 'shield.sg16engine.com').toLowerCase();
 
+function isShieldHost(req) {
+  return req.hostname.toLowerCase() === SHIELD_HOST;
+}
+
 const app = express();
 
 app.set('trust proxy', 1);
@@ -169,8 +173,22 @@ if (!frontendBuilt) {
   console.warn('[SG16] Frontend not built — run: npm run build (from repo root)');
 }
 
+// Shield subdomain `/` must serve the light landing page, not express.static's index.html.
+app.use((req, res, next) => {
+  if (
+    (req.method === 'GET' || req.method === 'HEAD') &&
+    req.path === '/' &&
+    isShieldHost(req) &&
+    fs.existsSync(shieldLandingPath)
+  ) {
+    return res.sendFile(shieldLandingPath);
+  }
+  next();
+});
+
 app.use(
   express.static(frontendDist, {
+    index: false,
     maxAge: isProd ? '1d' : 0,
     setHeaders(res, filePath) {
       const base = path.basename(filePath);
@@ -194,7 +212,7 @@ app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/')) {
     return next();
   }
-  if (req.hostname.toLowerCase() === SHIELD_HOST && fs.existsSync(shieldLandingPath)) {
+  if (isShieldHost(req) && fs.existsSync(shieldLandingPath)) {
     return res.sendFile(shieldLandingPath);
   }
   if (!frontendBuilt) {
