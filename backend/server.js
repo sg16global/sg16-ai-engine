@@ -37,6 +37,26 @@ import {
   handleCodingShieldProjectScan,
 } from './lib/codingShield/handlers.js';
 import { handlePlatformShieldHealth } from './lib/platformShield/handlers.js';
+import {
+  handleKaliShellAgents,
+  handleKaliShellHealth,
+  handleKaliShellInspect,
+  handleKaliShellPush,
+  handleKaliShellRun,
+  handleKaliShellSew,
+  handleKaliShellSpawn,
+} from './lib/kaliShell/handlers.js';
+import { getKaliShellStatus } from './lib/kaliShell/index.js';
+import {
+  handlePersonalDeveloperAway,
+  handlePersonalDeveloperDelegate,
+  handlePersonalDeveloperHealth,
+  handlePersonalDeveloperReport,
+  handlePersonalDeveloperRun,
+  handlePersonalDeveloperScout,
+  handlePersonalDeveloperWake,
+} from './lib/personalDeveloper/handlers.js';
+import { getPersonalDeveloperStatus } from './lib/personalDeveloper/index.js';
 import { isMasterRulesLoaded } from './lib/masterRules.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -123,6 +143,15 @@ app.use((req, res, next) => {
 
 app.get('/health', async (_req, res) => {
   const db = await checkDatabaseHealth();
+  let kaliShell = null;
+  let personalDeveloper = null;
+  try {
+    kaliShell = await getKaliShellStatus();
+    personalDeveloper = await getPersonalDeveloperStatus();
+  } catch {
+    kaliShell = { status: 'error' };
+    personalDeveloper = { status: 'error' };
+  }
   res.json({
     status: 'ok',
     engine: 'SG16 AI Engine',
@@ -132,6 +161,8 @@ app.get('/health', async (_req, res) => {
     brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
     sovereign: isSovereignBrain(),
     centralRules: isMasterRulesLoaded() ? 'loaded' : 'missing',
+    kaliShell,
+    personalDeveloper,
     documentAnalysis: isSovereignBrain() ? 'ollama' : 'groq',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     voice: speechTranscriptionAvailable() ? 'ready' : 'needs_api_key',
@@ -165,6 +196,22 @@ app.post('/api/v1/coding-shield/scan', requireAuth, handleCodingShieldScan);
 app.post('/api/v1/coding-shield/project', requireAuth, handleCodingShieldProjectScan);
 
 app.get('/api/v1/platform-shield/health', handlePlatformShieldHealth);
+
+app.get('/api/v1/kali-shell/health', handleKaliShellHealth);
+app.get('/api/v1/kali-shell/agents', requireAuth, handleKaliShellAgents);
+app.post('/api/v1/kali-shell/run', requireAuth, handleKaliShellRun);
+app.post('/api/v1/kali-shell/push', requireAuth, handleKaliShellPush);
+app.post('/api/v1/kali-shell/agents/spawn', requireAuth, handleKaliShellSpawn);
+app.post('/api/v1/kali-shell/inspect', requireAuth, handleKaliShellInspect);
+app.post('/api/v1/kali-shell/sew', requireAuth, handleKaliShellSew);
+
+app.get('/api/v1/personal-developer/health', handlePersonalDeveloperHealth);
+app.post('/api/v1/personal-developer/run', requireAuth, handlePersonalDeveloperRun);
+app.post('/api/v1/personal-developer/delegate', requireAuth, handlePersonalDeveloperDelegate);
+app.post('/api/v1/personal-developer/away', requireAuth, handlePersonalDeveloperAway);
+app.post('/api/v1/personal-developer/wake', requireAuth, handlePersonalDeveloperWake);
+app.get('/api/v1/personal-developer/report', requireAuth, handlePersonalDeveloperReport);
+app.get('/api/v1/personal-developer/scout', requireAuth, handlePersonalDeveloperScout);
 
 const indexPath = path.join(frontendDist, 'index.html');
 const frontendBuilt = fs.existsSync(indexPath);
