@@ -1,0 +1,42 @@
+{
+  "name": "sg16-cursor-junior",
+  "productName": "SG16 Personal Developer",
+  "version": "1.0.0",
+  "private": true,
+  "author": "SaifTech Global",
+  "description": "Cursor Junior — install on the PC so the child works on this road, not blind in the cloud.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist:win": "electron-builder --win nsis"
+  },
+  "build": {
+    "appId": "com.sg16global.cursorjunior",
+    "productName": "SG16 Personal Developer",
+    "copyright": "Copyright © SaifTech Global",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.js",
+      "preload.js"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "artifactName": "SG16-Cursor-Junior-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SG16 Personal Developer"
+    }
+  },
+  "devDependencies": {
+    "electron": "^37.3.1",
+    "electron-builder": "^26.0.12"
+  }
+}

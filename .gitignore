@@ -1,5 +1,6 @@
 node_modules/
 dist/
+desktop/release/
 .env
 backend/.env
 project/.env
