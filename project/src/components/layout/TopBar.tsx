@@ -13,6 +13,7 @@ const titles: Record<string, string> = {
   pricing: 'Pricing',
   'student-verify': 'Student ID',
   coding: 'Coding Hub',
+  developer: 'SG16 Personal Developer',
   image: 'Image Studio',
   document: 'Document Lab',
   general: SG16_BRAND.chatName,

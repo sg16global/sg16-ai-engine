@@ -7,6 +7,7 @@ export type WorkspaceType =
   | 'pricing'
   | 'student-verify'
   | 'coding'
+  | 'developer'
   | 'student-shield'
   | 'general'
   | 'health'

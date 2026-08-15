@@ -9,6 +9,8 @@ SG16-Cursor-Junior-Setup.exe  (install once)
   ↓
 Junior lives on this PC — door open for this machine
   ↓
+Opens the **developer bench** (`/developer`) — not the public landing
+  ↓
 Talks to the house brain (sg16engine.com / Railway pipe / VM)
 ```
 
@@ -32,8 +34,8 @@ npm install
 npm start
 ```
 
-Default URL: `https://sg16engine.com`  
-Local house: `$env:SG16_JUNIOR_URL="http://localhost:8000"; npm start`
+Default URL: `https://sg16engine.com/developer`  
+Local house: `$env:SG16_JUNIOR_URL="http://localhost:8000"; npm start` (opens `/developer`)
 
 ## Names
 

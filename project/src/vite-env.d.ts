@@ -13,3 +13,13 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+interface Window {
+  sg16Junior?: {
+    name: string;
+    publicName: string;
+    road: string;
+    door: string;
+    platform: string;
+  };
+}

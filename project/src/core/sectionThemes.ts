@@ -7,6 +7,7 @@ export const WORKSPACE_SKIN: Partial<Record<WorkspaceId, SectionSkin>> = {
   general: 'chat',
   'student-shield': 'student',
   coding: 'coding',
+  developer: 'coding',
   health: 'health',
   market: 'shell',
 };
