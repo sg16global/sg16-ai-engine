@@ -67,12 +67,12 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
               key={item.id}
               type="button"
               onClick={() => goWorkspace(item.id)}
-              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm border ${
                 isActive
-                  ? 'bg-black/40 text-white shadow-[0_0_16px_rgba(0,0,0,0.35)]'
+                  ? 'bg-[#00ff8b]/12 text-[#00ff8b] border-[#00ff8b]/35 shadow-[0_0_16px_rgba(0,255,139,0.12)]'
                   : locked
-                    ? 'text-white/45 hover:bg-black/20'
-                    : 'text-white/85 hover:bg-black/25'
+                    ? 'border-transparent text-white/45 hover:bg-black/20'
+                    : 'border-transparent text-white/85 hover:bg-black/25'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
