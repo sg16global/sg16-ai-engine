@@ -3,7 +3,6 @@ import { canAccessWorkspace } from '../../core/access';
 import type { WorkspaceId } from '../../core/types';
 import { UpgradeGate } from '../workspace/UpgradeGate';
 import { CodingWorkspace } from '../../workspaces/Coding';
-import { DeveloperWorkspace } from '../../workspaces/Developer';
 import { StudentShieldWorkspace } from '../../workspaces/StudentShield';
 import { GeneralWorkspace } from '../../workspaces/General';
 import { HealthWorkspace } from '../../workspaces/Health';
@@ -25,8 +24,6 @@ export const WorkspaceContainer = () => {
         switch (currentWorkspace) {
           case 'coding':
             return <CodingWorkspace />;
-          case 'developer':
-            return <DeveloperWorkspace />;
           case 'student-shield':
             return <StudentShieldWorkspace />;
           case 'general':

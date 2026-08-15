@@ -34,8 +34,8 @@ npm install
 npm start
 ```
 
-Default URL: `https://sg16engine.com/developer`  
-Local house: `$env:SG16_JUNIOR_URL="http://localhost:8000"; npm start` (opens `/developer`)
+Default URL: `http://localhost:5173/developer` (new coding flow — files + editor + Junior)
+Public site `/developer` does not write files. Studio file APIs stay on the PC.
 
 ## Names
 

@@ -2,7 +2,6 @@ import type { LucideIcon } from 'lucide-react';
 import {
   Home,
   Code2,
-  Terminal,
   GraduationCap,
   MessageSquare,
   HeartPulse,
@@ -28,7 +27,6 @@ export const mainNavItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: Home, mobileBottom: true },
   { id: 'student-shield', label: 'Student Shield', icon: GraduationCap, premium: true },
   { id: 'coding', label: 'Coding Hub', icon: Code2, premium: true },
-  { id: 'developer', label: 'Developer', icon: Terminal },
   { id: 'health', label: 'Health Shield', icon: HeartPulse },
   { id: 'general', label: 'AI Chat', icon: MessageSquare, mobileBottom: true },
   { id: 'market', label: 'Market Shield', icon: TrendingUp },
