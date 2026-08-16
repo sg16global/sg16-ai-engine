@@ -23,6 +23,8 @@
     "start": "node backend/server.js",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix project",
+    "dev:studio": "bash scripts/dev-studio.sh",
+    "studio": "npm run build && SG16_DEV_STUDIO=1 node backend/server.js",
     "android:sync": "npm run build && npm run cap:sync --prefix project",
     "android:open": "npm run cap:open --prefix project",
     "shield": "node coding-shield/run.mjs",

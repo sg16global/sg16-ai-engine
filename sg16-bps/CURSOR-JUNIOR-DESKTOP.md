@@ -28,13 +28,24 @@ Install it. Desktop + Start Menu shortcut: **SG16 Personal Developer**.
 
 ## Run without installing
 
+**First — start the studio on your PC (one command from repo root):**
+
+```powershell
+npm run studio
+```
+
+Then open **`http://localhost:8000/developer`** or run the desktop app:
+
 ```powershell
 cd desktop
 npm install
 npm start
 ```
 
-Default URL: `http://localhost:5173/developer` (new coding flow — files + editor + Junior)
+Default desktop URL: `http://localhost:8000/developer` (files + editor + Junior on one port).
+
+For live-reload while editing the studio UI itself: `npm run dev:studio` → `http://localhost:5173/developer`.
+
 Public site `/developer` does not write files. Studio file APIs stay on the PC.
 
 ## Names

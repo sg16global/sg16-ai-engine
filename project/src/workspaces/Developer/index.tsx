@@ -147,10 +147,27 @@ export function DeveloperStudioApp() {
         {root && <span className="ml-auto truncate text-[10px] text-white/35 max-w-[50%]">{root}</span>}
       </header>
 
+      {enabled === null && (
+        <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-white/60">
+          <Loader2 className="w-6 h-6 animate-spin text-[#00ff8b]" />
+          <p>Starting SG16 Personal Developer…</p>
+        </div>
+      )}
+
       {enabled === false && (
-        <div className="flex-1 flex items-center justify-center p-6 text-center text-sm text-white/60">
-          This developer codes on the PC. Open localhost / the desktop app — not the public website.
-          {status && <p className="mt-2 text-red-300">{status}</p>}
+        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center text-sm text-white/60 max-w-md mx-auto">
+          <p className="text-white/80 font-medium">Studio is not running yet</p>
+          <p>
+            From the repo root on your PC, run one command — then reopen this page or the desktop app:
+          </p>
+          <code className="block w-full rounded-lg bg-black/50 border border-white/10 px-3 py-2 font-mono text-[12px] text-[#00ff8b]">
+            npm run studio
+          </code>
+          <p className="text-[11px] text-white/40">
+            Then open <span className="text-white/60">http://localhost:8000/developer</span>
+            {' '}or launch the SG16 Personal Developer desktop shortcut.
+          </p>
+          {status && <p className="text-red-300 text-xs">{status}</p>}
         </div>
       )}
 
