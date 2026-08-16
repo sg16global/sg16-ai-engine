@@ -1,262 +1,195 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ChevronRight, FileCode2, Folder, Loader2, Save, Send } from 'lucide-react';
-import {
-  askStudio,
-  fetchStudioFile,
-  fetchStudioStatus,
-  fetchStudioTree,
-  saveStudioFile,
-  type StudioNode,
-} from '../../lib/studioApi';
+import { useEffect, useRef, useState } from 'react';
+import { Loader2, Send, Terminal } from 'lucide-react';
+import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
+import { useAppStore } from '../../core/appState';
+import { isAuthenticated } from '../../core/access';
+import { fetchJuniorHealth, runJunior } from '../../lib/juniorApi';
+import { uid } from '../../lib/utils';
+import type { Message } from '../../core/types';
 
-type ChatLine = { id: string; role: 'user' | 'assistant'; content: string };
+const SUGGESTIONS = [
+  'Build a small feature for this project, then teach what you did.',
+  'Explain our own brain, Kali Shell, and layers — step by step.',
+  'Where should Cloudflare take pressure and Railway stay the brain pipe?',
+];
 
-function FileNode({
-  node,
-  active,
-  onOpen,
-}: {
-  node: StudioNode;
-  active: string | null;
-  onOpen: (path: string) => void;
-}) {
-  const [open, setOpen] = useState(node.type === 'dir' && node.path.split('/').length < 2);
-  if (node.type === 'dir') {
-    return (
-      <div>
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          className="w-full flex items-center gap-1 px-1.5 py-0.5 text-left text-[11px] text-white/60 hover:text-white hover:bg-white/5"
-        >
-          <ChevronRight className={`w-3 h-3 shrink-0 transition ${open ? 'rotate-90' : ''}`} />
-          <Folder className="w-3 h-3 shrink-0" />
-          <span className="truncate">{node.name}</span>
-        </button>
-        {open && (
-          <div className="pl-3">
-            {(node.children || []).map((child) => (
-              <FileNode key={child.path} node={child} active={active} onOpen={onOpen} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-  return (
-    <button
-      type="button"
-      onClick={() => onOpen(node.path)}
-      className={`w-full flex items-center gap-1 px-1.5 py-0.5 text-left text-[11px] truncate ${
-        active === node.path ? 'bg-white/10 text-white' : 'text-white/55 hover:text-white hover:bg-white/5'
-      }`}
-    >
-      <FileCode2 className="w-3 h-3 shrink-0" />
-      {node.name}
-    </button>
-  );
-}
+export function DeveloperWorkspace() {
+  const authUser = useAppStore((s) => s.authUser);
+  const messages = useAppStore((s) => s.messages.developer) ?? [];
+  const loading = useAppStore((s) => s.loading);
+  const error = useAppStore((s) => s.error);
+  const addMessage = useAppStore((s) => s.addMessage);
+  const setLoading = useAppStore((s) => s.setLoading);
+  const setError = useAppStore((s) => s.setError);
+  const requireAuth = useAppStore((s) => s.requireAuth);
+  const openLoginModal = useAppStore((s) => s.openLoginModal);
 
-/** Completely new flow — files + editor + Junior. Not a shield. */
-export function DeveloperStudioApp() {
-  const [enabled, setEnabled] = useState<boolean | null>(null);
-  const [root, setRoot] = useState('');
-  const [tree, setTree] = useState<StudioNode[]>([]);
-  const [activePath, setActivePath] = useState<string | null>(null);
-  const [draft, setDraft] = useState('');
-  const [saved, setSaved] = useState('');
-  const [status, setStatus] = useState('');
-  const [chat, setChat] = useState<ChatLine[]>([]);
   const [input, setInput] = useState('');
-  const [busy, setBusy] = useState(false);
-  const dirty = activePath != null && draft !== saved;
+  const [brain, setBrain] = useState('checking…');
+  const onPcRoad = typeof window !== 'undefined' && Boolean(window.sg16Junior);
+  const signedIn = isAuthenticated(authUser);
+  const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    document.title = 'SG16 Personal Developer';
     let alive = true;
-    (async () => {
-      try {
-        const s = await fetchStudioStatus();
+    fetchJuniorHealth()
+      .then((h) => {
         if (!alive) return;
-        setEnabled(s.enabled);
-        if (!s.enabled) return;
-        const t = await fetchStudioTree();
+        setBrain(h.brain || h.status || 'ok');
+      })
+      .catch(() => {
         if (!alive) return;
-        setRoot(t.root);
-        setTree(t.tree);
-      } catch (err) {
-        if (!alive) return;
-        setEnabled(false);
-        setStatus(err instanceof Error ? err.message : 'Studio unavailable');
-      }
-    })();
+        setBrain('offline');
+      });
     return () => {
       alive = false;
     };
   }, []);
 
-  const openFile = useCallback(async (path: string) => {
-    setStatus('');
-    try {
-      const file = await fetchStudioFile(path);
-      setActivePath(file.path);
-      setDraft(file.content);
-      setSaved(file.content);
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Could not open file');
-    }
-  }, []);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: 'end' });
+  }, [messages, loading]);
 
-  const save = useCallback(async () => {
-    if (!activePath) return;
-    setStatus('');
-    try {
-      await saveStudioFile(activePath, draft);
-      setSaved(draft);
-      setStatus(`Saved ${activePath}`);
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Save failed');
-    }
-  }, [activePath, draft]);
-
-  const ask = async (text: string) => {
+  const send = (text: string) => {
     const message = text.trim();
-    if (!message || busy) return;
-    const userLine: ChatLine = { id: `u-${Date.now()}`, role: 'user', content: message };
-    setChat((c) => [...c, userLine]);
-    setInput('');
-    setBusy(true);
-    setStatus('');
-    try {
-      const history = [...chat, userLine].slice(-10).map((m) => ({ role: m.role, content: m.content }));
-      const file = activePath ? { path: activePath, content: draft } : undefined;
-      const result = await askStudio(message, history, file);
-      setChat((c) => [...c, { id: `a-${Date.now()}`, role: 'assistant', content: result.reply }]);
-    } catch (err) {
-      setStatus(err instanceof Error ? err.message : 'Developer unavailable');
-    } finally {
-      setBusy(false);
+    if (!message || loading) return;
+
+    const run = async () => {
+      const userMsg: Message = {
+        id: uid(),
+        role: 'user',
+        content: message,
+        timestamp: Date.now(),
+      };
+      addMessage('developer', userMsg);
+      setInput('');
+      setLoading(true);
+      setError(null);
+      try {
+        const history = [...messages, userMsg].slice(-12).map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+        const result = await runJunior(message, history);
+        addMessage('developer', {
+          id: uid(),
+          role: 'assistant',
+          content: result.reply,
+          timestamp: Date.now(),
+        });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Developer unavailable';
+        if (msg === 'AUTH_REQUIRED') {
+          openLoginModal(() => send(message));
+          return;
+        }
+        setError(msg);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!signedIn) {
+      requireAuth(() => {
+        void run();
+      });
+      return;
     }
+    void run();
   };
 
   return (
-    <div className="h-[100dvh] max-h-[100dvh] overflow-hidden bg-[#0b0d12] text-white flex flex-col">
-      <header className="shrink-0 h-11 px-3 flex items-center gap-3 border-b border-white/10">
-        <span className="text-sm font-semibold tracking-tight">SG16 Personal Developer</span>
-        <span className="text-[10px] uppercase tracking-wider text-white/40">New flow · code on this machine</span>
-        {root && <span className="ml-auto truncate text-[10px] text-white/35 max-w-[50%]">{root}</span>}
-      </header>
-
-      {enabled === null && (
-        <div className="flex-1 flex flex-col items-center justify-center gap-3 p-6 text-center text-sm text-white/60">
-          <Loader2 className="w-6 h-6 animate-spin text-[#00ff8b]" />
-          <p>Starting SG16 Personal Developer…</p>
+    <WorkspaceShell
+      title="SG16 Personal Developer"
+      subtitle="Sit down and build. Make the app, then teach the brain project. Not the public site."
+      badge="Developer"
+      badgeClass="text-sky-300"
+      skin="coding"
+    >
+      <div className="h-full min-h-0 flex flex-col sg16-work-field">
+        <div className="px-4 sm:px-5 pt-3 shrink-0 flex flex-wrap items-center gap-2 text-[11px] text-white/50">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/35 px-2.5 py-1">
+            <Terminal className="w-3 h-3" />
+            {onPcRoad ? 'PC road — door open' : 'House developer'}
+          </span>
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-black/35 px-2.5 py-1">
+            Brain: {brain}
+          </span>
         </div>
-      )}
 
-      {enabled === false && (
-        <div className="flex-1 flex flex-col items-center justify-center gap-4 p-6 text-center text-sm text-white/60 max-w-md mx-auto">
-          <p className="text-white/80 font-medium">Studio is not running yet</p>
-          <p>
-            From the repo root on your PC, run one command — then reopen this page or the desktop app:
-          </p>
-          <code className="block w-full rounded-lg bg-black/50 border border-white/10 px-3 py-2 font-mono text-[12px] text-[#00ff8b]">
-            npm run studio
-          </code>
-          <p className="text-[11px] text-white/40">
-            Then open <span className="text-white/60">http://localhost:8000/developer</span>
-            {' '}or launch the SG16 Personal Developer desktop shortcut.
-          </p>
-          {status && <p className="text-red-300 text-xs">{status}</p>}
-        </div>
-      )}
-
-      {enabled && (
-        <div className="flex-1 min-h-0 grid grid-rows-[minmax(0,1fr)_minmax(0,40%)] lg:grid-rows-1 lg:grid-cols-[16rem_minmax(0,1fr)_20rem]">
-          <aside className="hidden lg:block min-h-0 overflow-auto border-r border-white/10 p-2">
-            {tree.map((n) => (
-              <FileNode key={n.path} node={n} active={activePath} onOpen={openFile} />
-            ))}
-          </aside>
-
-          <section className="min-h-0 flex flex-col border-b lg:border-b-0 lg:border-r border-white/10">
-            <div className="shrink-0 h-9 px-3 flex items-center gap-2 border-b border-white/10 text-[11px]">
-              <span className="truncate text-white/70">{activePath || 'Open a file'}</span>
-              {dirty && <span className="text-amber-300">unsaved</span>}
-              <button
-                type="button"
-                onClick={() => void save()}
-                disabled={!dirty}
-                className="ml-auto inline-flex items-center gap-1 rounded px-2 py-1 bg-white/10 disabled:opacity-30"
-              >
-                <Save className="w-3 h-3" /> Save
-              </button>
-            </div>
-            <textarea
-              value={draft}
-              onChange={(e) => setDraft(e.target.value)}
-              spellCheck={false}
-              placeholder="Open a file from the tree. This is where apps are coded."
-              className="flex-1 min-h-0 w-full resize-none bg-transparent p-3 font-mono text-[12px] leading-relaxed text-white/90 outline-none"
-            />
-            <div className="lg:hidden shrink-0 max-h-28 overflow-auto border-t border-white/10 p-2">
-              {tree.map((n) => (
-                <FileNode key={n.path} node={n} active={activePath} onOpen={openFile} />
-              ))}
-            </div>
-          </section>
-
-          <aside className="min-h-0 flex flex-col">
-            <div className="flex-1 min-h-0 overflow-auto p-3 space-y-2">
-              {chat.length === 0 && (
-                <p className="text-xs text-white/45">
-                  Junior sits with the open file. Ask him to make a change, then Save.
-                </p>
-              )}
-              {chat.map((m) => (
-                <div
-                  key={m.id}
-                  className={`text-[12px] whitespace-pre-wrap rounded-lg px-2.5 py-2 ${
-                    m.role === 'user' ? 'bg-white/10' : 'bg-black/40 font-mono text-[11px] text-white/80'
-                  }`}
-                >
-                  {m.content}
-                </div>
-              ))}
-              {busy && (
-                <p className="inline-flex items-center gap-1 text-[11px] text-white/40">
-                  <Loader2 className="w-3 h-3 animate-spin" /> Working…
-                </p>
-              )}
-            </div>
-            <form
-              className="shrink-0 p-2 flex gap-2 border-t border-white/10"
-              onSubmit={(e) => {
-                e.preventDefault();
-                void ask(input);
-              }}
+        {!signedIn && (
+          <div className="mx-4 sm:mx-5 mt-3 shrink-0 rounded-xl border border-white/10 bg-black/40 px-4 py-3">
+            <p className="text-sm text-white/80">Sign in to work with your developer — coding, not the landing page.</p>
+            <button
+              type="button"
+              onClick={() => openLoginModal()}
+              className="mt-2 text-xs font-semibold text-sky-300 hover:text-sky-200"
             >
-              <input
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Tell Junior what to change in this file…"
-                className="flex-1 min-w-0 rounded-lg bg-black/40 border border-white/10 px-2.5 py-2 text-xs outline-none"
-              />
-              <button type="submit" disabled={busy || !input.trim()} className="px-2 text-white disabled:opacity-30">
-                <Send className="w-4 h-4" />
-              </button>
-            </form>
-          </aside>
+              Sign in with Google
+            </button>
+          </div>
+        )}
+
+        <div className="flex-1 min-h-0 overflow-auto px-4 sm:px-5 py-3 space-y-3">
+          {messages.length === 0 && (
+            <div className="space-y-2 pt-2">
+              <p className="text-sm text-white/55">Ask the developer to make something, then explain the house.</p>
+              {SUGGESTIONS.map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => send(s)}
+                  className="block w-full text-left text-xs rounded-lg border border-white/10 bg-black/30 px-3 py-2 text-white/70 hover:text-white hover:border-white/25"
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+          {messages.map((m) => (
+            <div
+              key={m.id}
+              className={`rounded-xl px-3 py-2.5 text-sm whitespace-pre-wrap ${
+                m.role === 'user'
+                  ? 'bg-sky-500/15 border border-sky-400/20 text-white ml-6'
+                  : 'bg-black/40 border border-white/10 text-white/90 mr-6 font-mono text-[13px] leading-relaxed'
+              }`}
+            >
+              {m.content}
+            </div>
+          ))}
+          {loading && (
+            <p className="inline-flex items-center gap-2 text-xs text-white/45">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" /> Developer is working…
+            </p>
+          )}
+          {error && <p className="text-xs text-red-300">{error}</p>}
+          <div ref={bottomRef} />
         </div>
-      )}
 
-      {status && enabled && (
-        <div className="shrink-0 px-3 py-1 text-[10px] text-white/45 border-t border-white/10">{status}</div>
-      )}
-    </div>
+        <form
+          className="shrink-0 px-4 sm:px-5 pb-3 pt-1 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            send(input);
+          }}
+        >
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Tell the developer what to make…"
+            className="flex-1 min-w-0 rounded-xl bg-black/50 border border-white/15 px-3 py-2.5 text-sm text-white placeholder:text-white/35 outline-none focus:border-sky-400/40"
+          />
+          <button
+            type="submit"
+            disabled={loading || !input.trim()}
+            className="inline-flex items-center justify-center rounded-xl bg-sky-600 hover:bg-sky-500 disabled:opacity-40 px-3 text-white"
+            aria-label="Send to developer"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </form>
+      </div>
+    </WorkspaceShell>
   );
-}
-
-export function DeveloperWorkspace() {
-  return <DeveloperStudioApp />;
 }

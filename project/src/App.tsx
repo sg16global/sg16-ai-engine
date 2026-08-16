@@ -39,8 +39,6 @@ import { LandingPage } from './components/landing/LandingPage';
 
 import { PublicLegalShell } from './components/legal/PublicLegalShell';
 
-import { DeveloperStudioApp } from './workspaces/Developer';
-
 import { isPublicLegalPath } from './content/legalContent';
 
 import { useAppStore } from './core/appState';
@@ -496,15 +494,6 @@ function App() {
       <>
         <SeoCanonical />
         <AuthSplash />
-      </>
-    );
-  }
-
-  if (isDeveloperRoute(pathname)) {
-    return (
-      <>
-        <SeoCanonical />
-        <DeveloperStudioApp />
       </>
     );
   }
