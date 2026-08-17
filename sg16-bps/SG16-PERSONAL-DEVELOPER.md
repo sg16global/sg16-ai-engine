@@ -60,15 +60,16 @@ Agent id in Kali Shell: `sg16-personal-developer`
 
 - All rooms open: backend, database, google-owner, infra, security, billing, all-projects
 - Away / wake / push / spawn — easy for signed-in owner session
-- To lock down for **public market launch** later: set `SG16_MARKET_MODE=true` and `SG16_OWNER_EMAIL`
+- To lock down Personal Developer room scopes for **public market launch** later: set `SG16_PD_SCOPES` (owner gate always uses `SG16_OWNER_EMAIL`)
 
 ```bash
-# Internal (default — no env needed)
-# Full access for owner + co-owner Katsur
-
-# Public market (later only)
-SG16_MARKET_MODE=true
+# Production — owner gate (required)
 SG16_OWNER_EMAIL=owner@gmail.com
+
+# Dev-only — widen PD room scopes (opt-in; never enabled when NODE_ENV=production)
+SG16_INTERNAL_MODE=1
+
+# Public market PD scopes (when not using internal mode)
 SG16_PD_SCOPES=backend,database,infra
 ```
 

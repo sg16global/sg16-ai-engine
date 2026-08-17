@@ -4,14 +4,7 @@ import { runShellBrain, getShellBrainStatus } from './shellBrain.js';
 import { inspectChildClothes, sewChildClothes } from './sheller.js';
 import { isSovereignBrain } from '../sg16Provider.js';
 import { isMasterRulesLoaded } from '../masterRules.js';
-import { getUserRecord } from '../userLedger.js';
-
-async function resolveOwnerEmail(auth) {
-  if (auth?.email) return auth.email;
-  if (!auth?.sub) return null;
-  const record = await getUserRecord(auth.sub);
-  return record?.email ?? null;
-}
+import { emailFromVerifiedAuth } from './internalMode.js';
 
 export async function getKaliShellStatus() {
   const brain = await getShellBrainStatus();
@@ -51,7 +44,7 @@ export async function runKaliShell({ message, agentId, history, auth }) {
 }
 
 export async function pushOwnerInsight({ insight, awayDays, awayNote, auth }) {
-  const email = await resolveOwnerEmail(auth);
+  const email = emailFromVerifiedAuth(auth);
   if (!isOwnerEmail(email)) {
     const err = new Error('Owner push requires the owner account.');
     err.code = 'OWNER_ONLY';
@@ -61,7 +54,7 @@ export async function pushOwnerInsight({ insight, awayDays, awayNote, auth }) {
 }
 
 export async function registerChildAgent(payload, auth) {
-  const email = await resolveOwnerEmail(auth);
+  const email = emailFromVerifiedAuth(auth);
   if (!isOwnerEmail(email)) {
     const err = new Error('Spawning agents requires the owner account.');
     err.code = 'OWNER_ONLY';

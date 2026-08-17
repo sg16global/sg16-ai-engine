@@ -7,10 +7,10 @@ const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function sessionSecret() {
   const secret = process.env.JWT_SECRET?.trim();
-  if (!secret && process.env.NODE_ENV === 'production') {
-    throw new Error('JWT_SECRET is required in production');
+  if (!secret) {
+    throw new Error('JWT_SECRET is required');
   }
-  return secret || 'sg16-dev-session-secret-change-me';
+  return secret;
 }
 
 function googleClientId() {
@@ -27,8 +27,11 @@ export function signSession(payload) {
 export function verifySession(token) {
   if (!token?.includes('.')) return null;
   const [data, sig] = token.split('.');
+  if (!data || !sig) return null;
   const expected = crypto.createHmac('sha256', sessionSecret()).update(data).digest('base64url');
-  if (sig !== expected) return null;
+  const sigBuf = Buffer.from(sig);
+  const expectedBuf = Buffer.from(expected);
+  if (sigBuf.length !== expectedBuf.length || !crypto.timingSafeEqual(sigBuf, expectedBuf)) return null;
   try {
     const payload = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
     if (!payload?.sub || !payload?.signupDate || payload.exp < Date.now()) return null;
@@ -81,6 +84,8 @@ export async function createAuthSessionFromGoogle(credential) {
     signupDate,
     name: profile.name,
     picture: profile.picture,
+    email: profile.email,
+    emailVerified: true,
   });
 
   return {
@@ -103,7 +108,7 @@ export async function buildUserPayload(session) {
     id: session.sub,
     signupDate,
     name: session.name || record?.name || 'SG16 User',
-    email: record?.email ?? undefined,
+    email: session.email || record?.email || undefined,
     picture: session.picture,
     launchFree,
     trialActive,

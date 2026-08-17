@@ -1,17 +1,25 @@
 /**
- * Internal co-owner mode — full permissions for owner + Katsur (Cursor).
- * Not for outside market. Set SG16_MARKET_MODE=true only when public launch needs gates.
+ * Internal co-owner mode — optional dev-only scope widening for Personal Developer rooms.
+ * Owner gate always uses SG16_OWNER_EMAIL + verified session email (fail-closed).
  */
 
 export function isInternalCoOwnerMode() {
-  const market = process.env.SG16_MARKET_MODE?.trim().toLowerCase();
-  return market !== '1' && market !== 'true';
+  if (process.env.NODE_ENV === 'production') return false;
+  const internal = process.env.SG16_INTERNAL_MODE?.trim().toLowerCase();
+  return internal === '1' || internal === 'true';
 }
 
-/** Owner + co-owner always allowed in internal mode. */
+/** Verified owner email from signed session — never DB lookup. */
+export function emailFromVerifiedAuth(auth) {
+  if (auth?.emailVerified === true && typeof auth.email === 'string' && auth.email.trim()) {
+    return auth.email.trim();
+  }
+  return null;
+}
+
 export function isOwnerAllowed(email) {
-  if (isInternalCoOwnerMode()) return true;
   const owner = process.env.SG16_OWNER_EMAIL?.trim().toLowerCase();
-  if (!owner) return true;
-  return email?.trim().toLowerCase() === owner;
+  if (!owner) return false;
+  if (!email) return false;
+  return email.trim().toLowerCase() === owner;
 }

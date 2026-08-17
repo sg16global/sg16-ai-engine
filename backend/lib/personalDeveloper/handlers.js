@@ -7,17 +7,10 @@ import {
   scoutForKatsur,
 } from './index.js';
 import { isOwnerEmail } from '../kaliShell/ownerState.js';
-import { getUserRecord } from '../userLedger.js';
-
-async function resolveOwnerEmail(auth) {
-  if (auth?.email) return auth.email;
-  if (!auth?.sub) return null;
-  const record = await getUserRecord(auth.sub);
-  return record?.email ?? null;
-}
+import { emailFromVerifiedAuth } from '../kaliShell/internalMode.js';
 
 async function requireOwner(auth, res) {
-  const email = await resolveOwnerEmail(auth);
+  const email = emailFromVerifiedAuth(auth);
   if (!isOwnerEmail(email)) {
     res.status(403).json({ error: 'Owner account required.', code: 'OWNER_ONLY' });
     return false;
