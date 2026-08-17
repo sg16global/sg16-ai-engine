@@ -46,7 +46,10 @@ describe('Kali Shell + Cursor Junior', () => {
     assert.match(SHELLER_PROMPT, /SEW/);
   });
 
-  it('internal mode grants all rooms', () => {
+  it('internal mode grants all rooms when opt-in', () => {
+    const prev = process.env.SG16_INTERNAL_MODE;
+    process.env.SG16_INTERNAL_MODE = '1';
+    process.env.NODE_ENV = 'development';
     assert.equal(isInternalCoOwnerMode(), true);
     const granted = getGrantedPermissions();
     assert.ok(granted.includes('backend'));
@@ -54,6 +57,8 @@ describe('Kali Shell + Cursor Junior', () => {
     const block = permissionsBlock();
     assert.equal(block.mode, 'internal-co-owner');
     assert.deepEqual(block.denied, []);
+    if (prev === undefined) delete process.env.SG16_INTERNAL_MODE;
+    else process.env.SG16_INTERNAL_MODE = prev;
   });
 
   it('rejects reserved spawn ids and bad ids', () => {

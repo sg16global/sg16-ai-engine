@@ -24,5 +24,8 @@
     "globals": "^16.5.0",
     "pg": "^8.22.0",
     "typescript-eslint": "^8.46.2"
+  },
+  "overrides": {
+    "minimatch": "^10.2.5"
   }
 }
