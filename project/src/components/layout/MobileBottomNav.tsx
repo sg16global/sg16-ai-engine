@@ -28,13 +28,13 @@ export function MobileBottomNav() {
               type="button"
               onClick={() => setWorkspace(item.id)}
               className={`relative flex flex-col items-center justify-center flex-1 min-w-0 gap-0.5 transition touch-target ${
-                active ? 'text-[#FF8A8A]' : 'text-gray-500 active:text-gray-300'
+                active ? 'text-[#00ff8b]' : 'text-gray-500 active:text-gray-300'
               }`}
             >
-              <Icon className={`w-5 h-5 ${item.id === 'pricing' && !active ? 'text-[#FF8A8A]/80' : ''}`} />
+              <Icon className={`w-5 h-5 ${item.id === 'pricing' && !active ? 'text-[#8b5cf6]/90' : ''}`} />
               <span className="text-[10px] font-medium truncate max-w-full px-0.5">{item.label}</span>
               {active && (
-                <span className="absolute top-1 w-1 h-1 rounded-full bg-[#FF2E2E]" aria-hidden />
+                <span className="absolute top-1 w-1 h-1 rounded-full bg-[#00ff8b]" aria-hidden />
               )}
             </button>
           );

@@ -17,6 +17,8 @@ export const APP_PATHS = {
   room: '/room',
   settings: '/settings',
   help: '/help',
+  /** Owner developer bench — Cursor Junior. Not the public landing. */
+  developer: '/developer',
 } as const;
 
 type RouteTarget = {
@@ -36,6 +38,7 @@ const PATH_ROUTES: Record<string, RouteTarget> = {
   [APP_PATHS.room]: { workspace: 'user-room' },
   [APP_PATHS.settings]: { workspace: 'settings' },
   [APP_PATHS.help]: { workspace: 'help', helpSection: 'overview' },
+  [APP_PATHS.developer]: { workspace: 'developer' },
 };
 
 export function normalizePath(pathname: string): string {
@@ -49,6 +52,7 @@ export function pathToRoute(pathname: string): RouteTarget | null {
 
 export function routeToPath(workspace: WorkspaceType, helpSection?: HelpSection): string | null {
   if (workspace === 'home') return APP_PATHS.app;
+  if (workspace === 'developer') return APP_PATHS.developer;
   if (workspace === 'user-room') return APP_PATHS.room;
   if (workspace === 'pricing') return APP_PATHS.pricing;
   if (workspace === 'settings') return APP_PATHS.settings;

@@ -112,7 +112,8 @@ function tryOpenWorkspace(
     workspace === 'user-room' ||
     workspace === 'history' ||
     workspace === 'settings' ||
-    workspace === 'help'
+    workspace === 'help' ||
+    workspace === 'developer'
   ) {
     set({ currentWorkspace: workspace, error: null });
     return true;
@@ -329,7 +330,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
 
   setWorkspace: (ws) => {
     const { subscription, authUser } = getState();
-    if (ws === 'pricing' || ws === 'student-verify' || ws === 'home' || ws === 'user-room' || ws === 'history' || ws === 'settings' || ws === 'help') {
+    if (ws === 'pricing' || ws === 'student-verify' || ws === 'home' || ws === 'user-room' || ws === 'history' || ws === 'settings' || ws === 'help' || ws === 'developer') {
       set({ currentWorkspace: ws, error: null });
       const path = routeToPath(ws);
       if (path) pushAppPath(path);

@@ -57,6 +57,13 @@ import {
   handlePersonalDeveloperWake,
 } from './lib/personalDeveloper/handlers.js';
 import { getPersonalDeveloperStatus } from './lib/personalDeveloper/index.js';
+import {
+  handleDevStudioAsk,
+  handleDevStudioRead,
+  handleDevStudioStatus,
+  handleDevStudioTree,
+  handleDevStudioWrite,
+} from './lib/devStudio/handlers.js';
 import { isMasterRulesLoaded } from './lib/masterRules.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -212,6 +219,12 @@ app.post('/api/v1/personal-developer/away', requireAuth, handlePersonalDeveloper
 app.post('/api/v1/personal-developer/wake', requireAuth, handlePersonalDeveloperWake);
 app.get('/api/v1/personal-developer/report', requireAuth, handlePersonalDeveloperReport);
 app.get('/api/v1/personal-developer/scout', requireAuth, handlePersonalDeveloperScout);
+
+app.get('/api/v1/dev-studio/status', handleDevStudioStatus);
+app.get('/api/v1/dev-studio/tree', handleDevStudioTree);
+app.get('/api/v1/dev-studio/file', handleDevStudioRead);
+app.put('/api/v1/dev-studio/file', handleDevStudioWrite);
+app.post('/api/v1/dev-studio/ask', handleDevStudioAsk);
 
 const indexPath = path.join(frontendDist, 'index.html');
 const frontendBuilt = fs.existsSync(indexPath);
