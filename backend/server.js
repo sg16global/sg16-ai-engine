@@ -143,6 +143,20 @@ app.use((req, res, next) => {
 
 app.get('/health', async (_req, res) => {
   const db = await checkDatabaseHealth();
+  res.json({
+    status: 'ok',
+    engine: 'SG16 AI Engine',
+    database: db,
+    brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
+    sovereign: isSovereignBrain(),
+    centralRules: isMasterRulesLoaded() ? 'loaded' : 'missing',
+    liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
+    providers: getProviderStatus(),
+  });
+});
+
+app.get('/health/deep', async (_req, res) => {
+  const db = await checkDatabaseHealth();
   let kaliShell = null;
   let personalDeveloper = null;
   try {

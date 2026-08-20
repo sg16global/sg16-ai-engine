@@ -290,6 +290,9 @@ export function getProviderChain() {
   const chain = [];
   const ollama = getOllamaProvider();
   if (ollama) chain.push(ollama);
+  if (isSovereignBrain() && process.env.SG16_SOVEREIGN_FALLBACK?.trim() !== '1') {
+    return chain;
+  }
   return appendApiProviders(chain);
 }
 

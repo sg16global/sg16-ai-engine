@@ -20,6 +20,7 @@
   },
   "scripts": {
     "build": "npm ci --prefix project && npm run build --prefix project && npm ci --prefix backend --omit=dev",
+    "build:docker": "npm run build --prefix project && npm ci --prefix backend --omit=dev",
     "start": "node backend/server.js",
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix project",

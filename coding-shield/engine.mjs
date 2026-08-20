@@ -34,10 +34,7 @@ export async function runFullShield(target = repoRoot, { only } = {}) {
     ? [[only, FULL_TOOLS[only]]].filter(([, fn]) => typeof fn === 'function')
     : Object.entries(FULL_TOOLS);
 
-  const results = [];
-  for (const [, fn] of entries) {
-    results.push(await fn());
-  }
+  const results = await Promise.all(entries.map(([, fn]) => fn()));
 
   const report = aggregateShieldScore(results);
   return { target, ...report, tools: results, scannedAt: new Date().toISOString() };

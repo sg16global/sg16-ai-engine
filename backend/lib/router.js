@@ -67,6 +67,7 @@ Rules: Only these 4 services. student-shield for education/homework/study. healt
       temperature: 0.3,
       max_tokens: 150,
     }),
+    signal: AbortSignal.timeout(Number(process.env.SG16_ROUTER_TIMEOUT_MS || 15000)),
   });
 
   const data = await res.json();

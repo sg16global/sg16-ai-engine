@@ -24,7 +24,7 @@ export async function getPlatformToolStatus() {
   ]);
   return {
     shield: 'SG16 Platform Shield',
-    license: 'OSS tools on your VPS — defensive scans only',
+    license: 'OSS defensive scanners — trivy, lynis, nuclei on Railway container',
     brain: 'mistral:7b-instruct (Apache 2.0) — separate from these scanners',
     clis: { trivy, lynis, nuclei },
     ready: trivy && lynis && nuclei,
