@@ -101,10 +101,10 @@ const BUILTIN_AGENTS = [
     name: 'Dev Infra',
     layer: 3,
     kind: 'developer',
-    scope: 'Railway, Cloudflare, VM, Ollama sovereign brain',
+    scope: 'Railway, Cloudflare, Ollama sovereign brain',
     ageBand: null,
     description: 'Infrastructure developer child — deploy and sovereign brain.',
-    systemPrompt: rulesForDeveloper('Railway, Cloudflare, VM, Ollama, RAILWAY-BRAIN.md patterns'),
+    systemPrompt: rulesForDeveloper('Railway, Cloudflare, Ollama, RAILWAY-BRAIN.md patterns'),
     developer: true,
   },
   {

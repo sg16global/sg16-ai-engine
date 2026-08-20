@@ -1,13 +1,18 @@
 [build]
-builder = "nixpacks"
-buildCommand = "npm run build"
+builder = "dockerfile"
+dockerfilePath = "Dockerfile"
 
 [deploy]
-startCommand = "npm start"
 healthcheckPath = "/health"
-healthcheckTimeout = 120
+healthcheckTimeout = 600
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 10
 
 [deploy.envVars]
 NODE_ENV = "production"
+SG16_BRAIN = "ollama"
+OLLAMA_URL = "http://127.0.0.1:11434"
+SG16_OLLAMA_MODEL = "mistral:7b-instruct"
+SG16_CHAT_TIMEOUT_MS = "120000"
+SG16_CODING_TIMEOUT_MS = "180000"
+HOST = "0.0.0.0"

@@ -15,8 +15,8 @@ Layer 2 — Katsur (senior developer brain)
 Layer 3 — Children agents
   Scoped developers + age-band guides (UNESCO-style child flow)
 
-Layer 0 — Own brain (Ollama/Mistral on VM)
-  Sovereign thinking — Railway proxies via OLLAMA_URL when SG16_BRAIN=ollama
+Layer 0 — Own brain (Ollama/Mistral on Railway)
+  Sovereign thinking — same container as the API via OLLAMA_URL=http://127.0.0.1:11434
 ```
 
 ## Age-band guides (human-facing children)
@@ -54,7 +54,7 @@ Sheller points the tear. Then sew. Give the clothes back.
 | `dev-frontend` | React, PWA, workspace UI |
 | `dev-backend` | Express API, sg16Engine, providers |
 | `dev-shield` | Coding Shield + Platform Shield |
-| `dev-infra` | Railway, Cloudflare, VM/Ollama |
+| `dev-infra` | Railway, Cloudflare, Ollama |
 | `continuity` | Hold state when owner is away |
 
 ## API (auth required except health)
@@ -78,9 +78,9 @@ Set `SG16_OWNER_EMAIL` on the server to restrict `/push` and `/spawn` to the own
 | Variable | Purpose |
 |----------|---------|
 | `SG16_BRAIN=ollama` | Sovereign own brain |
-| `OLLAMA_URL` | VM brain endpoint |
+| `OLLAMA_URL` | Local Ollama endpoint (`http://127.0.0.1:11434` on Railway) |
 | `SG16_OWNER_EMAIL` | Owner-only push/spawn |
 
 ## Deploy note
 
-Shell orchestration runs on Railway (API). Heavy tools stay on VM alongside Ollama and Platform Shield — same split as `RAILWAY-BRAIN.md`.
+Shell orchestration runs on Railway alongside Ollama and Platform Shield — single sovereign stack. See `RAILWAY-BRAIN.md`.

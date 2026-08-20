@@ -2,7 +2,13 @@ import { createOrEditImage, getImageAction } from './imageEngine.js';
 import { serverCanAccessWorkspace, serverAccessDeniedMessage } from './access.js';
 import { getEntitlements } from './userLedger.js';
 import { needsWebSearch, searchAndAnswer } from './webSearch.js';
-import { callWithModelFallback, callWithVisionFallback, isRateLimitError } from './sg16Provider.js';
+import {
+  callWithModelFallback,
+  callWithVisionFallback,
+  getPrimaryProvider,
+  isRateLimitError,
+  isSovereignBrain,
+} from './sg16Provider.js';
 import { getGenerationProfile, getModelChainForProfile } from './modelRouting.js';
 import { getMasterRules } from './masterRules.js';
 
@@ -66,6 +72,7 @@ function getApiUrl() {
 }
 
 function hasApiKey() {
+  if (isSovereignBrain() && getPrimaryProvider()) return true;
   const key = getApiKey();
   return key && !key.startsWith('<your_');
 }

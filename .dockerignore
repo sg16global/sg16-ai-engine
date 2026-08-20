@@ -1,0 +1,17 @@
+.git
+.github
+.cursor
+node_modules
+project/node_modules
+backend/node_modules
+desktop/node_modules
+project/dist
+backend/public
+*.md
+!sg16-bps/sg16-master-rules.md
+.env
+.env.*
+!.env.example
+!backend/.env.example
+!project/.env.example
+!sg16-bps/env.example
