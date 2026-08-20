@@ -9,7 +9,7 @@ SG16-Cursor-Junior-Setup.exe  (install once)
   ↓
 Junior lives on this PC — door open for this machine
   ↓
-Talks to the house brain (sg16engine.com / Railway pipe / VM)
+Talks to the house brain (sg16engine.com / Railway sovereign stack)
 ```
 
 ## Build the installer (Windows)

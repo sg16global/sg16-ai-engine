@@ -1,57 +1,55 @@
-# Railway enterprise + sovereign VM brain
+# SG16 sovereign stack — 100% Railway
 
-**Railway carries the full product** — domain, Node API, Postgres, OAuth, deploys from GitHub.
-
-**Your Mistral brain stays on the VM.** Railway is not limited to Groq. Set `SG16_BRAIN=ollama` and Railway calls your VM over `OLLAMA_URL`.
-
-This is the **production sovereign stack** while DNS still points at Railway (polish phase). Same code path as full VM deploy later.
+Everything runs on Railway in one Docker service:
 
 ```text
-World → Cloudflare → Railway (sg16engine.com, API, DB, auth)
-                         ↓  OLLAMA_URL
-                    VM (Mistral / Ollama :11434)
+World → Cloudflare → Railway
+                         ├── Express API + React PWA
+                         ├── PostgreSQL (Railway plugin)
+                         └── Ollama + mistral:7b-instruct (localhost :11434)
 ```
 
-Groq/OpenRouter keys can stay as **optional fallback** — primary brain is yours when `SG16_BRAIN=ollama`.
+No external VM. No Groq rental brain required when `SG16_BRAIN=ollama`.
 
-## 1. On Google VM (SSH)
+## Deploy
 
-```bash
-cd /opt/sg16/app
-sudo bash sg16-bps/scripts/enable-ollama-for-railway.sh
-```
+1. Push to GitHub (Railway watches the repo).
+2. Railway service uses `Dockerfile` + `scripts/start-railway.sh`.
+3. Add **Postgres** plugin → copy `DATABASE_URL` into service variables.
+4. Set auth vars: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `JWT_SECRET`, `SG16_OWNER_EMAIL`.
+5. First deploy pulls `mistral:7b-instruct` — allow ~10 min; health check timeout is 600s.
 
-Copy the **VM IP** it prints.
-
-## 2. On Railway (dashboard or CLI)
+## Required Railway variables
 
 | Variable | Value |
-|----------|--------|
+|----------|-------|
 | `SG16_BRAIN` | `ollama` |
-| `OLLAMA_URL` | `http://YOUR_VM_EXTERNAL_IP:11434` |
+| `OLLAMA_URL` | `http://127.0.0.1:11434` |
 | `SG16_OLLAMA_MODEL` | `mistral:7b-instruct` |
-| `SG16_CHAT_TIMEOUT_MS` | `120000` |
+| `DATABASE_URL` | from Postgres plugin |
+| `GOOGLE_CLIENT_ID` | Google OAuth |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth |
+| `JWT_SECRET` | random secret |
+| `SG16_APP_URL` | `https://sg16engine.com` |
 
-**One command (from PC, in repo folder, Railway CLI linked):**
+`railway.toml` sets brain defaults; override secrets in the Railway dashboard.
+
+## Hardware
+
+Recommend **8 GB+ RAM** on the Railway service for `mistral:7b-instruct`.
+
+## Verify
 
 ```bash
-bash sg16-bps/scripts/set-railway-sovereign-brain.sh YOUR_VM_EXTERNAL_IP
+curl https://sg16engine.com/health
 ```
 
-Redeploy Railway service (auto on variable change).
+Expect `"brain": "mistral-ollama"`, `"sovereign": true`, and database `ready`.
 
-## 3. Check
+## Local dev (optional)
+
+Run Ollama on your machine, then:
 
 ```bash
-curl -s https://sg16engine.com/health
+SG16_BRAIN=ollama OLLAMA_URL=http://127.0.0.1:11434 npm start
 ```
-
-Expect: `"brain":"mistral-ollama"`, `"sovereign":true`, `"primary":"ollama"`.
-
-## Google Cloud firewall
-
-If Railway cannot reach Ollama, add **VPC firewall rule**: allow **TCP 11434** to the VM tag (or source `0.0.0.0/0` temporarily while testing).
-
-## Later (Contabo move)
-
-Same pattern: new VM IP → update `OLLAMA_URL` on Railway until DNS moves to VPS.

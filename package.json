@@ -35,8 +35,6 @@
     "shield:sonar": "node coding-shield/run.mjs . sonar",
     "shield:audit": "node coding-shield/run.mjs . audit",
     "shield:tsc": "node coding-shield/run.mjs . tsc",
-    "shield:depcheck": "node coding-shield/run.mjs . depcheck",
-    "bps:bootstrap": "bash sg16-bps/bootstrap.sh",
-    "bps:deploy": "bash sg16-bps/deploy.sh"
+    "shield:depcheck": "node coding-shield/run.mjs . depcheck"
   }
 }
