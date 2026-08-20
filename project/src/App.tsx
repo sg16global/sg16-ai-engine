@@ -39,6 +39,8 @@ import { LandingPage } from './components/landing/LandingPage';
 
 import { PublicLegalShell } from './components/legal/PublicLegalShell';
 
+import { DeveloperStudioApp } from './workspaces/Developer';
+
 import { isPublicLegalPath } from './content/legalContent';
 
 import { useAppStore } from './core/appState';
@@ -93,6 +95,10 @@ function isGuestAppRoute(pathname: string) {
 
 function isWelcomeRoute(pathname: string) {
   return normalizePath(pathname) === APP_PATHS.welcome;
+}
+
+function isDeveloperRoute(pathname: string) {
+  return normalizePath(pathname) === APP_PATHS.developer;
 }
 
 
@@ -173,6 +179,8 @@ function AppShell() {
     const titles: Partial<Record<WorkspaceType, string>> = {
 
       home: 'SG16 AI Engine',
+
+      developer: 'SG16 Personal Developer',
 
       pricing: 'Pricing — SG16 AI Engine',
 
@@ -258,6 +266,8 @@ function AppShell() {
   const workspaceChromeLabel =
     currentWorkspace === 'general'
       ? 'SG16 Chatting'
+      : currentWorkspace === 'developer'
+        ? 'SG16 Personal Developer'
       : `${String(currentWorkspace).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}`;
   const isChatWorkspace = !(
     ['home', 'user-room', 'history', 'settings', 'help', 'pricing', 'student-verify'] as WorkspaceType[]
@@ -400,8 +410,12 @@ function App() {
 
 
 
-  const showLanding = !isAuthenticated(authUser) && (isLandingRoute(pathname) || isWelcomeRoute(pathname));
-  const showGuestApp = !isAuthenticated(authUser) && isGuestAppRoute(pathname);
+  const juniorDesktop = typeof window !== 'undefined' && Boolean(window.sg16Junior);
+  const showLanding =
+    !juniorDesktop &&
+    !isAuthenticated(authUser) &&
+    (isLandingRoute(pathname) || isWelcomeRoute(pathname));
+  const showGuestApp = !juniorDesktop && !isAuthenticated(authUser) && isGuestAppRoute(pathname);
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
   const restoringSession =
     !authHydrated &&
@@ -410,6 +424,12 @@ function App() {
 
   useEffect(() => {
     if (!authHydrated) return;
+    if (typeof window !== 'undefined' && window.sg16Junior) {
+      if (isLandingRoute(pathname) || isWelcomeRoute(pathname) || isGuestAppRoute(pathname)) {
+        pushAppPath(APP_PATHS.developer, true);
+      }
+      return;
+    }
     if (isAuthenticated(authUser) && isLandingRoute(pathname)) {
       pushAppPath(APP_PATHS.app, true);
     }
@@ -462,11 +482,29 @@ function App() {
     );
   }
 
-  if (!authHydrated && !isLandingRoute(pathname) && !isGuestAppRoute(pathname) && !isPublicLegalPath(pathname) && !isWelcomeRoute(pathname)) {
+  if (juniorDesktop && !isDeveloperRoute(pathname)) {
     return (
       <>
         <SeoCanonical />
         <AuthSplash />
+      </>
+    );
+  }
+
+  if (!authHydrated && !isLandingRoute(pathname) && !isGuestAppRoute(pathname) && !isPublicLegalPath(pathname) && !isWelcomeRoute(pathname) && !isDeveloperRoute(pathname)) {
+    return (
+      <>
+        <SeoCanonical />
+        <AuthSplash />
+      </>
+    );
+  }
+
+  if (isDeveloperRoute(pathname)) {
+    return (
+      <>
+        <SeoCanonical />
+        <DeveloperStudioApp />
       </>
     );
   }

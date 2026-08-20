@@ -5,7 +5,12 @@
 const { app, BrowserWindow, shell } = require('electron');
 const path = require('node:path');
 
-const HOUSE_URL = process.env.SG16_JUNIOR_URL?.trim() || 'https://sg16engine.com';
+const HOUSE_URL = (() => {
+  const raw = process.env.SG16_JUNIOR_URL?.trim() || 'http://localhost:5173';
+  const base = raw.replace(/\/+$/, '');
+  if (/\/developer$/i.test(base)) return base;
+  return `${base}/developer`;
+})();
 
 function createWindow() {
   const win = new BrowserWindow({

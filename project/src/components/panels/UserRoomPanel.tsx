@@ -25,6 +25,7 @@ import type { WorkspaceId } from '../../core/types';
 const workspaceLabels: Record<string, string> = {
   general: SG16_BRAND.chatName,
   coding: 'Coding Hub',
+  developer: 'SG16 Personal Developer',
   health: 'Health Shield',
   'student-shield': 'Student Shield',
   market: 'Market Shield',

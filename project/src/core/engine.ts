@@ -2,7 +2,7 @@ import type { RouteResponse, WorkspaceId } from './types';
 import { authHeaders } from '../lib/authApi';
 
 const VALID: WorkspaceId[] = [
-  'coding', 'health', 'student-shield', 'general', 'market',
+  'coding', 'developer', 'health', 'student-shield', 'general', 'market',
   'image', 'translate', 'document', 'voice', 'memory',
 ];
 

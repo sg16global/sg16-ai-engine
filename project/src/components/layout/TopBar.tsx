@@ -13,6 +13,7 @@ const titles: Record<string, string> = {
   pricing: 'Pricing',
   'student-verify': 'Student ID',
   coding: 'Coding Hub',
+  developer: 'SG16 Personal Developer',
   image: 'Image Studio',
   document: 'Document Lab',
   general: SG16_BRAND.chatName,
@@ -44,14 +45,14 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const planBadge = (compact = false) => {
     if (launchFree || authUser?.launchFree) {
       return (
-        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg whitespace-nowrap">
+        <span className="text-xs bg-[#00ff8b]/12 border border-[#00ff8b]/30 text-[#00ff8b] px-2 py-1 rounded-lg whitespace-nowrap">
           Launch · Full access
         </span>
       );
     }
     if (authUser?.trialActive) {
       return (
-        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg">
+        <span className="text-xs bg-[#8b5cf6]/15 border border-[#8b5cf6]/35 text-[#c4b5fd] px-2 py-1 rounded-lg">
           Trial · {authUser.trialDaysRemaining}d left
         </span>
       );
@@ -61,7 +62,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
         <button
           type="button"
           onClick={openPricing}
-          className="flex items-center gap-1.5 text-xs bg-[#FF2E2E]/15 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg hover:bg-[#FF2E2E]/25 transition"
+          className="flex items-center gap-1.5 text-xs bg-[#8b5cf6]/15 border border-[#8b5cf6]/30 text-[#c4b5fd] px-2 py-1 rounded-lg hover:bg-[#8b5cf6]/25 transition"
         >
           <Crown className="w-3.5 h-3.5" />
           {!compact && <span className="hidden sm:inline">Pro Premium</span>}
@@ -103,7 +104,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   };
 
   return (
-    <header className="h-14 lg:h-16 border-b border-[#2a1218] bg-[#050307]/90 backdrop-blur-xl flex items-center gap-2 px-3 sm:px-6 z-50 shrink-0 pt-[env(safe-area-inset-top)] lg:pt-0">
+    <header className="h-14 lg:h-16 border-b border-white/10 bg-[#08080e]/90 backdrop-blur-xl flex items-center gap-2 px-3 sm:px-6 z-50 shrink-0 pt-[env(safe-area-inset-top)] lg:pt-0">
       <button
         type="button"
         onClick={onMenuClick}
@@ -118,7 +119,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
           <button
             type="button"
             onClick={goToHome}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#FF8A8A] border border-[#FF2E2E]/35 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 px-2.5 py-1.5 rounded-lg shrink-0"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#00ff8b] border border-[#00ff8b]/35 bg-[#00ff8b]/10 hover:bg-[#00ff8b]/20 px-2.5 py-1.5 rounded-lg shrink-0"
             title="Back to Shield Home"
           >
             <Home className="w-3.5 h-3.5" />
@@ -155,8 +156,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <div className="text-sm font-medium truncate max-w-[8rem]">
               {isAuthenticated(authUser) ? authUser!.name : settings.displayName}
             </div>
-            <div className="text-xs text-[#FF8A8A] flex items-center gap-1 justify-end">
-              <span className="w-2 h-2 bg-[#FF2E2E] rounded-full inline-block" />
+            <div className="text-xs text-[#00ff8b] flex items-center gap-1 justify-end">
+              <span className="w-2 h-2 bg-[#00ff8b] rounded-full inline-block" />
               {isAuthenticated(authUser) ? 'Signed in' : 'Guest'}
             </div>
           </div>

@@ -75,7 +75,7 @@ SG16_PD_SCOPES=backend,database,infra
 
 ## PC install (exe)
 
-Junior installs on the owner PC — same kind of road as Cursor. See `CURSOR-JUNIOR-DESKTOP.md`.
+Junior installs on the owner PC and opens **`/developer`** — the developer bench, not the public landing. See `CURSOR-JUNIOR-DESKTOP.md`.
 
 ```powershell
 cd desktop
@@ -87,5 +87,4 @@ npm run dist:win
 
 - Children Shield (age 6+) — separate, most careful layer
 - Google OAuth room for real Gmail tasks
-- UI workspace tab to open PD easily in app
 - Deeper PC-road tools (scoped folders) after the exe sits on the machine

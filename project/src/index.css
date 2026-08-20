@@ -8,17 +8,20 @@
    Landing page: do not depend on these classes.
 ═══════════════════════════════════════════════════════════ */
 :root {
-  --sg16-bg: #050508;
-  --sg16-surface: #16161c;
-  --sg16-surface-2: #1c1218;
-  --sg16-border: rgba(255, 23, 61, 0.28);
+  --sg16-bg: #08080e;
+  --sg16-surface: #12141c;
+  --sg16-surface-2: #161822;
+  --sg16-border: rgba(0, 255, 139, 0.28);
   --sg16-border-soft: rgba(255, 255, 255, 0.1);
-  --sg16-red: #ff173d;
-  --sg16-maroon: #ff173d;
-  --sg16-red-soft: #ff8a8a;
+  /* design-reference palette — colour only; layout stays */
+  --sg16-green: #00ff8b;
+  --sg16-purple: #8b5cf6;
+  --sg16-red: #00ff8b;
+  --sg16-maroon: #00ff8b;
+  --sg16-red-soft: #7dffc2;
   --sg16-text: #e8eaef;
   --sg16-muted: rgba(232, 234, 239, 0.55);
-  --sg16-write-bg: rgba(24, 24, 32, 0.72);
+  --sg16-write-bg: rgba(18, 20, 28, 0.72);
   --sg16-write-border: rgba(255, 255, 255, 0.1);
   --sg16-caret: #c4c8d0;
 
@@ -200,8 +203,8 @@
 }
 
 .sg16-bar-accent {
-  background: linear-gradient(145deg, rgba(255, 46, 46, 0.18), rgba(255, 46, 46, 0.07));
-  border: 1px solid rgba(255, 46, 46, 0.28);
+  background: linear-gradient(145deg, rgba(139, 92, 246, 0.22), rgba(0, 255, 139, 0.08));
+  border: 1px solid rgba(139, 92, 246, 0.35);
   border-radius: var(--sg16-r-bar);
   padding: var(--sg16-bar-pad-y) var(--sg16-bar-pad-x);
   color: #fff;
@@ -233,10 +236,10 @@
 }
 
 .sg16-bar-row-active {
-  background: rgba(255, 46, 46, 0.1);
-  border-color: rgba(255, 46, 46, 0.32);
-  color: var(--sg16-red-soft);
-  box-shadow: inset 3px 0 0 var(--sg16-red);
+  background: rgba(0, 255, 139, 0.1);
+  border-color: rgba(0, 255, 139, 0.35);
+  color: var(--sg16-green);
+  box-shadow: inset 3px 0 0 var(--sg16-green);
 }
 
 /* Composer / input bar */
@@ -249,23 +252,23 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: var(--sg16-r-card);
   padding: 0.4rem 0.45rem;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(255, 46, 46, 0.04);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 255, 139, 0.06);
 }
 
 .sg16-composer:focus-within {
-  border-color: rgba(255, 46, 46, 0.35);
-  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 46, 46, 0.12);
+  border-color: rgba(139, 92, 246, 0.45);
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(139, 92, 246, 0.16);
 }
 
 .sg16-send {
-  background: var(--sg16-red);
+  background: var(--sg16-purple);
   color: #fff;
   border-radius: 0.85rem;
   transition: background 0.15s ease;
 }
 
 .sg16-send:hover:not(:disabled) {
-  background: #ff4545;
+  background: #9d75ff;
 }
 
 .sg16-send:disabled {
@@ -385,9 +388,9 @@
 .sg16-side-maroon {
   background: linear-gradient(
     180deg,
-    rgba(128, 0, 0, 0.58) 0%,
-    rgba(74, 0, 0, 0.62) 55%,
-    rgba(42, 0, 0, 0.68) 100%
+    rgba(12, 14, 22, 0.92) 0%,
+    rgba(10, 12, 18, 0.94) 55%,
+    rgba(8, 8, 14, 0.96) 100%
   );
   backdrop-filter: blur(20px) saturate(1.25);
   -webkit-backdrop-filter: blur(20px) saturate(1.25);
@@ -715,13 +718,13 @@
 }
 
 .sg16-work-field .sg16-bar-accent {
-  background: rgba(255, 23, 61, 0.12);
-  border-color: rgba(255, 23, 61, 0.28);
+  background: rgba(139, 92, 246, 0.14);
+  border-color: rgba(139, 92, 246, 0.32);
   color: #fff;
 }
 
 .sg16-work-field .sg16-send {
-  background: var(--sg16-red);
+  background: var(--sg16-purple);
 }
 
 .sg16-composer-input {

@@ -38,7 +38,8 @@ export function canAccessWorkspace(
     workspace === 'settings' ||
     workspace === 'help' ||
     workspace === 'pricing' ||
-    workspace === 'student-verify'
+    workspace === 'student-verify' ||
+    workspace === 'developer'
   ) {
     return true;
   }
@@ -105,6 +106,7 @@ export function accessDeniedMessage(
 function workspaceLabel(id: WorkspaceId): string {
   const labels: Record<WorkspaceId, string> = {
     coding: 'Coding Hub',
+    developer: 'SG16 Personal Developer',
     health: 'Health Guide',
     general: SG16_BRAND.chatName,
     'student-shield': 'Student Shield',
