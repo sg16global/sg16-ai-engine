@@ -267,11 +267,7 @@ export function getVisionModelChain(provider = getPrimaryProvider()) {
   return [...new Set(visionModels.filter(Boolean))];
 }
 
-export function getProviderChain() {
-  const ollama = getOllamaProvider();
-  if (ollama) return [ollama];
-
-  const chain = [];
+function appendApiProviders(chain) {
   const groq = getGroqProvider();
   const xai = getXaiProvider();
   const custom = getCustomProvider();
@@ -286,8 +282,15 @@ export function getProviderChain() {
   }
 
   if (custom && !chain.some((p) => p.id === custom.id)) chain.push(custom);
-  if (backup) chain.push(backup);
+  if (backup && !chain.some((p) => p.id === backup.id)) chain.push(backup);
   return chain;
+}
+
+export function getProviderChain() {
+  const chain = [];
+  const ollama = getOllamaProvider();
+  if (ollama) chain.push(ollama);
+  return appendApiProviders(chain);
 }
 
 export async function callChatCompletion({
@@ -381,11 +384,14 @@ export async function callWithModelFallback({
           console.warn(`SG16 ${provider.id}/${model} limited — trying next`);
           continue;
         }
-        if (provider.id === 'groq' || provider.id === 'custom') {
-          console.warn(`SG16 ${provider.id} error on ${model}:`, err.message);
-          continue;
-        }
-        if (provider.id === 'openrouter' || provider.id === 'backup') {
+        if (
+          provider.id === 'ollama' ||
+          provider.id === 'groq' ||
+          provider.id === 'custom' ||
+          provider.id === 'xai' ||
+          provider.id === 'openrouter' ||
+          provider.id === 'backup'
+        ) {
           console.warn(`SG16 ${provider.id} error on ${model}:`, err.message);
           continue;
         }
