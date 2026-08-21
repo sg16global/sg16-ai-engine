@@ -10,7 +10,6 @@ import {
   Star,
   CheckCircle2,
 } from 'lucide-react';
-import { SG16_BRAND } from '../../core/branding';
 import { SG16_PUBLIC_URL } from '../../core/routes';
 import { Sg16Logo } from '../ui/Sg16Logo';
 import { useAppStore } from '../../core/appState';
@@ -88,35 +87,34 @@ export function LandingPage() {
       <div className="landing-page__content relative z-[1]">
       <LandingHeader />
 
-      {/* Hero — video full background; logo + copy on top */}
+      {/* Hero — copy at top; video brain emblem stays clear in center */}
       <section className="landing-hero-section">
-        <div className="landing-shell landing-hero-copy">
-          <div className="landing-hero-stack">
-            <p className="landing-hero-brand">
-              <span className="landing-hero-brand-box">{SG16_BRAND.name}</span>
+        <div className="landing-shell landing-hero-layout">
+          <div className="landing-hero-panel">
+            <p className="landing-hero-kicker">
+              <span className="landing-hero-kicker-mark">SG16</span>
+              <span className="landing-hero-kicker-sep">AI Engine</span>
             </p>
-            <h1 className="landing-hero-title">
-              <span className="landing-hero-title-row">
-                <span className="landing-hero-word-box">Most</span>
-                <span className="landing-hero-word-box">Powerful</span>
-              </span>
-              <span className="landing-hero-word-box landing-hero-word-box--green">AI Engine</span>
+            <h1 className="landing-hero-headline">
+              <span className="landing-hero-headline-power">Most Powerful</span>
+              <span className="landing-hero-headline-engine">Sovereign AI Engine</span>
             </h1>
             <p className="landing-hero-sub">
               One application. Five shields — chat, code, health, student, and market in one secure engine.
             </p>
+            <div className="landing-hero-cta">
+              <button type="button" onClick={() => enterGuestTour()} className="landing-btn-primary">
+                Start Tour
+              </button>
+              <a href="#features" className="landing-btn-ghost">
+                See features
+              </a>
+            </div>
+            <p className="landing-hero-note">
+              Explore Shield Home free — sign in with Google only when you open a workspace.
+            </p>
           </div>
-          <div className="landing-hero-cta">
-            <button type="button" onClick={() => enterGuestTour()} className="landing-btn-primary">
-              Start Tour
-            </button>
-            <a href="#features" className="landing-btn-ghost">
-              See features
-            </a>
-          </div>
-          <p className="mt-4 text-xs text-white/40">
-            Explore Shield Home free — sign in with Google only when you open a workspace.
-          </p>
+          <div className="landing-hero-stage" aria-hidden />
         </div>
         <LandingNetworkCards />
       </section>
