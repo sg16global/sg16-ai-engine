@@ -1,107 +1,75 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 import { LANDING_VIDEO_DESKTOP } from '../../core/landingAssets';
 
-/** Skip baked-in fade frames at clip start/end so the loop never pulses dark. */
-const LOOP_LEAD_IN_SEC = 0.22;
-const LOOP_TAIL_SEC = 0.45;
+/** Tiny tail buffer so we seek before the browser hits the last frame pause. */
+const LOOP_TAIL_SEC = 0.04;
 
-function prepVideo(el: HTMLVideoElement) {
-  el.muted = true;
-  el.defaultMuted = true;
-  el.playsInline = true;
-  el.preload = 'auto';
-}
-
-function loopEnd(duration: number): number {
-  if (!Number.isFinite(duration) || duration <= 0) return 5.35;
-  return Math.max(LOOP_LEAD_IN_SEC + 0.35, duration - LOOP_TAIL_SEC);
-}
-
-/** Full-screen brain background — seamless trim loop, no fade pulse on repeat. */
+/** Full-screen brain background — single element, seek loop (no opacity swap flash). */
 export function LandingVideoBg() {
-  const refs = useRef<[HTMLVideoElement | null, HTMLVideoElement | null]>([null, null]);
-  const activeIdx = useRef(0);
-  const [front, setFront] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    const [a, b] = refs.current;
-    if (!a || !b) return;
+    const video = videoRef.current;
+    if (!video) return;
 
-    prepVideo(a);
-    prepVideo(b);
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    video.preload = 'auto';
 
-    const videos = [a, b];
     let cancelled = false;
 
-    const prime = (el: HTMLVideoElement) => {
-      el.currentTime = LOOP_LEAD_IN_SEC;
+    const play = () => {
+      if (cancelled) return;
+      void video.play().catch(() => {
+        window.setTimeout(() => void video.play().catch(() => {}), 400);
+      });
     };
 
-    const onTimeUpdate = (idx: number) => {
-      if (cancelled) return;
+    const onTimeUpdate = () => {
+      const duration = video.duration;
+      if (!Number.isFinite(duration) || duration <= 0) return;
 
-      const current = videos[idx];
-      const next = videos[1 - idx];
-      const end = loopEnd(current.duration);
-
-      if (current.currentTime >= end - 0.1 && next.paused) {
-        prime(next);
-        void next.play().catch(() => {});
-      }
-
-      if (current.currentTime >= end) {
-        current.pause();
-        activeIdx.current = 1 - idx;
-        setFront(activeIdx.current);
+      const loopAt = duration - LOOP_TAIL_SEC;
+      if (video.currentTime >= loopAt) {
+        video.currentTime = 0;
       }
     };
 
     const onVis = () => {
-      if (document.visibilityState !== 'visible') return;
-      const current = videos[activeIdx.current];
-      if (current.paused) void current.play().catch(() => {});
+      if (document.visibilityState === 'visible' && video.paused) play();
     };
 
-    const onTimeUpdateA = () => onTimeUpdate(0);
-    const onTimeUpdateB = () => onTimeUpdate(1);
-
-    a.addEventListener('timeupdate', onTimeUpdateA);
-    b.addEventListener('timeupdate', onTimeUpdateB);
+    video.addEventListener('timeupdate', onTimeUpdate);
+    video.addEventListener('loadeddata', play);
+    video.addEventListener('canplay', play);
     document.addEventListener('visibilitychange', onVis);
 
-    prime(a);
-    void a.play().catch(() => {
-      window.setTimeout(() => void a.play().catch(() => {}), 400);
-    });
+    play();
 
     return () => {
       cancelled = true;
-      a.removeEventListener('timeupdate', onTimeUpdateA);
-      b.removeEventListener('timeupdate', onTimeUpdateB);
+      video.removeEventListener('timeupdate', onTimeUpdate);
+      video.removeEventListener('loadeddata', play);
+      video.removeEventListener('canplay', play);
       document.removeEventListener('visibilitychange', onVis);
-      a.pause();
-      b.pause();
+      video.pause();
     };
   }, []);
 
   return (
     <div className="landing-video-bg" aria-hidden>
-      {[0, 1].map((i) => (
-        <video
-          key={i}
-          ref={(el) => {
-            refs.current[i] = el;
-          }}
-          className={`landing-video-bg__video${front === i ? ' landing-video-bg__video--active' : ''}`}
-          src={LANDING_VIDEO_DESKTOP}
-          autoPlay={i === 0}
-          muted
-          playsInline
-          preload="auto"
-          disablePictureInPicture
-        />
-      ))}
+      <video
+        ref={videoRef}
+        className="landing-video-bg__video"
+        src={LANDING_VIDEO_DESKTOP}
+        autoPlay
+        muted
+        playsInline
+        preload="auto"
+        disablePictureInPicture
+      />
       <div className="landing-video-bg__shade" />
     </div>
   );
