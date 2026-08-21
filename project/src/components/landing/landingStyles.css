@@ -27,6 +27,14 @@
   height: 100%;
   object-fit: cover;
   object-position: center center;
+  opacity: 0;
+  transition: none;
+  pointer-events: none;
+}
+
+.landing-video-bg__video--active {
+  opacity: 1;
+  z-index: 0;
 }
 
 .landing-video-bg__shade {
