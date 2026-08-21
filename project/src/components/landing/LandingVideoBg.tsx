@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 
 import { LANDING_VIDEO_DESKTOP } from '../../core/landingAssets';
 
-/** Full-screen Adobe Express loop — autoplay, muted, loop, object-fit cover. */
+/** Full-screen brain background loop — autoplay, muted, loop, object-fit cover. */
 export function LandingVideoBg() {
   const videoRef = useRef<HTMLVideoElement>(null);
 

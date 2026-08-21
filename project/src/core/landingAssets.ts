@@ -1,7 +1,7 @@
-/** Public homepage background — source: Desktop/SG16 Adobe Express.mp4 */
+/** Public homepage background — source: Desktop/CURSOR BOSS/IMG_3047.MP4 (~5s brain loop) */
 
-/** Softer Adobe Express loop — easier on the eyes. Query busts stale Cloudflare edge cache. */
-export const LANDING_VIDEO_DESKTOP = '/landing/sg16-adobe-express.mp4?v=adobe-express-v6';
+/** Sovereign brain loop. Query busts stale Cloudflare edge cache. */
+export const LANDING_VIDEO_DESKTOP = '/landing/sg16-brain-bg.mp4?v=brain-bg-v1';
 
 /** Still fallback while video loads */
 export const LANDING_POSTER = '/landing/hero-background.jpg';
