@@ -1,4 +1,5 @@
 import { chatOllamaNative } from './ollama.js';
+import { buildModelMessages } from './history.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
   Action,
@@ -67,7 +68,13 @@ function offlineFallback(message, ageTier) {
   return brainBusyFallback(ageTier);
 }
 
-export async function runChildrenWorldChat({ ageTier, message, nickname = '', sessionId = '' }) {
+export async function runChildrenWorldChat({
+  ageTier,
+  message,
+  nickname = '',
+  sessionId = '',
+  history = [],
+}) {
   if (!message?.trim()) {
     throw new Error('message is required');
   }
@@ -108,10 +115,7 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
   let content;
   try {
     content = await chatOllamaNative({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPayload },
-      ],
+      messages: buildModelMessages({ systemPrompt, history, userPayload }),
       maxTokens: 120,
       timeoutMs,
     });

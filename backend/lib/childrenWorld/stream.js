@@ -1,4 +1,5 @@
 import { streamOllamaNative } from './ollama.js';
+import { buildModelMessages } from './history.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
   Action,
@@ -87,6 +88,7 @@ export async function streamChildrenWorldChat({
   message,
   nickname = '',
   sessionId = '',
+  history = [],
   onToken,
 }) {
   if (!message?.trim()) {
@@ -129,10 +131,7 @@ export async function streamChildrenWorldChat({
   let content = '';
   try {
     content = await streamOllamaNative({
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPayload },
-      ],
+      messages: buildModelMessages({ systemPrompt, history, userPayload }),
       onToken: (delta, full) => {
         onToken?.(delta, full);
       },

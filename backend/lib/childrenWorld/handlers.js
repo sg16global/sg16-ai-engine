@@ -18,12 +18,13 @@ export async function handleChildrenWorldHealth(_req, res) {
 export async function handleChildrenWorldChat(req, res) {
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
-    const { sessionId, ageTier, nickname, message } = body;
+    const { sessionId, ageTier, nickname, message, history } = body;
     const result = await runChildrenWorldChat({
       sessionId: sessionId || '',
       ageTier,
       nickname: nickname || '',
       message: message ?? body.text,
+      history: history || [],
     });
     res.json(result);
   } catch (err) {
@@ -39,13 +40,14 @@ export async function handleChildrenWorldChatStream(req, res) {
 
   try {
     const body = req.body && typeof req.body === 'object' ? req.body : {};
-    const { sessionId, ageTier, nickname, message } = body;
+    const { sessionId, ageTier, nickname, message, history } = body;
 
     const result = await streamChildrenWorldChat({
       sessionId: sessionId || '',
       ageTier,
       nickname: nickname || '',
       message: message ?? body.text,
+      history: history || [],
       onToken: (_delta, full) => writeSse(res, 'token', { text: full }),
     });
 
