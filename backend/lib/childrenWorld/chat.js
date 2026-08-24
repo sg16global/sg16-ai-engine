@@ -91,7 +91,7 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
   const systemPrompt = buildSystemPrompt(ageTier, pre.action === Action.SAFE_COMPLETE);
   const userPayload = buildUserMessage(sanitized, nickname);
 
-  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 45000);
+  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 30000);
   let content;
   try {
     ({ content } = await callWithModelFallback({
@@ -99,8 +99,8 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPayload },
       ],
-      temperature: 0.6,
-      maxTokens: 1024,
+      temperature: 0.5,
+      maxTokens: 180,
       timeoutMs,
       providers: getChildrenWorldProviderChain(),
     }));

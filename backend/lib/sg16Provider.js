@@ -328,15 +328,24 @@ export async function callChatCompletion({
     headers['X-Title'] = activeProvider.appName || 'SG16 AI Engine';
   }
 
+  const body = {
+    model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  };
+  if (activeProvider.id === 'ollama') {
+    body.options = {
+      num_ctx: Number(process.env.OLLAMA_NUM_CTX || 2048),
+      num_predict: maxTokens,
+      num_thread: Number(process.env.OLLAMA_NUM_THREAD || 4),
+    };
+  }
+
   const res = await fetch(activeProvider.apiUrl, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-    }),
+    body: JSON.stringify(body),
     signal: AbortSignal.timeout(timeoutMs),
   });
 
