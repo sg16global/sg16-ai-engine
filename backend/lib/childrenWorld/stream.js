@@ -31,7 +31,20 @@ function buildSystemPrompt(ageTier, steerSafe) {
   return system;
 }
 
-function offlineFallback(message) {
+function brainBusyFallback(ageTier) {
+  if (ageTier === '18+') {
+    return (
+      'Our Mistral brain is still warming up or busy right now. ' +
+      'Please wait a few seconds and try again.'
+    );
+  }
+  return (
+    'Robo is waking up — give me a moment and try again. ' +
+    'If it keeps happening, ask a parent to check the SG16 brain.'
+  );
+}
+
+function offlineFallback(message, ageTier) {
   const t = message.toLowerCase();
   if (t.includes('sad') || t.includes('angry') || t.includes('scared')) {
     return (
@@ -51,7 +64,7 @@ function offlineFallback(message) {
   if (t.includes('science')) {
     return 'Science fact: Honey bees can “talk” by doing a waggle dance to show where flowers are.';
   }
-  return 'I can help with homework, stories, or feelings. What would you like to do?';
+  return brainBusyFallback(ageTier);
 }
 
 function finishResult({ ageTier, userText, pre, content, sessionId }) {
@@ -93,6 +106,7 @@ async function streamOllamaTokens({ messages, onToken, maxTokens, temperature, t
         num_predict: maxTokens,
         num_thread: Number(process.env.OLLAMA_NUM_THREAD || 4),
       },
+      keep_alive: process.env.OLLAMA_KEEP_ALIVE || '24h',
     }),
     signal: AbortSignal.timeout(timeoutMs),
   });
@@ -180,7 +194,7 @@ export async function streamChildrenWorldChat({
   const sanitized = pre.redactedText || userText;
   const systemPrompt = buildSystemPrompt(ageTier, pre.action === Action.SAFE_COMPLETE);
   const userPayload = buildUserMessage(sanitized, nickname);
-  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 30000);
+  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
   const maxTokens = 180;
 
   let content = '';
@@ -199,12 +213,12 @@ export async function streamChildrenWorldChat({
     });
   } catch (err) {
     console.warn('[children-world] stream unavailable:', err.message);
-    content = offlineFallback(sanitized);
+    content = offlineFallback(sanitized, ageTier);
     onToken?.(content, content);
   }
 
   if (!content) {
-    content = offlineFallback(sanitized);
+    content = offlineFallback(sanitized, ageTier);
     onToken?.(content, content);
   }
 

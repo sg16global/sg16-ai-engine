@@ -31,7 +31,20 @@ function buildSystemPrompt(ageTier, steerSafe) {
   return system;
 }
 
-function offlineFallback(message) {
+function brainBusyFallback(ageTier) {
+  if (ageTier === '18+') {
+    return (
+      'Our Mistral brain is still warming up or busy right now. ' +
+      'Please wait a few seconds and try again.'
+    );
+  }
+  return (
+    'Robo is waking up — give me a moment and try again. ' +
+    'If it keeps happening, ask a parent to check the SG16 brain.'
+  );
+}
+
+function offlineFallback(message, ageTier) {
   const t = message.toLowerCase();
   if (t.includes('sad') || t.includes('angry') || t.includes('scared')) {
     return (
@@ -51,7 +64,7 @@ function offlineFallback(message) {
   if (t.includes('science')) {
     return 'Science fact: Honey bees can “talk” by doing a waggle dance to show where flowers are.';
   }
-  return 'I can help with homework, stories, or feelings. What would you like to do?';
+  return brainBusyFallback(ageTier);
 }
 
 export async function runChildrenWorldChat({ ageTier, message, nickname = '', sessionId = '' }) {
@@ -91,7 +104,7 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
   const systemPrompt = buildSystemPrompt(ageTier, pre.action === Action.SAFE_COMPLETE);
   const userPayload = buildUserMessage(sanitized, nickname);
 
-  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 30000);
+  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
   let content;
   try {
     ({ content } = await callWithModelFallback({
@@ -106,7 +119,7 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
     }));
   } catch (err) {
     console.warn('[children-world] brain unavailable:', err.message);
-    content = offlineFallback(sanitized);
+    content = offlineFallback(sanitized, ageTier);
   }
 
   const pipeline = applySafetyPipeline(ageTier, userText, content);

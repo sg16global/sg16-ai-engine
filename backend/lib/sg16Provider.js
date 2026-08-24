@@ -340,6 +340,7 @@ export async function callChatCompletion({
       num_predict: maxTokens,
       num_thread: Number(process.env.OLLAMA_NUM_THREAD || 4),
     };
+    body.keep_alive = process.env.OLLAMA_KEEP_ALIVE || '24h';
   }
 
   const res = await fetch(activeProvider.apiUrl, {
