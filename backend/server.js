@@ -61,6 +61,7 @@ import { isMasterRulesLoaded } from './lib/masterRules.js';
 import {
   handleChildrenWorldChat,
   handleChildrenWorldHealth,
+  handleChildrenWorldChatStream,
 } from './lib/childrenWorld/handlers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -139,6 +140,7 @@ app.post(
 
 app.get('/api/sg16/health', handleChildrenWorldHealth);
 app.post('/api/sg16/chat', childrenChatRateLimit, handleChildrenWorldChat);
+app.post('/api/sg16/chat/stream', childrenChatRateLimit, handleChildrenWorldChatStream);
 
 function isLocalHost(req) {
   const host = req.hostname;
