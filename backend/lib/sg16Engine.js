@@ -306,8 +306,9 @@ export async function handleChatRequest(req, res) {
     res.json(result);
   } catch (err) {
     console.error('SG16 AI Engine:', err);
-    const msg = err instanceof Error ? err.message : '';
-    if (/aborted|timeout|TimeoutError/i.test(msg)) {
+    const msg = err instanceof Error ? err.message : String(err ?? '');
+    const errName = err instanceof Error ? err.name : '';
+    if (errName === 'TimeoutError' || /aborted|timeout/i.test(msg)) {
       return res.status(503).json({
         error: 'SG16 AI is warming up. Please try again in a few seconds.',
       });

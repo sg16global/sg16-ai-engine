@@ -102,10 +102,12 @@ function pickCompoundModel(message) {
 
 async function tryCompoundSearch({ message, history }) {
   if (isProviderInCooldown('compound')) return null;
+  // Sovereign Ollama brain: compound needs Groq API — use fast RSS formatting instead.
+  if (isSovereignBrain()) return null;
 
   const apiUrl = getGroqApiUrl();
   const apiKey = getApiKey();
-  if (!apiUrl || !apiKey) return null;
+  if (!apiUrl || !apiKey || apiKey === 'ollama') return null;
 
   const model = pickCompoundModel(message);
   const messages = [
@@ -187,6 +189,16 @@ async function synthesizeFromWebContext({ message, history, results }) {
 
 async function fallbackWebSearch({ message, history }) {
   const results = await fetchWebContext(message);
+
+  // Sovereign brain: skip slow Ollama synthesis — RSS/DDG direct answer in seconds.
+  if (isSovereignBrain()) {
+    const direct = formatDirectAnswer(results, message);
+    if (direct) {
+      return { reply: direct, liveSearch: true, source: 'web-direct' };
+    }
+    throw new Error('SG16 AI could not reach live web sources right now. Please try again.');
+  }
+
   const synthesized = await synthesizeFromWebContext({ message, history, results });
   if (synthesized) return synthesized;
 
