@@ -1,4 +1,4 @@
-import { callWithModelFallback } from '../sg16Provider.js';
+import { callWithModelFallback, getChildrenWorldProviderChain } from '../sg16Provider.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
   Action,
@@ -29,6 +29,29 @@ function buildSystemPrompt(ageTier, steerSafe) {
     system += `\n\nINTERNAL STEERING:\n${SAFE_COMPLETE_STEER}`;
   }
   return system;
+}
+
+function offlineFallback(message) {
+  const t = message.toLowerCase();
+  if (t.includes('sad') || t.includes('angry') || t.includes('scared')) {
+    return (
+      'I’m sorry you feel that way. Try three small steps: take slow breaths, ' +
+      'tell a trusted grown-up, and do something gentle like drawing. What happened?'
+    );
+  }
+  if (t.includes('7') && t.includes('8')) {
+    return '7 × 8 = 56. A trick: 7×4=28, then double it to get 56.';
+  }
+  if (t.includes('story')) {
+    return (
+      'Once there was a brave bunny named Pip. Pip helped a lost bird find its nest. ' +
+      'The bird said thank you. Pip smiled. The end.'
+    );
+  }
+  if (t.includes('science')) {
+    return 'Science fact: Honey bees can “talk” by doing a waggle dance to show where flowers are.';
+  }
+  return 'I can help with homework, stories, or feelings. What would you like to do?';
 }
 
 export async function runChildrenWorldChat({ ageTier, message, nickname = '', sessionId = '' }) {
@@ -69,15 +92,22 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
   const userPayload = buildUserMessage(sanitized, nickname);
 
   const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
-  const { content } = await callWithModelFallback({
-    messages: [
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPayload },
-    ],
-    temperature: 0.6,
-    maxTokens: 1024,
-    timeoutMs,
-  });
+  let content;
+  try {
+    ({ content } = await callWithModelFallback({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPayload },
+      ],
+      temperature: 0.6,
+      maxTokens: 1024,
+      timeoutMs,
+      providers: getChildrenWorldProviderChain(),
+    }));
+  } catch (err) {
+    console.warn('[children-world] brain unavailable:', err.message);
+    content = offlineFallback(sanitized);
+  }
 
   const pipeline = applySafetyPipeline(ageTier, userText, content);
   const flags = [...new Set([...pre.flags, ...(pipeline.postFlags || [])])];

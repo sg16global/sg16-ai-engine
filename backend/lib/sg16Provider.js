@@ -286,6 +286,13 @@ function appendApiProviders(chain) {
   return chain;
 }
 
+export function getChildrenWorldProviderChain() {
+  const chain = [];
+  const ollama = getOllamaProvider();
+  if (ollama) chain.push(ollama);
+  return appendApiProviders(chain);
+}
+
 export function getProviderChain() {
   const chain = [];
   const ollama = getOllamaProvider();
@@ -352,8 +359,9 @@ export async function callWithModelFallback({
   temperature = 0.7,
   maxTokens = 2048,
   timeoutMs = 90000,
+  providers: providersOverride = null,
 }) {
-  const providers = getProviderChain();
+  const providers = providersOverride || getProviderChain();
   if (!providers.length) {
     throw new Error('SG16 AI is not configured');
   }
