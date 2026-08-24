@@ -84,6 +84,8 @@ app.disable('x-powered-by');
 const allowedOrigins = new Set([
   'https://sg16engine.com',
   'https://www.sg16engine.com',
+  'https://sg16children.com',
+  'https://www.sg16children.com',
   `https://${SHIELD_HOST}`,
   ...(process.env.SG16_CHILDREN_ORIGINS || '')
     .split(',')

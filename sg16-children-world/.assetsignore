@@ -1,0 +1,7 @@
+backend/
+wrangler.jsonc
+sg16_children_world.html
+**/__pycache__/**
+**/*.py
+**/*.pyc
+requirements.txt
