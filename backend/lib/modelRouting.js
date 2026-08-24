@@ -75,6 +75,10 @@ export function getFastChatModelChain(provider = getPrimaryProvider()) {
     return splitModels(process.env.SG16_AI_MODEL_TEXT, 'llama-3.1-8b-instant');
   }
 
+  if (provider.id === 'ollama') {
+    return [provider.models.text].filter(Boolean);
+  }
+
   if (provider.id === 'openrouter' || provider.id === 'backup') {
     return uniqueModels(
       [provider.models.text],
@@ -105,6 +109,10 @@ export function getCodingModelChain(provider = getPrimaryProvider()) {
       process.env.SG16_AI_MODEL_CODING,
       'llama-3.3-70b-versatile,llama-3.1-8b-instant',
     );
+  }
+
+  if (provider.id === 'ollama') {
+    return [provider.models.coding || provider.models.text].filter(Boolean);
   }
 
   if (provider.id === 'openrouter' || provider.id === 'backup') {
@@ -139,6 +147,10 @@ export function getCodingModelChain(provider = getPrimaryProvider()) {
 export function getReasoningModelChain(provider = getPrimaryProvider()) {
   if (!provider) {
     return splitModels(process.env.SG16_AI_MODEL_REASONING, 'llama-3.3-70b-versatile');
+  }
+
+  if (provider.id === 'ollama') {
+    return [provider.models.reasoning || provider.models.text].filter(Boolean);
   }
 
   if (provider.id === 'openrouter' || provider.id === 'backup') {

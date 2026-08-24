@@ -5,6 +5,7 @@ import {
   getGroqApiUrl,
   isProviderInCooldown,
   isRateLimitError,
+  isSovereignBrain,
   markProviderCooldown,
   todayLabel,
 } from './sg16Provider.js';
@@ -174,7 +175,8 @@ async function synthesizeFromWebContext({ message, history, results }) {
     const { content, model } = await callWithModelFallback({
       messages,
       temperature: 0.3,
-      maxTokens: 1800,
+      maxTokens: isSovereignBrain() ? Number(process.env.SG16_OLLAMA_MAX_TOKENS || 384) : 1800,
+      timeoutMs: isSovereignBrain() ? Number(process.env.SG16_OLLAMA_TIMEOUT_MS || 180000) : 90000,
     });
     return { reply: content, liveSearch: true, source: 'sg16-web', model };
   } catch (err) {

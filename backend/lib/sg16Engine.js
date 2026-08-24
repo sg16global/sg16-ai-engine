@@ -307,6 +307,11 @@ export async function handleChatRequest(req, res) {
   } catch (err) {
     console.error('SG16 AI Engine:', err);
     const msg = err instanceof Error ? err.message : '';
+    if (/aborted|timeout|TimeoutError/i.test(msg)) {
+      return res.status(503).json({
+        error: 'SG16 AI is warming up. Please try again in a few seconds.',
+      });
+    }
     if (msg.includes('not configured')) {
       return res.status(503).json({
         error: 'SG16 AI is not available right now. Please try again shortly.',

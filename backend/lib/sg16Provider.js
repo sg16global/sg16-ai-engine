@@ -316,6 +316,11 @@ export async function callChatCompletion({
     throw new Error('SG16 AI is not configured');
   }
 
+  if (activeProvider.id === 'ollama') {
+    maxTokens = Math.min(maxTokens, Number(process.env.SG16_OLLAMA_MAX_TOKENS || 384));
+    timeoutMs = Math.max(timeoutMs, Number(process.env.SG16_OLLAMA_TIMEOUT_MS || 180000));
+  }
+
   const headers = {
     Authorization: `Bearer ${activeProvider.apiKey}`,
     'Content-Type': 'application/json',
