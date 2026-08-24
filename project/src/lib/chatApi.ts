@@ -8,15 +8,37 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
 ).toString();
 
 const API = '/api/v1';
+const CHAT_TIMEOUT_MS = 95_000;
+
+async function readApiJson(res: Response) {
+  const text = await res.text();
+  try {
+    return text ? JSON.parse(text) : {};
+  } catch {
+    if (res.status === 524 || res.status === 504 || res.status === 502) {
+      throw new Error('SG16 AI is warming up. Please try again in a few seconds.');
+    }
+    throw new Error('SG16 AI request failed. Please try again.');
+  }
+}
 
 export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
-  const res = await fetch(`${API}/chat`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify(request),
-  });
+  let res: Response;
+  try {
+    res = await fetch(`${API}/chat`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify(request),
+      signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === 'TimeoutError') {
+      throw new Error('SG16 AI is warming up. Please try again in a few seconds.');
+    }
+    throw new Error('SG16 AI request failed. Please try again.');
+  }
 
-  const data = await res.json();
+  const data = await readApiJson(res);
   if (!res.ok) {
     if (data.code === 'AUTH_REQUIRED') throw new Error('AUTH_REQUIRED');
     throw new Error(data.error || 'SG16 AI is temporarily unavailable');

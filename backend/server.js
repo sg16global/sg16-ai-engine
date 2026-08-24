@@ -27,7 +27,7 @@ import {
 import { isLaunchFree } from './lib/launchMode.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
-import { getProviderStatus, getTextModelChain, isSovereignBrain } from './lib/sg16Provider.js';
+import { getProviderStatus, getTextModelChain, isSovereignBrain, probeOllamaChat } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
 import { handleGetUserRoom, handleGetUserHistory, handlePutUserHistory } from './lib/userRoom.js';
@@ -202,12 +202,16 @@ app.get('/health/deep', async (_req, res) => {
   const db = await checkDatabaseHealth();
   let kaliShell = null;
   let personalDeveloper = null;
+  let brainChat = null;
   try {
     kaliShell = await getKaliShellStatus();
     personalDeveloper = await getPersonalDeveloperStatus();
   } catch {
     kaliShell = { status: 'error' };
     personalDeveloper = { status: 'error' };
+  }
+  if (isSovereignBrain()) {
+    brainChat = await probeOllamaChat();
   }
   res.json({
     status: 'ok',
@@ -217,6 +221,7 @@ app.get('/health/deep', async (_req, res) => {
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
     brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
     sovereign: isSovereignBrain(),
+    brainChat,
     centralRules: isMasterRulesLoaded() ? 'loaded' : 'missing',
     kaliShell,
     personalDeveloper,

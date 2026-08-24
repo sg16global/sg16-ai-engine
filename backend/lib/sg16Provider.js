@@ -57,6 +57,74 @@ function getOllamaModel() {
   ).trim();
 }
 
+async function callOllamaNativeChat({ messages, model, temperature, maxTokens, timeoutMs }) {
+  const ollamaModel = model || getOllamaModel();
+  const res = await fetch(`${getOllamaBaseUrl()}/api/chat`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: ollamaModel,
+      messages,
+      stream: false,
+      options: {
+        num_ctx: Number(process.env.OLLAMA_NUM_CTX || 2048),
+        num_predict: maxTokens,
+        num_thread: Number(process.env.OLLAMA_NUM_THREAD || 4),
+        temperature,
+      },
+      keep_alive: process.env.OLLAMA_KEEP_ALIVE || '24h',
+    }),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+
+  const raw = await res.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    const err = new Error('SG16 AI request failed');
+    err.status = res.status;
+    err.provider = 'ollama';
+    throw err;
+  }
+  if (!res.ok) {
+    const err = new Error(data.error || 'SG16 AI request failed');
+    err.status = res.status;
+    err.provider = 'ollama';
+    throw err;
+  }
+
+  const content = data.message?.content?.trim();
+  if (!content) throw new Error('SG16 AI returned an empty response');
+  return content;
+}
+
+/** Quick chat probe for /health/deep — confirms Mistral can reply, not just list models. */
+export async function probeOllamaChat() {
+  const started = Date.now();
+  try {
+    const reply = await callOllamaNativeChat({
+      messages: [{ role: 'user', content: 'Reply with exactly: ok' }],
+      temperature: 0,
+      maxTokens: 8,
+      timeoutMs: Number(process.env.SG16_OLLAMA_PROBE_MS || 60000),
+    });
+    return {
+      ok: true,
+      latencyMs: Date.now() - started,
+      model: getOllamaModel(),
+      sample: reply.slice(0, 40),
+    };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - started,
+      model: getOllamaModel(),
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 function getOllamaProvider() {
   if (!isSovereignBrain() && !process.env.OLLAMA_URL && !process.env.SG16_OLLAMA_URL) {
     return null;
@@ -319,6 +387,7 @@ export async function callChatCompletion({
   if (activeProvider.id === 'ollama') {
     maxTokens = Math.min(maxTokens, Number(process.env.SG16_OLLAMA_MAX_TOKENS || 384));
     timeoutMs = Math.max(timeoutMs, Number(process.env.SG16_OLLAMA_TIMEOUT_MS || 180000));
+    return callOllamaNativeChat({ messages, model, temperature, maxTokens, timeoutMs });
   }
 
   const headers = {
@@ -339,14 +408,6 @@ export async function callChatCompletion({
     temperature,
     max_tokens: maxTokens,
   };
-  if (activeProvider.id === 'ollama') {
-    body.options = {
-      num_ctx: Number(process.env.OLLAMA_NUM_CTX || 2048),
-      num_predict: maxTokens,
-      num_thread: Number(process.env.OLLAMA_NUM_THREAD || 4),
-    };
-    body.keep_alive = process.env.OLLAMA_KEEP_ALIVE || '24h';
-  }
 
   const res = await fetch(activeProvider.apiUrl, {
     method: 'POST',

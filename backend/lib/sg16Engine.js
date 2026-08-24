@@ -328,6 +328,11 @@ export async function handleChatRequest(req, res) {
         error: 'SG16 AI is busy right now. Live web answers will resume automatically — please try again in a minute.',
       });
     }
+    if (/empty response|request failed|capacity reached/i.test(msg)) {
+      return res.status(503).json({
+        error: 'SG16 AI is warming up. Please try again in a few seconds.',
+      });
+    }
     if (msg.startsWith('SG16') || msg.startsWith('Please') || msg.startsWith('Blocked')) {
       return res.status(503).json({ error: msg });
     }
