@@ -58,6 +58,10 @@ import {
 } from './lib/personalDeveloper/handlers.js';
 import { getPersonalDeveloperStatus } from './lib/personalDeveloper/index.js';
 import { isMasterRulesLoaded } from './lib/masterRules.js';
+import {
+  handleChildrenWorldChat,
+  handleChildrenWorldHealth,
+} from './lib/childrenWorld/handlers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -80,7 +84,11 @@ const allowedOrigins = new Set([
   'https://sg16engine.com',
   'https://www.sg16engine.com',
   `https://${SHIELD_HOST}`,
-  ...(isProd ? [] : ['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:5173']),
+  ...(process.env.SG16_CHILDREN_ORIGINS || '')
+    .split(',')
+    .map((o) => o.trim())
+    .filter(Boolean),
+  ...(isProd ? [] : ['http://localhost:5173', 'http://localhost:8000', 'http://127.0.0.1:5173', 'http://127.0.0.1:8787', 'http://localhost:8787']),
 ]);
 
 app.use(
@@ -111,6 +119,17 @@ const apiRateLimit = rateLimit({
 });
 
 app.use('/api/', apiRateLimit);
+
+const childrenChatRateLimit = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 60,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: 'Too many chat messages. Please try again later.' },
+});
+
+app.get('/api/sg16/health', handleChildrenWorldHealth);
+app.post('/api/sg16/chat', childrenChatRateLimit, handleChildrenWorldChat);
 
 // Billing webhook (provider-agnostic raw body; currently returns 410 until Dodo is wired)
 app.post(
