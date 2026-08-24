@@ -128,9 +128,6 @@ const childrenChatRateLimit = rateLimit({
   message: { error: 'Too many chat messages. Please try again later.' },
 });
 
-app.get('/api/sg16/health', handleChildrenWorldHealth);
-app.post('/api/sg16/chat', childrenChatRateLimit, handleChildrenWorldChat);
-
 // Billing webhook (provider-agnostic raw body; currently returns 410 until Dodo is wired)
 app.post(
   '/api/v1/billing/webhook',
@@ -139,6 +136,9 @@ app.post(
 );
 
 app.use(express.json({ limit: '10mb' }));
+
+app.get('/api/sg16/health', handleChildrenWorldHealth);
+app.post('/api/sg16/chat', childrenChatRateLimit, handleChildrenWorldChat);
 
 function isLocalHost(req) {
   const host = req.hostname;
