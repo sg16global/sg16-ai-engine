@@ -1,4 +1,4 @@
-import { getPrimaryProvider, getTextModelChain } from '../sg16Provider.js';
+import { streamOllamaNative } from './ollama.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
   Action,
@@ -82,76 +82,6 @@ function finishResult({ ageTier, userText, pre, content, sessionId }) {
   };
 }
 
-async function streamOllamaTokens({ messages, onToken, maxTokens, temperature, timeoutMs }) {
-  const provider = getPrimaryProvider();
-  if (!provider?.apiUrl || provider.id !== 'ollama') {
-    throw new Error('Ollama brain not available');
-  }
-
-  const model = getTextModelChain(provider)[0];
-  const res = await fetch(provider.apiUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${provider.apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-      stream: true,
-      options: {
-        num_ctx: Number(process.env.OLLAMA_NUM_CTX || 2048),
-        num_predict: maxTokens,
-        num_thread: Number(process.env.OLLAMA_NUM_THREAD || 4),
-      },
-      keep_alive: process.env.OLLAMA_KEEP_ALIVE || '24h',
-    }),
-    signal: AbortSignal.timeout(timeoutMs),
-  });
-
-  if (!res.ok) {
-    const detail = await res.text().catch(() => res.statusText);
-    throw new Error(detail || 'Ollama stream failed');
-  }
-
-  const reader = res.body?.getReader();
-  if (!reader) throw new Error('Ollama stream unavailable');
-
-  const decoder = new TextDecoder();
-  let buffer = '';
-  let content = '';
-
-  while (true) {
-    const { done, value } = await reader.read();
-    if (done) break;
-
-    buffer += decoder.decode(value, { stream: true });
-    const lines = buffer.split('\n');
-    buffer = lines.pop() || '';
-
-    for (const line of lines) {
-      const trimmed = line.trim();
-      if (!trimmed || trimmed === 'data: [DONE]') continue;
-      if (!trimmed.startsWith('data:')) continue;
-
-      const payload = trimmed.replace(/^data:\s*/, '');
-      try {
-        const json = JSON.parse(payload);
-        const delta = json.choices?.[0]?.delta?.content;
-        if (!delta) continue;
-        content += delta;
-        onToken(delta, content);
-      } catch {
-        // ignore malformed chunks
-      }
-    }
-  }
-
-  return content.trim();
-}
-
 export async function streamChildrenWorldChat({
   ageTier,
   message,
@@ -195,11 +125,10 @@ export async function streamChildrenWorldChat({
   const systemPrompt = buildSystemPrompt(ageTier, pre.action === Action.SAFE_COMPLETE);
   const userPayload = buildUserMessage(sanitized, nickname);
   const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
-  const maxTokens = 180;
 
   let content = '';
   try {
-    content = await streamOllamaTokens({
+    content = await streamOllamaNative({
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPayload },
@@ -207,8 +136,7 @@ export async function streamChildrenWorldChat({
       onToken: (delta, full) => {
         onToken?.(delta, full);
       },
-      maxTokens,
-      temperature: 0.5,
+      maxTokens: 120,
       timeoutMs,
     });
   } catch (err) {

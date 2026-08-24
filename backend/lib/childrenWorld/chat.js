@@ -1,4 +1,4 @@
-import { callWithModelFallback, getChildrenWorldProviderChain } from '../sg16Provider.js';
+import { chatOllamaNative } from './ollama.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
   Action,
@@ -107,16 +107,14 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
   const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
   let content;
   try {
-    ({ content } = await callWithModelFallback({
+    content = await chatOllamaNative({
       messages: [
         { role: 'system', content: systemPrompt },
         { role: 'user', content: userPayload },
       ],
-      temperature: 0.5,
-      maxTokens: 180,
+      maxTokens: 120,
       timeoutMs,
-      providers: getChildrenWorldProviderChain(),
-    }));
+    });
   } catch (err) {
     console.warn('[children-world] brain unavailable:', err.message);
     content = offlineFallback(sanitized, ageTier);

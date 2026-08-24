@@ -1,4 +1,5 @@
 import { runChildrenWorldChat, getChildrenWorldStatus } from './chat.js';
+import { pingOllama } from './ollama.js';
 import { streamChildrenWorldChat } from './stream.js';
 
 function writeSse(res, event, data) {
@@ -7,7 +8,8 @@ function writeSse(res, event, data) {
 
 export async function handleChildrenWorldHealth(_req, res) {
   try {
-    res.json({ status: 'ok', ...getChildrenWorldStatus() });
+    const ollama = await pingOllama();
+    res.json({ status: 'ok', ollama, ...getChildrenWorldStatus() });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
