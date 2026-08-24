@@ -44,15 +44,16 @@ else
   ollama pull "${SG16_OLLAMA_MODEL}"
 fi
 
-echo "[SG16] Warming ${SG16_OLLAMA_MODEL} into memory..."
-if curl -sf "${OLLAMA_URL}/api/chat" \
-  -H "Content-Type: application/json" \
-  -d "{\"model\":\"${SG16_OLLAMA_MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}" \
-  >/dev/null; then
-  echo "[SG16] Model warm — ready for chat."
-else
-  echo "[SG16] Model warm failed — first chat may be slower."
-fi
-
 echo "[SG16] Starting SG16 API on ${HOST}:${PORT}..."
+(
+  sleep 3
+  echo "[SG16] Warming ${SG16_OLLAMA_MODEL} in background..."
+  curl -sf --max-time 180 "${OLLAMA_URL}/api/chat" \
+    -H "Content-Type: application/json" \
+    -d "{\"model\":\"${SG16_OLLAMA_MODEL}\",\"messages\":[{\"role\":\"user\",\"content\":\"hi\"}],\"stream\":false}" \
+    >/dev/null \
+    && echo "[SG16] Model warm — ready for chat." \
+    || echo "[SG16] Model warm skipped (will load on first chat)."
+) &
+
 exec node backend/server.js
