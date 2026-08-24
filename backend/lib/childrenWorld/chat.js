@@ -91,7 +91,7 @@ export async function runChildrenWorldChat({ ageTier, message, nickname = '', se
   const systemPrompt = buildSystemPrompt(ageTier, pre.action === Action.SAFE_COMPLETE);
   const userPayload = buildUserMessage(sanitized, nickname);
 
-  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
+  const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 45000);
   let content;
   try {
     ({ content } = await callWithModelFallback({

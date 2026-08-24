@@ -290,7 +290,7 @@ export function getChildrenWorldProviderChain() {
   const chain = [];
   const ollama = getOllamaProvider();
   if (ollama) chain.push(ollama);
-  return appendApiProviders(chain);
+  return chain;
 }
 
 export function getProviderChain() {
