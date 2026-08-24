@@ -39,7 +39,7 @@ ENV NODE_ENV=production \
   OLLAMA_HOST=127.0.0.1:11434 \
   OLLAMA_KEEP_ALIVE=24h \
   SG16_CHILDREN_ENABLED=0 \
-  SG16_OLLAMA_MODEL=mistral:7b-instruct \
+  SG16_OLLAMA_MODEL=mistral:7b-instruct-q4_K_M \
   HOST=0.0.0.0
 
 EXPOSE 8000

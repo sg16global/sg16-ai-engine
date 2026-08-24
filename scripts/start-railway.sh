@@ -4,7 +4,7 @@ set -euo pipefail
 export OLLAMA_HOST="${OLLAMA_HOST:-127.0.0.1:11434}"
 export OLLAMA_URL="${OLLAMA_URL:-http://127.0.0.1:11434}"
 export SG16_BRAIN="${SG16_BRAIN:-ollama}"
-export SG16_OLLAMA_MODEL="${SG16_OLLAMA_MODEL:-mistral:7b-instruct}"
+export SG16_OLLAMA_MODEL="${SG16_OLLAMA_MODEL:-mistral:7b-instruct-q4_K_M}"
 export OLLAMA_KEEP_ALIVE="${OLLAMA_KEEP_ALIVE:-24h}"
 export SG16_CHILDREN_ENABLED="${SG16_CHILDREN_ENABLED:-0}"
 export HOST="${HOST:-0.0.0.0}"
