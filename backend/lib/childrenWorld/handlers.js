@@ -10,12 +10,13 @@ export async function handleChildrenWorldHealth(_req, res) {
 
 export async function handleChildrenWorldChat(req, res) {
   try {
-    const { sessionId, ageTier, nickname, message } = req.body ?? {};
+    const body = req.body && typeof req.body === 'object' ? req.body : {};
+    const { sessionId, ageTier, nickname, message } = body;
     const result = await runChildrenWorldChat({
       sessionId: sessionId || '',
       ageTier,
       nickname: nickname || '',
-      message,
+      message: message ?? body.text,
     });
     res.json(result);
   } catch (err) {

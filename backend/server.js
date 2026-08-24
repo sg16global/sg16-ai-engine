@@ -110,6 +110,8 @@ app.use((req, res, next) => {
   next();
 });
 
+app.use(express.json({ limit: '10mb' }));
+
 const apiRateLimit = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -134,8 +136,6 @@ app.post(
   express.raw({ type: 'application/json' }),
   handleBillingWebhook,
 );
-
-app.use(express.json({ limit: '10mb' }));
 
 app.get('/api/sg16/health', handleChildrenWorldHealth);
 app.post('/api/sg16/chat', childrenChatRateLimit, handleChildrenWorldChat);
