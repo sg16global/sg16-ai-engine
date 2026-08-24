@@ -16,7 +16,7 @@ function stripTags(html) {
 async function fetchText(url, timeoutMs = 15000) {
   const res = await fetch(url, {
     headers: {
-      'User-Agent': 'SG16-AI-Engine/1.0 (SaifTech Global; +https://saiftech.global)',
+      'User-Agent': 'SG16-AI-Engine/1.0 (SaifTech Global; +https://saiftechglobal.com)',
       Accept: 'text/html,application/xml,application/json,text/plain,*/*',
     },
     signal: AbortSignal.timeout(timeoutMs),

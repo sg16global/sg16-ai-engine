@@ -63,6 +63,7 @@ import {
   handleChildrenWorldHealth,
   handleChildrenWorldChatStream,
 } from './lib/childrenWorld/handlers.js';
+import { requireChildrenClient } from './lib/childrenWorld/clientAuth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -141,8 +142,8 @@ app.post(
 );
 
 app.get('/api/sg16/health', handleChildrenWorldHealth);
-app.post('/api/sg16/chat', childrenChatRateLimit, handleChildrenWorldChat);
-app.post('/api/sg16/chat/stream', childrenChatRateLimit, handleChildrenWorldChatStream);
+app.post('/api/sg16/chat', requireChildrenClient, childrenChatRateLimit, handleChildrenWorldChat);
+app.post('/api/sg16/chat/stream', requireChildrenClient, childrenChatRateLimit, handleChildrenWorldChatStream);
 
 function isLocalHost(req) {
   const host = req.hostname;

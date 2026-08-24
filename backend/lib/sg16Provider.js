@@ -174,7 +174,7 @@ export function getBackupProvider() {
     id: isOpenRouter ? 'openrouter' : 'backup',
     apiUrl,
     apiKey: backupKey,
-    siteUrl: process.env.SG16_APP_URL || 'https://saiftech.global',
+    siteUrl: process.env.SG16_APP_URL || 'https://saiftechglobal.com',
     appName: process.env.SG16_APP_NAME || 'SG16 AI Engine',
     models: {
       text: textModel,
@@ -324,7 +324,7 @@ export async function callChatCompletion({
     headers['Groq-Model-Version'] = 'latest';
   }
   if (activeProvider.id === 'openrouter' || activeProvider.apiUrl?.includes('openrouter.ai')) {
-    headers['HTTP-Referer'] = activeProvider.siteUrl || 'https://saiftech.global';
+    headers['HTTP-Referer'] = activeProvider.siteUrl || 'https://saiftechglobal.com';
     headers['X-Title'] = activeProvider.appName || 'SG16 AI Engine';
   }
 

@@ -2,11 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#08122a" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <link rel="canonical" href="https://sg16children.com/" />
+  <meta name="description" content="SG16 Children World — parent-gated learning chat powered by the SG16 Sovereign Brain at sg16engine.com." />
   <title>SG16 Children World — Robo (6–11)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Montserrat:wght@500;600;700;800&family=Nunito:wght@400;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <style>
     :root{
       --bg-sky: #dceeff;
@@ -30,20 +34,73 @@
       --font-play: "Fredoka", "Nunito", ui-sans-serif, sans-serif;
     }
     *{ box-sizing: border-box; }
-    html, body { height: 100%; }
+    html, body { height: 100%; min-height: 100vh; min-height: 100dvh; }
     body{
       margin:0;
       font-family: var(--font);
       color: var(--text);
       background: var(--page-fallback, #e8f4ff);
       transition: color .45s ease;
+      overflow-x: hidden;
     }
+    .bg-home,
     .bg-scene,
     .bg-overlay{
       position: fixed;
       inset: 0;
       pointer-events: none;
       z-index: 0;
+    }
+    .bg-home{
+      overflow: hidden;
+      opacity: 0;
+      transition: opacity .55s ease;
+    }
+    body.tier-default .bg-home{
+      opacity: 1;
+    }
+    .bg-kenburns{
+      position: absolute;
+      inset: 0;
+      background-size: cover;
+      background-repeat: no-repeat;
+      background-position: center 32%;
+      animation: homeKenBurns 28s ease-in-out infinite alternate;
+      will-change: transform;
+      filter: none;
+      backdrop-filter: none;
+    }
+    .bg-kenburns-landscape{
+      background-image: url("/assets/backgrounds/homepage-future.jpg");
+    }
+    .bg-kenburns-portrait{
+      background-image: url("/assets/backgrounds/homepage-future-portrait.jpg");
+      background-position: center 38%;
+      display: none;
+    }
+    @media (orientation: portrait){
+      .bg-kenburns-landscape{ display: none; }
+      .bg-kenburns-portrait{ display: block; }
+    }
+    @media (min-aspect-ratio: 16/9){
+      .bg-kenburns-landscape{ background-position: center 36%; }
+    }
+    @media (max-aspect-ratio: 4/3){
+      .bg-kenburns-landscape{ background-position: center 28%; }
+    }
+    @keyframes homeKenBurns{
+      0%{
+        transform: scale(1) translate3d(0, 0, 0);
+      }
+      100%{
+        transform: scale(1.05) translate3d(-1%, -0.5%, 0);
+      }
+    }
+    @media (prefers-reduced-motion: reduce){
+      .bg-kenburns{
+        animation: none;
+        transform: none;
+      }
     }
     .bg-scene{
       background-color: var(--page-fallback, #e8f4ff);
@@ -52,19 +109,22 @@
       background-repeat: no-repeat;
       transform: scale(1.02);
       transition: background-image .6s ease, opacity .45s ease;
+      opacity: 1;
+    }
+    body.tier-default .bg-scene{
+      opacity: 0;
+      background-image: none;
     }
     .bg-overlay{
       background: var(--overlay-gradient, rgba(255,255,255,0.18));
       transition: background .45s ease;
     }
-    body.tier-default .bg-scene{
-      background-image: url("/assets/backgrounds/tier-a.jpg");
-    }
     body.tier-default .bg-overlay{
-      --overlay-gradient: linear-gradient(165deg, rgba(232,244,255,0.82) 0%, rgba(255,240,248,0.78) 50%, rgba(255,249,230,0.82) 100%);
+      background: transparent;
+      --overlay-gradient: transparent;
     }
     body.tier-a .bg-scene{
-      background-image: url("/assets/backgrounds/tier-b-alt.jpg");
+      background-image: url("/assets/backgrounds/tier-a.jpg");
     }
     body.tier-a .bg-overlay{
       --overlay-gradient: linear-gradient(180deg, rgba(135,206,250,0.35) 0%, rgba(255,255,255,0.25) 40%, rgba(144,238,144,0.28) 100%);
@@ -84,20 +144,370 @@
     a{ color: #4a9fd4; text-decoration: none; font-weight: 700; }
     a:hover{ text-decoration: underline; color: #e86aab; }
     .app{
-      min-height: 100%;
+      min-height: 100vh;
+      min-height: 100dvh;
       display: grid;
       place-items: center;
-      padding: 24px;
+      padding:
+        max(16px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(16px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
       position: relative;
       z-index: 1;
     }
+    body.home-welcome{
+      overflow-y: auto;
+    }
+    body.home-welcome .app{
+      display: block;
+      width: 100%;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding:
+        calc(72px + env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        max(24px, env(safe-area-inset-bottom))
+        max(16px, env(safe-area-inset-left));
+    }
+    body:not(.home-welcome) .app{
+      padding-top: calc(72px + env(safe-area-inset-top));
+    }
+    .site-header{
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding:
+        max(12px, env(safe-area-inset-top))
+        max(16px, env(safe-area-inset-right))
+        12px
+        max(16px, env(safe-area-inset-left));
+      border-bottom: 1px solid rgba(0, 245, 255, 0.28);
+      box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
+    }
+    /* Dark glass — ONLY on UI cards, never on the background image */
+    .glass-card-dark{
+      background: rgba(8, 18, 42, 0.58);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(0, 245, 255, 0.32);
+      box-shadow:
+        0 0 18px rgba(0, 245, 255, 0.12),
+        0 12px 36px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      color: #eef4ff;
+    }
+    .welcome-hero{
+      min-height: min(44vh, 420px);
+      pointer-events: none;
+    }
+    body.tier-default.home-welcome .welcome-core{
+      gap: 0;
+    }
+    .welcome-lower{
+      margin-top: 22px;
+      padding: 20px 22px;
+      border-radius: var(--radius2);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
     .shell{
       width: min(1100px, 100%);
+      max-height: calc(100dvh - max(32px, env(safe-area-inset-top)) - max(32px, env(safe-area-inset-bottom)));
       border-radius: var(--radius2);
       background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(255,252,245,0.92) 100%);
       box-shadow: var(--shadow), 0 0 0 4px rgba(255, 224, 102, 0.35);
       border: 3px solid rgba(255, 255, 255, 0.9);
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+    body.tier-default .site-header{
+      background: rgba(8, 18, 42, 0.62);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    body.tier-default .site-header .brand p{
+      color: rgba(220, 232, 255, 0.88);
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+    }
+    body.tier-default .shell{
+      background: transparent;
+      backdrop-filter: none;
+      -webkit-backdrop-filter: none;
+      border: none;
+      box-shadow: none;
+    }
+    body.tier-default .brand h1{
+      font-size: clamp(21px, 3.2vw, 28px);
+      letter-spacing: 0.01em;
+    }
+    body.tier-default .brand-mark{
+      display: inline-block;
+      padding: 2px 8px;
+      margin-right: 4px;
+      border-radius: 10px;
+      font-size: 0.82em;
+      vertical-align: middle;
+      color: #fff;
+      background: linear-gradient(135deg, #5eb8ff 0%, #7b68ee 50%, #ff9ecf 100%);
+      -webkit-background-clip: border-box;
+      background-clip: border-box;
+      box-shadow: 0 2px 10px rgba(94,184,255,0.4);
+    }
+    body.tier-default .brand p{
+      color: rgba(40, 58, 98, 0.88);
+      font-size: 12px;
+      letter-spacing: 0.03em;
+    }
+    body.tier-default .chip,
+    body.tier-default .top-actions .btn{
+      background: rgba(255, 255, 255, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      color: #eef4ff;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow: none;
+    }
+    body.tier-default .chip strong{
+      color: #ff9ecf;
+    }
+    body.tier-default .card{
+      background: rgba(8, 18, 42, 0.58);
+      border: 1px solid rgba(0, 245, 255, 0.32);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      box-shadow:
+        0 0 18px rgba(0, 245, 255, 0.12),
+        0 12px 36px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      color: #eef4ff;
+    }
+    body.tier-default .card:nth-child(odd),
+    body.tier-default .card:nth-child(even){
+      box-shadow:
+        0 0 18px rgba(0, 245, 255, 0.12),
+        0 12px 36px rgba(0, 0, 0, 0.35),
+        inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+    body.tier-default .note{
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #e2e8f0;
+      font-weight: 500;
+      font-size: 13px;
+      line-height: 1.62;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    body.tier-default .note strong{
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: #f0fdfa;
+    }
+    body.tier-default .note.good{
+      background: rgba(16, 72, 52, 0.45);
+      border-color: rgba(120, 220, 170, 0.35);
+      color: #ecfdf5;
+    }
+    body.tier-default .note.good strong{
+      color: #6ee7b7;
+    }
+    body.tier-default .note.danger{
+      background: rgba(62, 14, 32, 0.78);
+      border-color: rgba(255, 120, 160, 0.5);
+      color: #fff5f7;
+    }
+    body.tier-default .note.danger strong{
+      color: #ff8fab;
+    }
+    body.tier-default .content{
+      background: transparent;
+    }
+    body.tier-default .title{
+      font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+      font-weight: 800;
+      font-size: 22px;
+      letter-spacing: 0.025em;
+      line-height: 1.2;
+      background: linear-gradient(135deg, #00f0ff 0%, #00d2ff 50%, #38bdf8 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      text-shadow: none;
+      filter: drop-shadow(0 0 14px rgba(0, 240, 255, 0.38));
+    }
+    body.tier-default .subtitle{
+      color: #e2e8f0;
+      font-weight: 500;
+      font-size: 14px;
+      line-height: 1.65;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    body.tier-default .subtitle strong{
+      color: #f0fdfa;
+      font-weight: 700;
+    }
+    body.tier-default .mini{
+      color: #cbd5e1;
+      font-weight: 500;
+      line-height: 1.58;
+      letter-spacing: 0.01em;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    body.tier-default label{
+      color: #b8d4f0;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+    body.tier-default input,
+    body.tier-default select,
+    body.tier-default textarea{
+      background: rgba(0, 0, 0, 0.38);
+      border: 1px solid rgba(0, 245, 255, 0.28);
+      color: #f0fdfa;
+      font-weight: 500;
+    }
+    body.tier-default input::placeholder,
+    body.tier-default textarea::placeholder{
+      color: rgba(186, 210, 230, 0.65);
+    }
+    body.tier-default input:focus,
+    body.tier-default select:focus,
+    body.tier-default textarea:focus{
+      border-color: rgba(0, 240, 255, 0.55);
+      box-shadow: 0 0 0 3px rgba(0, 240, 255, 0.18);
+      background: rgba(0, 0, 0, 0.48);
+    }
+    body.tier-default .checks{
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px dashed rgba(0, 245, 255, 0.32);
+    }
+    body.tier-default .check{
+      color: #e2e8f0;
+      font-weight: 500;
+      line-height: 1.62;
+    }
+    body.tier-default .check input{
+      accent-color: #00d2ff;
+    }
+    body.tier-default .btn{
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      color: #e2e8f0;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+    }
+    body.tier-default .btn:hover{
+      background: rgba(255, 255, 255, 0.16);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+    }
+    body.tier-default .footer{
+      background: rgba(8, 18, 42, 0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border-top: 1px solid rgba(0, 245, 255, 0.22);
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 12px;
+      padding: 18px 20px 20px;
+      color: #dce8ff;
+    }
+    body.tier-default .footer-brand,
+    body.tier-default .footer-nav{
+      font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
+    }
+    body.tier-default .footer-brand strong{
+      font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      font-size: 14px;
+      color: #dce8ff;
+      text-shadow: none;
+    }
+    body.tier-default .footer-meta{
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-shadow: none;
+    }
+    body.tier-default .footer-nav a{
+      font-size: 12px;
+      font-weight: 700;
+      color: #9fd4ff;
+      text-shadow: none;
+      text-decoration: none;
+      padding: 2px 0;
+      border-bottom: 1px solid transparent;
+      transition: color .15s ease, border-color .15s ease;
+    }
+    body.tier-default .footer-nav a:hover{
+      color: #00f0ff;
+      border-bottom-color: rgba(0, 240, 255, 0.45);
+      text-decoration: none;
+    }
+    body.tier-default .footer-note{
+      font-size: 11px;
+      font-weight: 600;
+      color: #94a3b8;
+      text-shadow: none;
+      line-height: 1.5;
+    }
+    .footer-brand{
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+    .footer-brand strong{
+      font-family: var(--font-play);
+      font-size: 14px;
+      color: #1e3a62;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85);
+    }
+    .footer-meta{
+      font-size: 11px;
+      font-weight: 600;
+      color: #3a5078;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+    .footer-nav{
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: center;
+      gap: 6px 18px;
+    }
+    .footer-nav a{
+      font-size: 12px;
+      font-weight: 700;
+      color: #1a5088;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.8);
+      text-decoration: none;
+      padding: 2px 0;
+      border-bottom: 1px solid transparent;
+      transition: color .15s ease, border-color .15s ease;
+    }
+    .footer-nav a:hover{
+      color: #e86aab;
+      border-bottom-color: rgba(232,106,171,0.55);
+      text-decoration: none;
+    }
+    .footer-note{
+      font-size: 11px;
+      font-weight: 600;
+      color: #3a5078;
+      text-shadow: 0 1px 0 rgba(255, 255, 255, 0.75);
+      line-height: 1.5;
     }
     .topbar{
       display:flex;
@@ -114,36 +524,53 @@
       gap: 14px;
       min-width: 240px;
     }
-    .logo{
+    .logo-wrap{
+      flex-shrink: 0;
       width: 52px;
       height: 52px;
-      border-radius: 18px;
-      background:
-        radial-gradient(14px 14px at 30% 30%, #fff9c4, transparent 70%),
-        radial-gradient(16px 16px at 70% 40%, #ffc8e8, transparent 70%),
-        radial-gradient(18px 18px at 50% 80%, #a8e6cf, transparent 70%),
-        linear-gradient(135deg, #5eb8ff, #ff9ecf);
-      border: 3px solid #fff;
-      box-shadow: 0 6px 20px rgba(94, 184, 255, 0.35);
-      animation: wiggle 4s ease-in-out infinite;
+      border-radius: 50%;
+      overflow: hidden;
+      background: transparent;
+      box-shadow:
+        0 2px 10px rgba(0, 0, 0, 0.35),
+        0 0 14px rgba(0, 210, 255, 0.22);
     }
-    @keyframes wiggle{
-      0%, 100%{ transform: rotate(-2deg); }
-      50%{ transform: rotate(2deg); }
+    .logo{
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      display: block;
     }
     .brand h1{
       margin:0;
       font-family: var(--font-play);
       font-size: 22px;
-      font-weight: 700;
+      font-weight: 800;
       line-height: 1.15;
       letter-spacing: 0.02em;
-      background: linear-gradient(90deg, #3d8fd9 0%, #e86aab 55%, #e6b800 100%);
+      text-shadow: none;
+    }
+    .brand h1 .brand-sg{
+      background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 50%, #f8fafc 100%);
       -webkit-background-clip: text;
       background-clip: text;
       color: transparent;
-      text-shadow: none;
-      filter: drop-shadow(0 2px 0 rgba(255,255,255,0.8));
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.45));
+    }
+    .brand h1 .brand-children{
+      background: linear-gradient(90deg, #facc15 0%, #2563eb 20%, #ec4899 40%, #22c55e 60%, #f97316 80%, #a855f7 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.35));
+    }
+    .brand h1 .brand-world{
+      background: linear-gradient(90deg, #e2e8f0 0%, #38bdf8 45%, #22c55e 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.4));
     }
     .brand p{
       margin:4px 0 0 0;
@@ -215,6 +642,10 @@
       background:
         radial-gradient(circle at 100% 0%, rgba(255, 214, 232, 0.35) 0%, transparent 40%),
         radial-gradient(circle at 0% 100%, rgba(184, 228, 255, 0.35) 0%, transparent 40%);
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      flex: 1 1 auto;
+      min-height: 0;
     }
     .grid{
       display: grid;
@@ -225,6 +656,33 @@
       .grid{ grid-template-columns: 1fr; }
       .brand{ min-width: unset; }
       .brand h1{ font-size: 18px; }
+    }
+    @media (max-width: 680px){
+      .app{ place-items: start center; }
+      .topbar{
+        flex-wrap: wrap;
+        padding: 12px 14px;
+      }
+      .top-actions{
+        width: 100%;
+        justify-content: flex-start;
+      }
+      .content{ padding: 14px; }
+      .card{ padding: 16px; }
+    }
+    @media (orientation: landscape) and (max-height: 520px){
+      .app{
+        place-items: start center;
+        padding-top: max(8px, env(safe-area-inset-top));
+        padding-bottom: max(8px, env(safe-area-inset-bottom));
+      }
+      .shell{ max-height: calc(100dvh - 16px); }
+      .content{ padding: 12px 16px; }
+      .grid{ grid-template-columns: 1fr 1fr; gap: 12px; }
+      .topbar{ padding: 10px 14px; }
+      .brand h1{ font-size: 16px; }
+      .title{ font-size: 17px; }
+      .subtitle{ font-size: 13px; margin-bottom: 10px; }
     }
     .card{
       background: var(--panel);
@@ -363,7 +821,7 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      overflow: hidden;
+      overflow: visible;
       min-height: 420px;
       background: linear-gradient(180deg, #e8f7ff 0%, #fff5fb 50%, #fffbe8 100%) !important;
       border: 3px solid #fff !important;
@@ -377,137 +835,274 @@
         radial-gradient(280px 240px at 50% 85%, rgba(168, 230, 207, 0.4), transparent 60%);
       pointer-events: none;
     }
-    .robo{
-      width: 220px;
-      height: 220px;
+    .robo-hero{
       position: relative;
-      filter: drop-shadow(0 12px 24px rgba(94, 184, 255, 0.25));
-      z-index: 1;
-    }
-    .robo .head{
-      position:absolute;
-      left: 50%;
-      top: 24px;
-      transform: translateX(-50%);
-      width: 180px;
-      height: 130px;
-      border-radius: 40px;
-      background: linear-gradient(180deg, #fff 0%, #e8f4ff 100%);
-      border: 4px solid #fff;
-      box-shadow: inset 0 -6px 0 rgba(184, 228, 255, 0.5);
-    }
-    .robo .antenna{
-      position:absolute;
-      left: 50%;
-      top: 0px;
-      transform: translateX(-50%);
-      width: 10px;
-      height: 34px;
-      background: #c5dff5;
-      border-radius: 10px;
-      border: 2px solid #fff;
-    }
-    .robo .antenna::after{
-      content:"";
-      position:absolute;
-      left: 50%;
-      top: -14px;
-      transform: translateX(-50%);
-      width: 24px;
-      height: 24px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 35% 35%, #ffe066, #ffb347);
-      border: 3px solid #fff;
-      box-shadow: 0 4px 12px rgba(255, 200, 100, 0.5);
-      animation: blink 2.4s infinite ease-in-out;
-    }
-    @keyframes blink{
-      0%, 82%, 100% { transform: translateX(-50%) scale(1); opacity: 1; }
-      86% { transform: translateX(-50%) scale(0.85); opacity: 0.7; }
-      92% { transform: translateX(-50%) scale(1.08); opacity: 1; }
-    }
-    .robo .face{
-      position:absolute;
-      left: 50%;
-      top: 28px;
-      transform: translateX(-50%);
-      width: 140px;
-      height: 76px;
-      border-radius: 24px;
-      background: linear-gradient(180deg, #5eb8ff 0%, #4a9fd4 100%);
-      border: 3px solid #fff;
-      display:flex;
-      align-items:center;
-      justify-content: space-between;
-      padding: 0 18px;
-      box-shadow: inset 0 4px 8px rgba(255,255,255,0.3);
-    }
-    .eye{
-      width: 26px;
-      height: 26px;
-      border-radius: 999px;
-      background: radial-gradient(circle at 30% 30%, #fff 20%, #2d3748 25%, #1a202c 100%);
-      border: 2px solid #fff;
-      position: relative;
-    }
-    .eye::after{
-      content:"";
-      position:absolute;
-      width: 8px; height: 8px;
-      border-radius: 999px;
-      left: 5px; top: 5px;
-      background: rgba(255,255,255,0.9);
-    }
-    .mouth{
-      position:absolute;
-      left: 50%;
-      top: 94px;
-      transform: translateX(-50%);
-      width: 72px;
-      height: 22px;
-      border-radius: 999px;
-      background: #fff;
-      border: 3px solid #ffc8e8;
-      overflow:hidden;
-    }
-    .mouth::after{
-      content:"";
-      position:absolute;
-      inset: 5px 12px;
-      border-radius: 999px;
-      background: linear-gradient(90deg, #7ee8a8, #5eb8ff, #ff9ecf);
-      animation: talk 1.2s infinite ease-in-out;
-    }
-    @keyframes talk{
-      0%, 100%{ transform: scaleY(1); opacity: .85; }
-      50%{ transform: scaleY(0.75); opacity: 1; }
-    }
-    .robo .body{
-      position:absolute;
-      left: 50%;
-      top: 150px;
-      transform: translateX(-50%);
-      width: 190px;
-      height: 72px;
-      border-radius: 32px;
-      background: linear-gradient(180deg, #fff 0%, #ffd6e8 100%);
-      border: 4px solid #fff;
-      display:flex;
-      align-items:center;
+      width: 100%;
+      max-width: 260px;
+      margin: 0 auto;
+      display: flex;
       justify-content: center;
-      gap: 12px;
-      box-shadow: inset 0 -4px 0 rgba(255, 182, 220, 0.4);
+      align-items: center;
+      z-index: 1;
+      min-height: 0;
+      padding: 0;
+      perspective: 900px;
+      overflow: visible;
     }
-    .badge{
-      width: 18px;
-      height: 18px;
-      border-radius: 999px;
-      background: #7ee8a8;
-      border: 2px solid #fff;
-      box-shadow: 0 2px 8px rgba(126, 232, 168, 0.5);
+    .robo-fx{
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .badge.purple{ background: #ff9ecf; box-shadow: 0 2px 8px rgba(255, 158, 207, 0.5); }
-    .badge.cyan{ background: #5eb8ff; box-shadow: 0 2px 8px rgba(94, 184, 255, 0.5); }
+    /* ── Thinking: supercomputer rings + matrix scan ── */
+    .robo-fx-rings{
+      opacity: 0;
+      transition: opacity 0.25s ease;
+    }
+    .robot-thinking .robo-fx-rings{
+      opacity: 1;
+    }
+    .robo-ring{
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      border: 2px solid transparent;
+      box-shadow:
+        0 0 12px rgba(0, 255, 255, 0.35),
+        inset 0 0 12px rgba(255, 0, 255, 0.15);
+    }
+    .robo-ring-1{
+      width: 88%;
+      height: 72%;
+      border-top-color: #00f5ff;
+      border-right-color: #bf00ff;
+      animation: roboRingSpin 1.6s linear infinite;
+    }
+    .robo-ring-2{
+      width: 102%;
+      height: 84%;
+      border-bottom-color: #00ff88;
+      border-left-color: #ff1493;
+      animation: roboRingSpin 2.4s linear infinite reverse;
+      opacity: 0.85;
+    }
+    .robo-ring-3{
+      width: 74%;
+      height: 60%;
+      border: 1px dashed rgba(0, 245, 255, 0.65);
+      animation: roboRingPulse 0.9s ease-in-out infinite;
+    }
+    .robo-matrix-scan{
+      position: absolute;
+      left: 14%;
+      right: 14%;
+      top: 18%;
+      bottom: 8%;
+      border-radius: 18px;
+      opacity: 0;
+      background:
+        repeating-linear-gradient(
+          0deg,
+          transparent,
+          transparent 3px,
+          rgba(0, 255, 200, 0.07) 3px,
+          rgba(0, 255, 200, 0.07) 4px
+        );
+      mix-blend-mode: screen;
+    }
+    .robot-thinking .robo-matrix-scan{
+      opacity: 1;
+      animation: matrixScanSweep 1.1s linear infinite, matrixGlitch 0.14s steps(2) infinite;
+    }
+    @keyframes roboRingSpin{
+      from { transform: translate(-50%, -50%) rotate(0deg); }
+      to { transform: translate(-50%, -50%) rotate(360deg); }
+    }
+    @keyframes roboRingPulse{
+      0%, 100%{ transform: translate(-50%, -50%) scale(1); opacity: 0.55; }
+      50%{ transform: translate(-50%, -50%) scale(1.08); opacity: 1; }
+    }
+    @keyframes matrixScanSweep{
+      0%{ background-position: 0 0; }
+      100%{ background-position: 0 48px; }
+    }
+    @keyframes matrixGlitch{
+      0%{ filter: hue-rotate(0deg); transform: translateX(0); }
+      50%{ filter: hue-rotate(25deg); transform: translateX(1px); }
+      100%{ filter: hue-rotate(-15deg); transform: translateX(-1px); }
+    }
+    /* ── Speaking: comedian flash burst + smile glow ── */
+    .robo-fx-burst{
+      opacity: 0;
+    }
+    .robo-fx-burst.robo-burst-fire{
+      opacity: 1;
+      animation: burstFlashPop 0.7s ease-out forwards;
+    }
+    .robo-spark{
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff 0%, #ffe066 40%, transparent 72%);
+      box-shadow: 0 0 14px #ffea00, 0 0 28px #ff69b4;
+    }
+    .robo-spark-1{ left: 8%; top: 22%; animation: sparkFly1 0.65s ease-out forwards; }
+    .robo-spark-2{ right: 6%; top: 18%; animation: sparkFly2 0.65s ease-out forwards; }
+    .robo-spark-3{ left: 18%; bottom: 20%; animation: sparkFly3 0.65s ease-out forwards; }
+    .robo-spark-4{ right: 14%; bottom: 16%; animation: sparkFly4 0.65s ease-out forwards; }
+    .robo-spark-5{ left: 50%; top: 6%; animation: sparkFly5 0.65s ease-out forwards; }
+    @keyframes burstFlashPop{
+      0%{
+        opacity: 0;
+        transform: scale(0.6);
+        filter: brightness(3);
+      }
+      15%{
+        opacity: 1;
+        transform: scale(1.15);
+        filter: brightness(2.2);
+      }
+      100%{
+        opacity: 0;
+        transform: scale(1.35);
+        filter: brightness(1);
+      }
+    }
+    @keyframes sparkFly1{
+      to { transform: translate(-28px, -36px); opacity: 0; }
+    }
+    @keyframes sparkFly2{
+      to { transform: translate(32px, -30px); opacity: 0; }
+    }
+    @keyframes sparkFly3{
+      to { transform: translate(-24px, 28px); opacity: 0; }
+    }
+    @keyframes sparkFly4{
+      to { transform: translate(26px, 32px); opacity: 0; }
+    }
+    @keyframes sparkFly5{
+      to { transform: translate(0, -42px); opacity: 0; }
+    }
+    .robo-hero-smile-glow{
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      width: 92%;
+      height: 78%;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      opacity: 0;
+      background: radial-gradient(
+        circle at 50% 42%,
+        rgba(255, 240, 80, 0.85) 0%,
+        rgba(255, 105, 180, 0.55) 38%,
+        rgba(94, 184, 255, 0.2) 62%,
+        transparent 78%
+      );
+      filter: blur(2px);
+      transition: opacity 0.2s ease;
+    }
+    .robot-speaking .robo-hero-smile-glow{
+      opacity: 1;
+      animation: smileGlowFlash 0.45s ease-out forwards, smileGlowHold 1.6s ease-in-out 0.45s infinite;
+    }
+    @keyframes smileGlowFlash{
+      0%{ transform: translate(-50%, -50%) scale(0.7); opacity: 0; filter: blur(4px) brightness(2); }
+      100%{ transform: translate(-50%, -50%) scale(1); opacity: 1; filter: blur(2px) brightness(1.2); }
+    }
+    @keyframes smileGlowHold{
+      0%, 100%{ transform: translate(-50%, -50%) scale(1); opacity: 0.92; }
+      50%{ transform: translate(-50%, -50%) scale(1.1); opacity: 1; }
+    }
+    .robo-body-wrap{
+      position: relative;
+      z-index: 2;
+      width: min(240px, 100%);
+      aspect-ratio: 736 / 1172;
+      height: auto;
+      max-height: 420px;
+      margin: 0 auto;
+    }
+    .robo-stage-pod{
+      display: none;
+    }
+    .robo-ground-shadow{
+      position: absolute;
+      left: 50%;
+      bottom: 4px;
+      width: 52%;
+      height: 14px;
+      transform: translateX(-50%);
+      border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(13, 27, 42, 0.28) 0%, transparent 72%);
+      z-index: 1;
+      pointer-events: none;
+    }
+    .robo-pose-stage{
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      height: 100%;
+      transform-origin: 50% 92%;
+      overflow: visible;
+    }
+    .robo-hero-video{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      object-position: center center;
+      background: transparent;
+      pointer-events: none;
+      border-radius: 0;
+    }
+    .robot-idle .robo-pose-stage{
+      animation: roboIdleSway 3.2s ease-in-out infinite;
+    }
+    .robot-idle .robo-hero-video{
+      filter: brightness(1.03) saturate(1.06);
+    }
+    .robot-thinking .robo-pose-stage{
+      animation: roboThinkGround 0.9s ease-in-out infinite;
+    }
+    .robot-thinking .robo-hero-video{
+      filter: brightness(1.1) saturate(1.2) drop-shadow(0 0 12px rgba(0, 245, 255, 0.4));
+    }
+    .robot-speaking .robo-pose-stage{
+      animation: roboSpeakPerform 0.95s ease-in-out infinite;
+    }
+    .robot-speaking .robo-hero-video{
+      filter: brightness(1.14) saturate(1.28) drop-shadow(0 0 16px rgba(255, 220, 80, 0.5));
+    }
+    @keyframes roboIdleSway{
+      0%, 100%{ transform: translate3d(0, 0, 0) rotate(0deg); }
+      50%{ transform: translate3d(0, -6px, 0) rotate(-0.6deg); }
+    }
+    @keyframes roboThinkGround{
+      0%, 100%{ transform: translate3d(0, 0, 0) rotate(0deg); }
+      35%{ transform: translate3d(-3px, 1px, 0) rotate(-2deg); }
+      70%{ transform: translate3d(3px, 0, 0) rotate(2deg); }
+    }
+    @keyframes roboSpeakPerform{
+      0%, 100%{ transform: translate3d(0, -4px, 0) scale(1.02) rotate(0deg); }
+      25%{ transform: translate3d(-5px, -10px, 0) scale(1.04) rotate(-2deg); }
+      50%{ transform: translate3d(0, -14px, 0) scale(1.06) rotate(0deg); }
+      75%{ transform: translate3d(5px, -8px, 0) scale(1.04) rotate(2deg); }
+    }
+    .robot-speaking .robo-ground-shadow{
+      animation: roboShadowSpeak 1.1s ease-in-out infinite;
+    }
+    @keyframes roboShadowSpeak{
+      0%, 100%{ transform: translateX(-50%) scale(0.88); opacity: 0.4; }
+      50%{ transform: translateX(-50%) scale(1.05); opacity: 0.55; }
+    }
     .speech{
       width: 100%;
       padding: 14px 16px;
@@ -544,62 +1139,93 @@
     .chat-log{
       flex: 1;
       overflow: auto;
-      padding: 12px;
+      padding: 16px 14px;
       border-radius: 20px;
       background: linear-gradient(180deg, #f0f8ff 0%, #fff5fa 100%);
       border: 2px dashed #c5dff5;
       scroll-behavior: smooth;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
     }
     .msg{
-      display:flex;
-      gap: 10px;
-      padding: 8px;
-      margin: 8px 0;
-      border-radius: 20px;
-      align-items:flex-start;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 12px;
+      padding: 0;
+      margin: 0 0 16px 0;
+      width: fit-content;
+      max-width: 88%;
+      flex-shrink: 0;
+    }
+    .msg:last-child{
+      margin-bottom: 0;
+    }
+    .msg.user{
+      flex-direction: row-reverse;
+      align-self: flex-end;
+      margin-left: auto;
+    }
+    .msg.robo{
+      align-self: flex-start;
+      margin-right: auto;
     }
     .msg .avatar{
-      width: 38px;
-      height: 38px;
-      border-radius: 14px;
-      flex: 0 0 auto;
-      display:grid;
-      place-items:center;
+      width: 40px;
+      height: 40px;
+      border-radius: 999px;
+      flex: 0 0 40px;
+      align-self: center;
+      display: grid;
+      place-items: center;
       border: 2px solid #fff;
       font-family: var(--font-play);
       font-weight: 700;
-      font-size: 11px;
-      box-shadow: 0 3px 10px rgba(100, 140, 200, 0.2);
+      font-size: 10px;
+      letter-spacing: 0.02em;
+      box-shadow: 0 4px 12px rgba(100, 140, 200, 0.22);
     }
     .msg .bubble{
-      padding: 12px 14px;
-      border-radius: 20px;
-      border: 2px solid rgba(255,255,255,0.9);
-      line-height: 1.5;
+      display: block;
+      flex: 0 1 auto;
+      padding: 14px 18px;
+      line-height: 1.58;
       font-size: 14px;
       font-weight: 600;
-      max-width: 100%;
+      max-width: min(72vw, 520px);
       white-space: pre-wrap;
       word-break: break-word;
+      box-shadow: 0 4px 14px rgba(100, 140, 200, 0.12);
+      isolation: isolate;
     }
-    .msg.user{ flex-direction: row-reverse; }
     .msg.user .bubble{
-      background: linear-gradient(135deg, #b8e4ff 0%, #7ecfff 100%);
-      color: #2d5a8a;
-      border-color: #fff;
+      background: linear-gradient(145deg, #6ec5ff 0%, #4a9fd4 100%);
+      color: #fff;
+      border: 2px solid rgba(255,255,255,0.55);
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(74, 159, 212, 0.28);
     }
     .msg.user .avatar{
-      background: linear-gradient(135deg, #5eb8ff, #4a9fd4);
+      background: linear-gradient(135deg, #5eb8ff, #3d8fd9);
       color: #fff;
     }
     .msg.robo .bubble{
-      background: linear-gradient(135deg, #fff 0%, #ffe8f2 100%);
+      background: #fff;
       color: var(--text);
-      border-color: #ffd6e8;
+      border: 2px solid #ffd6e8;
+      border-left: 4px solid #ff9ecf;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(255, 158, 207, 0.18);
     }
     .msg.robo .avatar{
       background: linear-gradient(135deg, #ff9ecf, #e86aab);
       color: #fff;
+    }
+    .chat-card.is-busy .chat-controls button,
+    .chat-card.is-busy .chat-controls input{
+      opacity: 0.72;
+      pointer-events: none;
     }
     .chat-controls{
       margin-top: 12px;
@@ -686,21 +1312,32 @@
 
     /* ===== Tier theme overrides ===== */
     body.tier-default{
-      --text: #3d4f7a;
-      --muted: #6b7da8;
-      --panel: rgba(255,255,255,0.94);
-      --font: "Nunito", ui-sans-serif, system-ui, sans-serif;
-      --font-play: "Fredoka", "Nunito", ui-sans-serif, sans-serif;
-      --shadow: 0 16px 48px rgba(100, 140, 200, 0.22);
-      --shadow-soft: 0 8px 24px rgba(255, 180, 220, 0.25);
-      --title-color: #4a9fd4;
-      --topbar-bg: linear-gradient(90deg, #b8e4ff 0%, #ffd6e8 50%, #fff3b0 100%);
-      --shell-border: 4px solid rgba(255, 224, 102, 0.35);
-      --btn-primary-bg: linear-gradient(180deg, #7ecfff 0%, #5eb8ff 100%);
+      --text: #e2e8f0;
+      --muted: #cbd5e1;
+      --panel: transparent;
+      --font: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+      --font-play: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+      --shadow: 0 24px 64px rgba(8, 24, 48, 0.28);
+      --shadow-soft: 0 8px 24px rgba(8, 24, 48, 0.18);
+      --title-color: #00d2ff;
+      --topbar-bg: transparent;
+      --shell-border: 1px solid rgba(255, 255, 255, 0.42);
+      --btn-primary-bg: linear-gradient(180deg, rgba(126,207,255,0.95) 0%, rgba(94,184,255,0.92) 100%);
       --btn-primary-shadow: 0 4px 0 #3a9ad9;
-      --card-border: 3px solid rgba(255,255,255,0.95);
-      --input-bg: #f8fbff;
-      --footer-bg: linear-gradient(90deg, #fff9e6 0%, #ffe8f2 50%, #e8f4ff 100%);
+      --card-border: 1px solid rgba(0, 245, 255, 0.32);
+      --input-bg: rgba(0, 0, 0, 0.38);
+      --footer-bg: rgba(8, 18, 42, 0.55);
+      font-family: var(--font);
+    }
+    body.tier-default .site-header .brand h1{
+      font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
+      font-weight: 800;
+      letter-spacing: 0.02em;
+    }
+    body.tier-default .site-header .brand p{
+      font-family: "Plus Jakarta Sans", "Inter", ui-sans-serif, sans-serif;
+      font-weight: 500;
+      letter-spacing: 0.03em;
     }
     body.tier-a{
       --text: #2d4a3e;
@@ -761,8 +1398,8 @@
       color: transparent;
     }
     body.tier-b .title{ color: #007fff; }
-    body.tier-b .topbar{ color: #fff; }
-    body.tier-b .topbar .brand p{ color: rgba(255,255,255,0.92); }
+    body.tier-b .site-header{ color: #fff; }
+    body.tier-b .site-header .brand p{ color: rgba(255,255,255,0.92); }
     body.tier-b .chip{
       background: rgba(255,255,255,0.22);
       color: #fff;
@@ -774,8 +1411,16 @@
       color: #1e3a5f;
     }
     body.tier-b .msg.user .bubble{
-      background: linear-gradient(135deg, #007fff 0%, #00bfff 100%);
+      background: linear-gradient(145deg, #007fff 0%, #0066cc 100%);
       color: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 18px rgba(0, 127, 255, 0.3);
+    }
+    body.tier-b .msg.robo .bubble{
+      background: #fff;
+      border-left-color: #ff1493;
+      border-color: rgba(255, 20, 147, 0.25);
+      border-radius: 18px;
     }
     body.tier-b .quick button{
       background: linear-gradient(180deg, #ffd700 0%, #ffb347 100%);
@@ -812,11 +1457,12 @@
       font-weight: 700;
       letter-spacing: -0.02em;
     }
-    body.tier-c .topbar{
+    body.tier-c .site-header{
       color: #fff;
+      background: rgba(10, 25, 41, 0.55);
       border-bottom: 1px solid rgba(255,255,255,0.12);
     }
-    body.tier-c .topbar .brand p{ color: rgba(255,255,255,0.78); }
+    body.tier-c .site-header .brand p{ color: rgba(255,255,255,0.78); }
     body.tier-c .chip{
       background: rgba(255,255,255,0.1);
       border-color: rgba(255,255,255,0.18);
@@ -859,6 +1505,17 @@
     body.tier-c .robo-card{
       background: linear-gradient(180deg, #f4f8fc 0%, #eef4fa 100%) !important;
     }
+    body.tier-c .msg.robo .bubble{
+      background: #f8fbff;
+      border-left-color: #1a6bb5;
+      border-color: rgba(13, 79, 139, 0.18);
+      border-radius: 18px;
+    }
+    body.tier-c .msg.user .bubble{
+      background: linear-gradient(145deg, #1a6bb5 0%, #0d4f8b 100%);
+      color: #fff;
+      border-radius: 18px;
+    }
     body.tier-c .quick button{
       background: #eef4fa;
       color: #0d4f8b;
@@ -866,15 +1523,20 @@
       border: 1px solid #c5d8eb;
     }
 
-    /* Shared tier-aware surfaces */
-    .shell{
+    /* Shared tier-aware surfaces (not homepage glass) */
+    body.tier-a .shell,
+    body.tier-b .shell,
+    body.tier-c .shell{
       background: linear-gradient(180deg, var(--panel) 0%, rgba(255,252,245,0.92) 100%);
       box-shadow: var(--shadow), 0 0 0 var(--shell-border, 4px solid rgba(255,224,102,0.35));
       backdrop-filter: blur(10px);
       transition: box-shadow .45s ease, background .45s ease;
     }
-    .topbar{
-      background: var(--topbar-bg);
+    .shell{
+      transition: box-shadow .45s ease, background .45s ease;
+    }
+    .site-header{
+      background: var(--topbar-bg, rgba(255, 255, 255, 0.06));
       transition: background .45s ease;
     }
     .title{ color: var(--title-color); transition: color .45s ease; }
@@ -894,50 +1556,185 @@
     input, select, textarea{ background: var(--input-bg); }
     .footer{ background: var(--footer-bg); transition: background .45s ease; }
     .subtitle, .mini, .note{ text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+    body.tier-default .subtitle,
+    body.tier-default .mini,
+    body.tier-default .note,
+    body.tier-default .title{
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+    }
+    body.tier-default .title{
+      text-shadow: none;
+    }
     body.tier-c .subtitle,
     body.tier-c .mini,
     body.tier-c .note{ text-shadow: none; }
     .msg .bubble{ text-shadow: none; }
+
+    /* Homepage welcome — sharp bg, dark glass cards only */
+    body.tier-default.home-welcome .shell{
+      max-height: none;
+      overflow: visible;
+      background: transparent;
+      backdrop-filter: none;
+      border: none;
+      box-shadow: none;
+    }
+    body.tier-default.home-welcome .content{
+      background: transparent;
+      overflow: visible;
+    }
+    body.tier-default.home-welcome .welcome-core{
+      gap: 0;
+      border-radius: var(--radius2);
+      overflow: hidden;
+    }
+    body.tier-default.home-welcome .welcome-core > .card{
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      backdrop-filter: none;
+      color: #eef4ff;
+    }
+    body.tier-default.home-welcome .welcome-core > .card:first-child{
+      border-right: 1px solid rgba(0, 245, 255, 0.2);
+    }
+    @media (max-width: 980px){
+      body.tier-default.home-welcome .welcome-core > .card:first-child{
+        border-right: none;
+        border-bottom: 1px solid rgba(0, 245, 255, 0.2);
+      }
+      body.tier-default.home-welcome .welcome-hero{
+        min-height: min(36vh, 300px);
+      }
+    }
+    body.tier-default.home-welcome .footer{
+      border-radius: 0 0 var(--radius2) var(--radius2);
+      margin-top: 16px;
+    }
+
+    /* Mobile / Android — safe areas, touch targets, scroll */
+    body.tier-default{
+      overflow-y: auto;
+    }
+    body.tier-default .shell{
+      max-height: none;
+      overflow: visible;
+    }
+    body.tier-default .content{
+      overflow: visible;
+      flex: none;
+    }
+    button, .btn, .chip{
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    @media (max-width: 680px){
+      body:not(.home-welcome) .app{
+        display: block;
+        width: 100%;
+        max-width: 1100px;
+        margin: 0 auto;
+        place-items: start stretch;
+        padding:
+          calc(68px + env(safe-area-inset-top))
+          max(12px, env(safe-area-inset-right))
+          max(20px, env(safe-area-inset-bottom))
+          max(12px, env(safe-area-inset-left));
+      }
+      .site-header{
+        gap: 8px;
+      }
+      .brand{
+        gap: 10px;
+        flex: 1 1 auto;
+        min-width: 0;
+      }
+      .brand p{
+        font-size: 11px;
+        line-height: 1.35;
+      }
+      .logo-wrap{
+        width: 44px;
+        height: 44px;
+      }
+      .brand h1{
+        font-size: 16px;
+        line-height: 1.2;
+      }
+      body.tier-default .top-actions .btn,
+      body.tier-default .chip{
+        min-height: 44px;
+        display: inline-flex;
+        align-items: center;
+      }
+      button, .btn{
+        min-height: 44px;
+      }
+      body.tier-default.home-welcome .welcome-hero{
+        min-height: min(28vh, 220px);
+      }
+      .welcome-lower{
+        padding: 16px;
+        margin-top: 16px;
+      }
+      .footer{
+        padding-bottom: max(18px, env(safe-area-inset-bottom));
+      }
+    }
+    @media (max-width: 380px){
+      .top-actions{
+        gap: 8px;
+      }
+      .top-actions .btn{
+        flex: 1 1 calc(50% - 4px);
+        justify-content: center;
+        text-align: center;
+      }
+      .chip{
+        width: 100%;
+        text-align: center;
+      }
+    }
   </style>
 </head>
-<body class="tier-default">
+<body class="tier-default home-welcome">
+  <div class="bg-home" id="bgHome" aria-hidden="true">
+    <div class="bg-kenburns bg-kenburns-landscape"></div>
+    <div class="bg-kenburns bg-kenburns-portrait"></div>
+  </div>
   <div class="bg-scene" id="bgScene" aria-hidden="true"></div>
   <div class="bg-overlay" aria-hidden="true"></div>
+  <header class="site-header topbar" role="banner">
+    <div class="brand">
+      <div class="logo-wrap">
+        <img class="logo" src="/assets/sg16-children-world-logo.jpg" alt="SG16 Children World" width="48" height="48" />
+      </div>
+      <div>
+        <h1><span class="brand-sg">SG16</span> <span class="brand-children">Children</span> <span class="brand-world">World</span></h1>
+        <p id="brandSubtitle">Welcome to the Future • Parent-gated onboarding</p>
+      </div>
+    </div>
+    <div class="top-actions">
+      <div class="chip" id="chipMode">Mode: <strong>Not set</strong></div>
+      <button id="btnParent" class="btn" type="button">Parent Panel</button>
+      <button id="btnReset" class="btn" type="button">Reset</button>
+    </div>
+  </header>
   <div class="app">
     <div class="shell" role="application" aria-label="SG16 Children World">
-      <div class="topbar">
-        <div class="brand">
-          <div class="logo" aria-hidden="true"></div>
-          <div>
-            <h1>SG16 Children World</h1>
-            <p id="brandSubtitle">Parent-gated onboarding • Choose your world</p>
-          </div>
-        </div>
-        <div class="top-actions">
-          <div class="chip" id="chipMode">Mode: <strong>Not set</strong></div>
-          <button id="btnParent" class="btn" type="button">Parent Panel</button>
-          <button id="btnReset" class="btn" type="button">Reset</button>
-        </div>
-      </div>
       <div class="content">
         <!-- ONBOARDING -->
         <div id="stepWelcome" class="step active">
-          <div class="grid">
+          <div class="welcome-hero" aria-hidden="true"></div>
+          <div class="grid welcome-core glass-card-dark">
             <div class="card">
               <h2 class="title">Welcome</h2>
               <p class="subtitle">
                 This app is designed for kids and families. It uses an AI helper named <strong>Robo</strong>.
                 For children under 13, a parent or guardian should set it up.
               </p>
-              <div class="note good">
-                <strong>Privacy:</strong> This demo stores only a random session ID and your chosen settings in your browser
-                (<em>sessionStorage</em>). No camera use. No face scanning. No personal details required.
-              </div>
               <div style="height:12px"></div>
               <button id="startOnboarding" class="btn-primary" type="button">Start setup</button>
-              <div class="mini">
-                Tip: Parent gate uses a quick math question. Then you choose the age tier.
-              </div>
             </div>
             <div class="card">
               <h2 class="title">What Robo is</h2>
@@ -945,14 +1742,22 @@
                 Robo is a <strong>computer helper</strong> in a cartoon robot body. Robo can help with homework, stories,
                 science facts, feelings, and fun puzzles.
               </p>
-              <div class="note danger">
-                <strong>Safety:</strong> Robo should not be used for emergencies. If someone is in danger,
-                call your local emergency number.
-              </div>
-              <div style="height:10px"></div>
-              <div class="note">
-                <strong>Kid rule:</strong> Please do not share real names, addresses, phone numbers, school names, or passwords.
-              </div>
+            </div>
+          </div>
+          <div class="welcome-lower glass-card-dark">
+            <div class="note good">
+              <strong>Privacy:</strong> This demo stores only a random session ID and your chosen settings in your browser
+              (<em>sessionStorage</em>). No camera use. No face scanning. No personal details required.
+            </div>
+            <div class="mini">
+              Tip: Parent gate uses a quick math question. Then you choose the age tier.
+            </div>
+            <div class="note danger">
+              <strong>Safety:</strong> Robo should not be used for emergencies. If someone is in danger,
+              call your local emergency number.
+            </div>
+            <div class="note">
+              <strong>Kid rule:</strong> Please do not share real names, addresses, phone numbers, school names, or passwords.
             </div>
           </div>
         </div>
@@ -1060,19 +1865,36 @@
           <div class="robo-stage">
             <div class="card robo-card">
               <div class="robo-bg" aria-hidden="true"></div>
-              <div class="robo" aria-label="Robo the friendly robot" role="img">
-                <div class="antenna"></div>
-                <div class="head">
-                  <div class="face">
-                    <div class="eye"></div>
-                    <div class="eye"></div>
-                  </div>
-                  <div class="mouth"></div>
+              <div class="robo-hero robot-idle" id="roboHero" role="img" aria-label="Robo the friendly robot">
+                <div class="robo-fx robo-fx-rings" aria-hidden="true">
+                  <span class="robo-ring robo-ring-1"></span>
+                  <span class="robo-ring robo-ring-2"></span>
+                  <span class="robo-ring robo-ring-3"></span>
+                  <span class="robo-matrix-scan"></span>
                 </div>
-                <div class="body">
-                  <div class="badge cyan"></div>
-                  <div class="badge"></div>
-                  <div class="badge purple"></div>
+                <div class="robo-fx robo-fx-burst" id="roboBurst" aria-hidden="true">
+                  <span class="robo-spark robo-spark-1"></span>
+                  <span class="robo-spark robo-spark-2"></span>
+                  <span class="robo-spark robo-spark-3"></span>
+                  <span class="robo-spark robo-spark-4"></span>
+                  <span class="robo-spark robo-spark-5"></span>
+                </div>
+                <div class="robo-hero-smile-glow" aria-hidden="true"></div>
+                <div class="robo-body-wrap" id="roboBodyWrap">
+                  <div class="robo-stage-pod" aria-hidden="true"></div>
+                  <div class="robo-ground-shadow" aria-hidden="true"></div>
+                  <div class="robo-pose-stage" id="roboPoseStage">
+                    <video
+                      id="roboVideo"
+                      class="robo-hero-video"
+                      src="/assets/robo.mp4"
+                      poster="/assets/robo.jpeg"
+                      playsinline
+                      muted
+                      preload="auto"
+                      aria-label="Robo animated character"
+                    ></video>
+                  </div>
                 </div>
               </div>
               <div class="speech" id="roboSpeech">
@@ -1178,11 +2000,20 @@
         </div>
       </div>
       <div class="footer">
-        <div>
-          <span>SG16 Children World</span> • <span id="footTier">Tier: Not set</span>
+        <div class="footer-brand">
+          <strong>SG16 Children World</strong>
+          <span class="footer-meta">by Saif Tech Global</span>
+          <span id="footTier">Tier: Not set</span>
         </div>
-        <div>
-          <span>Local session only</span> • <a href="#" id="privacyLink">Privacy info</a>
+        <nav class="footer-nav" aria-label="Legal and information">
+          <a href="#" id="linkAbout">About</a>
+          <a href="#" id="linkPrivacy">Privacy Policy</a>
+          <a href="#" id="linkTerms">Terms of Use</a>
+          <a href="#" id="linkSafety">Safety</a>
+          <a href="https://saiftechglobal.com" target="_blank" rel="noopener noreferrer">Contact</a>
+        </nav>
+        <div class="footer-note">
+          Local session only • © 2026 Saif Tech Global
         </div>
       </div>
     </div>
@@ -1207,7 +2038,7 @@
     const API_BASE = 'https://sg16engine.com';
     const API_URL = `${API_BASE}/api/sg16/chat`;
     const API_HEALTH_URL = `${API_BASE}/api/sg16/health`;
-    const SG16_CLIENT_ID = 'sg16-children-world-local';
+    const SG16_CLIENT_ID = 'sg16-children-world';
     const VALID_AGE_TIERS = ['6-11', '12-17', '18+'];
     const USE_BACKEND = true;         // set false for offline demo replies
     const STORAGE_KEY = "sg16_session_v1";
@@ -1302,7 +2133,7 @@
         if(chatTitle) chatTitle.textContent = theme.chatTitle;
       } else {
         body.classList.add("tier-default");
-        sub.textContent = "Parent-gated onboarding • Choose your world";
+        sub.textContent = "Welcome to the Future • Parent-gated onboarding";
       }
     }
     function tierAssistantLabel(ageTier){
@@ -1318,6 +2149,10 @@
         el.classList.remove("active");
       }
       document.getElementById(id).classList.add("active");
+      const isWelcome = id === "stepWelcome";
+      document.body.classList.toggle("home-welcome", isWelcome);
+      const scrollBody = isWelcome || document.body.classList.contains("tier-default");
+      document.body.style.overflowY = scrollBody ? "auto" : "";
     }
     function isFourDigits(pin){
       return /^[0-9]{4}$/.test(String(pin || ""));
@@ -1411,6 +2246,145 @@
     function setRoboSpeech(text){
       const el = document.getElementById("roboSpeech");
       el.innerHTML = escapeHTML(text);
+    }
+    let chatBusy = false;
+    function setChatBusy(busy){
+      chatBusy = !!busy;
+      const card = document.querySelector(".chat-card");
+      if(card) card.classList.toggle("is-busy", chatBusy);
+      const sendBtn = document.getElementById("btnSend");
+      if(sendBtn) sendBtn.disabled = chatBusy;
+    }
+    /* Motion comes from the reference clip — one segment per state (not one frozen frame) */
+    const ROBO_SEGMENTS = {
+      idle:     { start: 12.6, end: 14.9, rate: 0.92 },
+      thinking: { start: 0.0,  end: 2.9,  rate: 1.0  },
+      speaking: { start: 3.1,  end: 12.4, rate: 1.08 },
+    };
+    let roboSegMode = "idle";
+    let roboSegListener = null;
+    function detachRoboSegmentLoop(){
+      const video = document.getElementById("roboVideo");
+      if(video && roboSegListener){
+        video.removeEventListener("timeupdate", roboSegListener);
+      }
+      roboSegListener = null;
+    }
+    async function syncRoboVideoSegment(mode){
+      const video = document.getElementById("roboVideo");
+      if(!video) return;
+      const key = mode === "thinking" || mode === "speaking" ? mode : "idle";
+      const seg = ROBO_SEGMENTS[key];
+      if(!seg) return;
+
+      roboSegMode = key;
+      detachRoboSegmentLoop();
+      video.playbackRate = seg.rate;
+
+      const jumpToStart = ()=>{
+        try{ video.currentTime = seg.start; }catch{ /* ignore */ }
+      };
+      jumpToStart();
+
+      roboSegListener = ()=>{
+        if(roboSegMode !== key) return;
+        if(video.currentTime >= seg.end - 0.04){
+          jumpToStart();
+        }
+      };
+      video.addEventListener("timeupdate", roboSegListener);
+
+      if(video.readyState >= 1){
+        jumpToStart();
+      } else {
+        video.addEventListener("loadedmetadata", jumpToStart, { once: true });
+      }
+
+      try{
+        await video.play();
+      }catch{
+        /* waits for user gesture */
+      }
+    }
+    let roboVideoReady = false;
+    function initRoboVideo(){
+      const video = document.getElementById("roboVideo");
+      if(!video) return;
+      if(!roboVideoReady){
+        roboVideoReady = true;
+        video.addEventListener("ended", ()=> syncRoboVideoSegment(roboSegMode));
+      }
+    }
+    function setRoboHeroState(mode){
+      const hero = document.getElementById("roboHero");
+      const burst = document.getElementById("roboBurst");
+      if(!hero) return;
+
+      hero.classList.remove("robot-idle", "robot-thinking", "robot-speaking");
+
+      if(mode === "thinking"){
+        hero.classList.add("robot-thinking");
+        if(burst) burst.classList.remove("robo-burst-fire");
+      } else if(mode === "speaking"){
+        hero.classList.add("robot-speaking");
+        if(burst){
+          burst.classList.remove("robo-burst-fire");
+          void burst.offsetWidth;
+          burst.classList.add("robo-burst-fire");
+        }
+      } else {
+        hero.classList.add("robot-idle");
+        if(burst) burst.classList.remove("robo-burst-fire");
+      }
+      syncRoboVideoSegment(mode);
+    }
+    function typeRoboMessage(text){
+      const log = document.getElementById("chatLog");
+      const msg = document.createElement("div");
+      msg.className = "msg robo";
+      const av = document.createElement("div");
+      av.className = "avatar";
+      av.textContent = tierAssistantLabel(state.ageTier || "6-11");
+      const bubble = document.createElement("div");
+      bubble.className = "bubble";
+      msg.appendChild(av);
+      msg.appendChild(bubble);
+      log.appendChild(msg);
+
+      const plain = String(text || "");
+      const msPerChar = Math.min(26, Math.max(8, Math.floor(3200 / Math.max(plain.length, 1))));
+
+      return new Promise((resolve)=>{
+        let i = 0;
+        function tick(){
+          if(i >= plain.length){
+            bubble.innerHTML = escapeHTML(plain);
+            persistChatHistory();
+            log.scrollTop = log.scrollHeight;
+            resolve();
+            return;
+          }
+          i += 1;
+          bubble.textContent = plain.slice(0, i);
+          log.scrollTop = log.scrollHeight;
+          setTimeout(tick, msPerChar);
+        }
+        tick();
+      });
+    }
+    async function pingBrainHealth(){
+      if(!USE_BACKEND) return;
+      try{
+        const res = await fetch(API_HEALTH_URL, {
+          method: "GET",
+          mode: "cors",
+          credentials: "omit",
+          headers: { "Accept": "application/json" }
+        });
+        if(!res.ok) console.warn("SG16 brain health check failed:", res.status);
+      }catch(err){
+        console.warn("SG16 brain unreachable at startup:", err?.message || err);
+      }
     }
     // ==============================
     // Backend call (cross-origin to live brain — credentials omitted for isolation)
@@ -1544,15 +2518,29 @@
       if(document.getElementById("chatLog").children.length === 0){
         addMessage("robo", greeting);
       }
+      initRoboVideo();
+      setRoboHeroState("idle");
       setStatus("Ready.");
     }
     // ==============================
     // Events
     // ==============================
-    document.getElementById("privacyLink").addEventListener("click", (e)=>{
-      e.preventDefault();
-      toast("Privacy: This demo stores settings in sessionStorage only. For production, keep chats minimal and avoid personal data.");
-    });
+    function bindFooterLink(id, message){
+      const el = document.getElementById(id);
+      if(!el) return;
+      el.addEventListener("click", (e)=>{
+        e.preventDefault();
+        toast(message, 3200);
+      });
+    }
+    bindFooterLink("linkAbout",
+      "SG16 Children World is a safe, parent-gated AI learning space for kids and families — powered by Saif Tech Global.");
+    bindFooterLink("linkPrivacy",
+      "Privacy: This demo stores only a session ID and your settings in sessionStorage. No camera. No face scan. No personal data required.");
+    bindFooterLink("linkTerms",
+      "Terms: For family/education use. Parents must set up accounts for children under 13. Not for emergencies.");
+    bindFooterLink("linkSafety",
+      "Safety: Robo uses age-tier rules. Never share names, addresses, phone numbers, school names, or passwords.");
     document.getElementById("btnReset").addEventListener("click", ()=>{
       if(confirm("Reset this session (clears settings and chat)?")){
         resetState();
@@ -1662,11 +2650,14 @@
     }
     // Chat send
     async function onSend(){
+      if(chatBusy) return;
       const input = document.getElementById("chatInput");
       const text = (input.value || "").trim();
       if(!text) return;
       input.value = "";
       addMessage("user", text);
+      setChatBusy(true);
+      setRoboHeroState("thinking");
       setStatus("Robo is thinking…");
       try{
         let reply = "";
@@ -1676,13 +2667,17 @@
         } else {
           reply = offlineDemoReply(text);
         }
-        addMessage("robo", reply);
+        setRoboHeroState("speaking");
+        setStatus("Robo is speaking…");
+        await typeRoboMessage(reply);
         setRoboSpeech(reply);
         speak(reply);
         setStatus("Ready.");
+        setRoboHeroState("idle");
       }catch(err){
         console.error(err);
         const hint = String(err?.message || "");
+        setRoboHeroState("idle");
         addMessage(
           "robo",
           hint.includes("CORS") || hint.includes("Could not reach")
@@ -1690,6 +2685,8 @@
             : "Oops—something went wrong. Please ask a parent to help and try again."
         );
         setStatus(hint || "Error talking to server.");
+      }finally{
+        setChatBusy(false);
       }
     }
     document.getElementById("btnSend").addEventListener("click", onSend);
@@ -1764,6 +2761,7 @@
     });
     // Init
     refreshMath();
+    pingBrainHealth();
     applyTierTheme(state.ageTier || null);
     setModeChips(state);
     routeFromState();
