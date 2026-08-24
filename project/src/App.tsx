@@ -369,7 +369,9 @@ function App() {
 
   useEffect(() => {
 
-    void restoreAuthSession().finally(() => setAuthHydrated(true));
+    const hydrate = restoreAuthSession().finally(() => setAuthHydrated(true));
+    const safety = window.setTimeout(() => setAuthHydrated(true), 15_000);
+    void hydrate.finally(() => window.clearTimeout(safety));
 
   }, [restoreAuthSession]);
 

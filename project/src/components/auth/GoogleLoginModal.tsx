@@ -102,8 +102,15 @@ export function GoogleLoginModal() {
 
           <button
             type="button"
-            onClick={() => enterLocalPreview()}
-            className="w-full mt-2 rounded-xl border border-[#FF2E2E]/40 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 py-3 text-sm font-semibold text-[#FF8A8A] transition"
+            onClick={() => {
+              setLoading(true);
+              setError(null);
+              void enterLocalPreview().catch((err) => {
+                setError(err instanceof Error ? err.message : 'Preview sign-in failed');
+              }).finally(() => setLoading(false));
+            }}
+            disabled={loading}
+            className="w-full mt-2 rounded-xl border border-[#FF2E2E]/40 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 py-3 text-sm font-semibold text-[#FF8A8A] transition disabled:opacity-50"
           >
             Enter app without Google →
           </button>

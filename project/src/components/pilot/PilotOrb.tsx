@@ -35,7 +35,7 @@ export function PilotOrb() {
   const running = job?.status === 'running';
 
   return (
-    <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-5 right-3 z-40 flex flex-col items-end gap-2">
+    <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-5 left-3 right-auto lg:left-auto lg:right-3 z-40 flex flex-col items-start lg:items-end gap-2">
       {open && (
         <div className="w-[min(92vw,360px)] rounded-2xl border border-white/15 bg-black text-white shadow-2xl overflow-hidden">
           <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/10 bg-white/[0.03]">

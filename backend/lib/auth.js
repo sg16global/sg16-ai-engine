@@ -3,6 +3,8 @@ import { buildSubscriptionPayload, ensureSignupDate, getUserRecord } from './use
 import { trialDaysRemaining, trialIsActive, trialMsRemaining } from './access.js';
 import { isLaunchFree } from './launchMode.js';
 
+const PREVIEW_USER_ID = 'sg16-preview-guest';
+
 const SESSION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
 function sessionSecret() {
@@ -189,6 +191,42 @@ export function isDevAuthEnabled() {
     return process.env.SG16_DEV_AUTH === '1';
   }
   return process.env.SG16_DEV_AUTH !== '0';
+}
+
+export function isPreviewAuthEnabled() {
+  if (process.env.SG16_PREVIEW_AUTH === '0') return false;
+  return isLaunchFree();
+}
+
+/** Fallback when Google OAuth fails (white page) — issues a real signed session for launch guests. */
+export async function handlePreviewAuth(_req, res) {
+  if (!isPreviewAuthEnabled()) {
+    return res.status(404).json({ error: 'Preview sign-in is not available.' });
+  }
+
+  try {
+    const signupDate = await ensureSignupDate(PREVIEW_USER_ID, { name: 'SG16 Preview' });
+    const token = signSession({
+      sub: PREVIEW_USER_ID,
+      signupDate,
+      name: 'SG16 Preview',
+      picture: undefined,
+      preview: true,
+    });
+
+    res.json({
+      token,
+      user: await buildUserPayload({
+        sub: PREVIEW_USER_ID,
+        signupDate,
+        name: 'SG16 Preview',
+        picture: undefined,
+      }),
+    });
+  } catch (err) {
+    console.error('[SG16 preview auth]', err);
+    res.status(500).json({ error: 'Preview sign-in failed.' });
+  }
 }
 
 export async function handleDevAuth(_req, res) {

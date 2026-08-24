@@ -14,6 +14,7 @@ import {
   handleAuthMe,
   handleGoogleAuth,
   handleDevAuth,
+  handlePreviewAuth,
   requireAuth,
 } from './lib/auth.js';
 import {
@@ -213,6 +214,7 @@ app.get('/health/deep', async (_req, res) => {
 app.get('/api/v1/auth/config', getGoogleClientIdForFrontend);
 app.post('/api/v1/auth/google', handleGoogleAuth);
 app.post('/api/v1/auth/dev', handleDevAuth);
+app.post('/api/v1/auth/preview', handlePreviewAuth);
 app.get('/api/v1/auth/me', requireAuth, handleAuthMe);
 
 app.get('/api/v1/user/room', requireAuth, handleGetUserRoom);

@@ -7,6 +7,19 @@ export interface AuthConfigResponse {
 }
 
 const AUTH_TOKEN_KEY = 'sg16_auth_token';
+const AUTH_FETCH_TIMEOUT_MS = 12_000;
+
+function isLegacyPreviewToken(token: string) {
+  return token === 'local-preview-token' || token.startsWith('local-preview');
+}
+
+async function authFetch(input: RequestInfo | URL, init?: RequestInit) {
+  const res = await fetch(input, {
+    ...init,
+    signal: AbortSignal.timeout(AUTH_FETCH_TIMEOUT_MS),
+  });
+  return res;
+}
 
 function readStoredToken(): string | null {
   try {
@@ -17,7 +30,7 @@ function readStoredToken(): string | null {
 }
 
 export async function fetchAuthConfig(): Promise<AuthConfigResponse> {
-  const res = await fetch('/api/v1/auth/config');
+  const res = await authFetch('/api/v1/auth/config');
   const data = await res.json();
   const clientId = (data.clientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
   return {
@@ -27,8 +40,15 @@ export async function fetchAuthConfig(): Promise<AuthConfigResponse> {
   };
 }
 
+export async function loginPreview(): Promise<{ token: string; user: AuthUser }> {
+  const res = await authFetch('/api/v1/auth/preview', { method: 'POST' });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Preview sign-in failed');
+  return data;
+}
+
 export async function loginWithGoogle(credential: string): Promise<{ token: string; user: AuthUser }> {
-  const res = await fetch('/api/v1/auth/google', {
+  const res = await authFetch('/api/v1/auth/google', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ credential }),
@@ -39,7 +59,7 @@ export async function loginWithGoogle(credential: string): Promise<{ token: stri
 }
 
 export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subscription?: AuthUser['subscription'] }> {
-  const res = await fetch('/api/v1/auth/me', {
+  const res = await authFetch('/api/v1/auth/me', {
     headers: { Authorization: `Bearer ${token}` },
   });
   const data = await res.json();
@@ -49,6 +69,10 @@ export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subs
 
 export function loadAuthToken(): string | null {
   const token = readStoredToken();
+  if (token && isLegacyPreviewToken(token)) {
+    clearAuthToken();
+    return null;
+  }
   if (token) {
     try {
       localStorage.setItem(AUTH_TOKEN_KEY, token);

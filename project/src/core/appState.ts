@@ -70,7 +70,7 @@ interface AppState {
   closeLoginModal: () => void;
   setAuthSession: (token: string, user: AuthUser) => void;
   /** Local / preview enter — no Google. Use when OAuth is blocked. */
-  enterLocalPreview: () => void;
+  enterLocalPreview: () => Promise<void>;
   /** Public tour — open Shield Home without sign-in; shields prompt Google login. */
   enterGuestTour: () => void;
   refreshAuthUser: () => Promise<void>;
@@ -208,16 +208,10 @@ export const useAppStore = create<AppState>((set, getState) => ({
     });
   },
 
-  enterLocalPreview: () => {
-    const user: AuthUser = {
-      id: 'local-preview',
-      signupDate: Date.now(),
-      name: 'SG16 Preview',
-      launchFree: true,
-      trialActive: false,
-      trialDaysRemaining: 0,
-    };
-    getState().setAuthSession('local-preview-token', user);
+  enterLocalPreview: async () => {
+    const { loginPreview } = await import('../lib/authApi');
+    const result = await loginPreview();
+    getState().setAuthSession(result.token, result.user);
     getState().setWorkspace('home');
   },
 
@@ -281,6 +275,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
   restoreAuthSession: async () => {
     const token = loadAuthToken();
     if (!token) return;
+    if (token === 'local-preview-token' || token.startsWith('local-preview') || !token.includes('.')) {
+      clearAuthToken();
+      set({ authToken: null, authUser: null, messages: emptyChatHistory() });
+      return;
+    }
     set({ authToken: token });
     try {
       const me = await fetchAuthMe(token);
