@@ -1,3 +1,9 @@
+/** Off by default so kids traffic cannot starve existing SG16 Engine users. */
+export function isChildrenWorldEnabled() {
+  const v = (process.env.SG16_CHILDREN_ENABLED || '').trim().toLowerCase();
+  return v === '1' || v === 'true' || v === 'yes';
+}
+
 /** Platform credential for SG16 Children — validates X-SG16-Client on chat routes. */
 const DEFAULT_CLIENT_IDS = ['sg16-children-world', 'sg16-children-world-local'];
 

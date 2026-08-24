@@ -64,7 +64,7 @@ import {
   handleChildrenWorldHealth,
   handleChildrenWorldChatStream,
 } from './lib/childrenWorld/handlers.js';
-import { requireChildrenClient } from './lib/childrenWorld/clientAuth.js';
+import { isChildrenWorldEnabled, requireChildrenClient } from './lib/childrenWorld/clientAuth.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -142,9 +142,27 @@ app.post(
   handleBillingWebhook,
 );
 
-app.get('/api/sg16/health', handleChildrenWorldHealth);
-app.post('/api/sg16/chat', requireChildrenClient, childrenChatRateLimit, handleChildrenWorldChat);
-app.post('/api/sg16/chat/stream', requireChildrenClient, childrenChatRateLimit, handleChildrenWorldChatStream);
+if (isChildrenWorldEnabled()) {
+  app.get('/api/sg16/health', handleChildrenWorldHealth);
+  app.post('/api/sg16/chat', requireChildrenClient, childrenChatRateLimit, handleChildrenWorldChat);
+  app.post('/api/sg16/chat/stream', requireChildrenClient, childrenChatRateLimit, handleChildrenWorldChatStream);
+} else {
+  app.get('/api/sg16/health', (_req, res) => {
+    res.json({ status: 'paused', enabled: false, service: 'sg16-children-world' });
+  });
+  app.post('/api/sg16/chat', (_req, res) => {
+    res.status(503).json({
+      error: 'SG16 Children World is paused. This brain is reserved for SG16 AI Engine.',
+      enabled: false,
+    });
+  });
+  app.post('/api/sg16/chat/stream', (_req, res) => {
+    res.status(503).json({
+      error: 'SG16 Children World is paused. This brain is reserved for SG16 AI Engine.',
+      enabled: false,
+    });
+  });
+}
 
 function isLocalHost(req) {
   const host = req.hostname;

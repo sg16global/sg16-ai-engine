@@ -313,6 +313,11 @@ export async function handleChatRequest(req, res) {
         error: 'SG16 AI is warming up. Please try again in a few seconds.',
       });
     }
+    if (/fetch failed|ECONNREFUSED|ENOTFOUND|network|socket/i.test(msg)) {
+      return res.status(503).json({
+        error: 'SG16 AI is warming up. Please try again in a few seconds.',
+      });
+    }
     if (msg.includes('not configured')) {
       return res.status(503).json({
         error: 'SG16 AI is not available right now. Please try again shortly.',

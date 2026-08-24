@@ -355,7 +355,16 @@ export async function callChatCompletion({
     signal: AbortSignal.timeout(timeoutMs),
   });
 
-  const data = await res.json();
+  const raw = await res.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    const err = new Error('SG16 AI request failed');
+    err.status = res.status;
+    err.provider = activeProvider.id;
+    throw err;
+  }
   if (!res.ok) {
     const err = new Error(data.error?.message || 'SG16 AI request failed');
     err.status = res.status;
