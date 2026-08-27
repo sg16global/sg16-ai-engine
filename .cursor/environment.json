@@ -1,0 +1,19 @@
+{
+  "name": "SG16 AI Engine",
+  "user": "ubuntu",
+  "install": "bash .cursor/install.sh",
+  "terminals": [
+    {
+      "name": "ollama",
+      "command": "OLLAMA_HOST=127.0.0.1:11434 ollama serve"
+    },
+    {
+      "name": "backend",
+      "command": "npm run dev:backend"
+    },
+    {
+      "name": "frontend",
+      "command": "npm run dev:frontend"
+    }
+  ]
+}
