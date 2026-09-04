@@ -91,9 +91,19 @@ export async function callMistralBrainChat({
   }
 
   if (!res.ok) {
-    const err = new Error(data.error || data.answer || 'Mistral Brain request failed');
+    const err = new Error(data.error || 'Mistral Brain request failed');
     err.status = res.status;
     err.provider = 'mistralbrain';
+    err.code = data.code || data.status;
+    throw err;
+  }
+
+  if (data.status === 'refused' || data.status === 'blocked' || data.status === 'warning' || data.status === 'locked') {
+    const err = new Error(data.code || data.status || 'policy_refused');
+    err.status = 200;
+    err.provider = 'mistralbrain';
+    err.code = data.code || data.status;
+    err.policyRefusal = true;
     throw err;
   }
 
