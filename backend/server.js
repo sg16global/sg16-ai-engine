@@ -59,6 +59,7 @@ import {
 } from './lib/personalDeveloper/handlers.js';
 import { getPersonalDeveloperStatus } from './lib/personalDeveloper/index.js';
 import { isMasterRulesLoaded } from './lib/masterRules.js';
+import { handleAdsAdCopy } from './lib/adsAdCopy.js';
 import {
   handleChildrenWorldChat,
   handleChildrenWorldHealth,
@@ -189,6 +190,8 @@ app.use((req, res, next) => {
 app.get('/health/live', (_req, res) => {
   res.status(200).json({ status: 'ok', live: true });
 });
+
+app.post('/api/v1/ads/ad-copy', handleAdsAdCopy);
 
 app.get('/health', async (_req, res) => {
   const db = await checkDatabaseHealth();
