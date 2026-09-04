@@ -1,5 +1,5 @@
 import { runChildrenWorldChat, getChildrenWorldStatus } from './chat.js';
-import { pingOllama } from './ollama.js';
+import { pingChildrenBrain, isChildrenBrainReady } from './brain.js';
 import { streamChildrenWorldChat } from './stream.js';
 import { isChildrenWorldEnabled } from './clientAuth.js';
 
@@ -19,8 +19,15 @@ export async function handleChildrenWorldHealth(_req, res) {
     return res.json({ status: 'paused', enabled: false, ...getChildrenWorldStatus() });
   }
   try {
-    const ollama = await pingOllama();
-    res.json({ status: 'ok', enabled: true, ollama, ...getChildrenWorldStatus() });
+    const brain = await pingChildrenBrain();
+    res.json({
+      status: brain.ok ? 'ok' : 'degraded',
+      enabled: true,
+      brain: 'mistralbrain-cloud',
+      ready: isChildrenBrainReady(),
+      mistralBrain: brain,
+      ...getChildrenWorldStatus(),
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

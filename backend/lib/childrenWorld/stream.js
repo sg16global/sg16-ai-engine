@@ -1,4 +1,4 @@
-import { streamOllamaNative } from './ollama.js';
+import { streamChildrenBrain } from './brain.js';
 import { buildModelMessages } from './history.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
@@ -130,12 +130,11 @@ export async function streamChildrenWorldChat({
 
   let content = '';
   try {
-    content = await streamOllamaNative({
+    content = await streamChildrenBrain({
       messages: buildModelMessages({ systemPrompt, history, userPayload }),
       onToken: (delta, full) => {
         onToken?.(delta, full);
       },
-      maxTokens: 120,
       timeoutMs,
     });
   } catch (err) {

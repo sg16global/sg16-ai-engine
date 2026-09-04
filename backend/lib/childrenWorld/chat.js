@@ -1,4 +1,4 @@
-import { chatOllamaNative } from './ollama.js';
+import { chatChildrenBrain } from './brain.js';
 import { buildModelMessages } from './history.js';
 import { fullSystemPrompt, VALID_AGE_TIERS } from './prompts.js';
 import {
@@ -114,9 +114,8 @@ export async function runChildrenWorldChat({
   const timeoutMs = Number(process.env.SG16_CHILDREN_CHAT_TIMEOUT_MS || 120000);
   let content;
   try {
-    content = await chatOllamaNative({
+    content = await chatChildrenBrain({
       messages: buildModelMessages({ systemPrompt, history, userPayload }),
-      maxTokens: 120,
       timeoutMs,
     });
   } catch (err) {
