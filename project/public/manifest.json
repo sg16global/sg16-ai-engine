@@ -1,10 +1,10 @@
 {
   "name": "SG16 AI Engine",
-  "short_name": "SG16",
+  "short_name": "SG16 Engine",
   "description": "SG16 AI Engine — five shields in one secure app. AI Chat, Coding, Health, Student, and Market.",
   "start_url": "/",
   "scope": "/",
-  "id": "/",
+  "id": "https://sg16engine.com/",
   "display": "standalone",
   "display_override": ["standalone", "fullscreen", "minimal-ui"],
   "orientation": "any",

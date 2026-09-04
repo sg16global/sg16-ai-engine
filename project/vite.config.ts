@@ -25,7 +25,7 @@ export default defineConfig({
       ],
       manifest: {
         name: 'SG16 AI Engine',
-        short_name: 'SG16',
+        short_name: 'SG16 Engine',
         description: 'SG16 AI Engine — five shields in one secure app. AI Chat, Coding, Health, Student, and Market.',
         theme_color: '#05060D',
         background_color: '#05060D',
@@ -34,7 +34,7 @@ export default defineConfig({
         orientation: 'any',
         scope: '/',
         start_url: '/',
-        id: '/',
+        id: 'https://sg16engine.com/',
         lang: 'en',
         dir: 'ltr',
         categories: ['productivity', 'utilities', 'education'],
