@@ -608,7 +608,7 @@ export async function callWithVisionFallback({
   throw lastError || new Error('SG16 AI vision is temporarily unavailable. Please try again.');
 }
 
-export { probeMistralBrain };
+export { probeMistralBrain, isMistralBrainConfigured };
 
 export function todayLabel() {
   return new Date().toLocaleDateString('en-US', {
