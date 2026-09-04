@@ -1,6 +1,6 @@
 /** Kali shell scouts — gather info/tools for Katsur to decide what enters Personal Developer. */
 
-import { isSovereignBrain, getProviderStatus } from '../sg16Provider.js';
+import { isCloudMistralBrain, isSovereignBrain, getProviderStatus } from '../sg16Provider.js';
 import { isMasterRulesLoaded } from '../masterRules.js';
 import { getOwnerState, getAwayInstructions } from '../kaliShell/ownerState.js';
 import { getPlatformToolStatus } from '../platformShield/index.js';
@@ -11,7 +11,7 @@ import { getJournalSummary } from './journal.js';
 export async function gatherScoutContext() {
   const parts = [];
 
-  parts.push(`Sovereign brain: ${isSovereignBrain() ? 'ollama (own brain)' : 'api fallback'}`);
+  parts.push(`Brain: ${isCloudMistralBrain() ? 'mistralbrain-cloud (own)' : isSovereignBrain() ? 'ollama (own)' : 'unconfigured'}`);
   parts.push(`Master rules: ${isMasterRulesLoaded() ? 'loaded' : 'missing'}`);
 
   const owner = getOwnerState();
