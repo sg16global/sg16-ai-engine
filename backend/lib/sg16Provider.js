@@ -1,5 +1,6 @@
 import {
   callMistralBrainChat,
+  callMistralBrainVision,
   isMistralBrainCloud,
   isMistralBrainConfigured,
   probeMistralBrain,
@@ -366,6 +367,10 @@ export function getVisionModelChain(provider = getPrimaryProvider()) {
     visionModels.push(backupVision);
   }
 
+  if (provider.id === 'mistralbrain') {
+    return ['SG16 Mistral X Vision'];
+  }
+
   return [...new Set(visionModels.filter(Boolean))];
 }
 
@@ -553,6 +558,14 @@ export async function callWithVisionFallback({
   temperature = 0.1,
   maxTokens = 2048,
 }) {
+  if (isMistralBrainConfigured()) {
+    const content = await callMistralBrainVision({
+      messages,
+      timeoutMs: Number(process.env.MISTRAL_BRAIN_VISION_TIMEOUT_MS || 120000),
+    });
+    return { content, model: 'SG16 Mistral X Vision', provider: 'mistralbrain' };
+  }
+
   const providers = getProviderChain();
   if (!providers.length) {
     throw new Error('SG16 AI is not configured');

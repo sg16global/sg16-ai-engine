@@ -1,3 +1,5 @@
+import { callMistralBrainChat, isMistralBrainConfigured } from './mistralBrainClient.js';
+
 const VALID = [
   'coding', 'health', 'student-shield', 'general',
   'image', 'translate', 'document', 'voice', 'memory',
@@ -36,24 +38,12 @@ export function fallbackRoute(query) {
 }
 
 async function aiRoute(query) {
-  const apiKey =
-    process.env.SG16_ROUTER_API_KEY ||
-    process.env.SG16_AI_API_KEY ||
-    process.env.VITE_SG16_AI_KEY;
-  const apiUrl =
-    process.env.SG16_ROUTER_URL || 'https://api.groq.com/openai/v1/chat/completions';
-  const model = process.env.SG16_ROUTER_MODEL || 'llama-3.3-70b-versatile';
+  if (!isMistralBrainConfigured()) return null;
 
-  if (!apiKey?.trim()) return null;
-
-  const res = await fetch(apiUrl, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model,
+  try {
+    const raw = await callMistralBrainChat({
+      userId: 'sg16-router',
+      timeoutMs: Number(process.env.SG16_ROUTER_TIMEOUT_MS || 15000),
       messages: [
         {
           role: 'system',
@@ -64,24 +54,19 @@ Rules: Only these 4 services. student-shield for education/homework/study. healt
         },
         { role: 'user', content: query },
       ],
-      temperature: 0.3,
-      max_tokens: 150,
-    }),
-    signal: AbortSignal.timeout(Number(process.env.SG16_ROUTER_TIMEOUT_MS || 15000)),
-  });
+    });
 
-  const data = await res.json();
-  if (!res.ok) throw new Error(data.error?.message || 'Router failed');
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : raw);
 
-  const text = data.choices[0].message.content.trim();
-  const jsonMatch = text.match(/\{[\s\S]*\}/);
-  const parsed = JSON.parse(jsonMatch ? jsonMatch[0] : text);
-
-  return {
-    targetWorkspace: normalize(parsed.targetWorkspace),
-    confidence: Number(parsed.confidence) || 0.7,
-    cleanedPrompt: parsed.cleanedPrompt || query,
-  };
+    return {
+      targetWorkspace: normalize(parsed.targetWorkspace),
+      confidence: Number(parsed.confidence) || 0.7,
+      cleanedPrompt: parsed.cleanedPrompt || query,
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function handleRouteRequest(req, res) {

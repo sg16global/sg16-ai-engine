@@ -1,5 +1,5 @@
 import { getMasterRules } from '../masterRules.js';
-import { callWithModelFallback, isSovereignBrain } from '../sg16Provider.js';
+import { callWithModelFallback, isCloudMistralBrain, isSovereignBrain } from '../sg16Provider.js';
 import { getOwnerInsightBlock, isOwnerAway, getAwayInstructions, wakeOwner, getAwayStartedAt, ownerPush } from '../kaliShell/ownerState.js';
 import {
   PERSONAL_DEVELOPER_ID,
@@ -23,7 +23,7 @@ export async function getPersonalDeveloperStatus() {
     ownerAway: isOwnerAway(),
     awayInstructions: getAwayInstructions() || null,
     scoutAt: scout.at,
-    brain: isSovereignBrain() ? 'sovereign-ollama' : 'api-fallback',
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'sovereign-ollama' : 'api-fallback',
   };
 }
 
@@ -71,7 +71,7 @@ export async function runPersonalDeveloper({ message, history = [], delegatedBy 
   return {
     reply: content,
     agent: publicPersonalDeveloperInfo(),
-    brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'mistral-ollama' : 'api',
     model,
     provider,
     ownerAway: isOwnerAway(),

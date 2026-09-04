@@ -1,5 +1,5 @@
 import { getMasterRules } from '../masterRules.js';
-import { callWithModelFallback, isSovereignBrain } from '../sg16Provider.js';
+import { callWithModelFallback, isCloudMistralBrain, isSovereignBrain } from '../sg16Provider.js';
 import { getAgent, defaultDeveloperAgentId, continuityAgentId } from './childAgents.js';
 import { getOwnerInsightBlock, isOwnerAway, getAwayInstructions } from './ownerState.js';
 import { PERSONAL_DEVELOPER_ID, buildPersonalDeveloperPrompt } from '../personalDeveloper/agent.js';
@@ -68,7 +68,7 @@ export async function runShellBrain({ message, agentId, history = [] }) {
       layer: agent.layer,
       kind: agent.kind,
     },
-    brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'mistral-ollama' : 'api',
     model,
     provider,
     ownerAway: isOwnerAway(),
@@ -78,7 +78,7 @@ export async function runShellBrain({ message, agentId, history = [] }) {
 export async function getShellBrainStatus() {
   return {
     platform: 'SG16 Kali Shell',
-    brain: isSovereignBrain() ? 'sovereign-ollama' : 'api-fallback',
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'sovereign-ollama' : 'api-fallback',
     masterRules: getMasterRules().length > 0 ? 'loaded' : 'missing',
   };
 }

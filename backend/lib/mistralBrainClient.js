@@ -116,3 +116,84 @@ export async function probeMistralBrain() {
     };
   }
 }
+
+function extractVisionPayload(messages) {
+  let system = '';
+  let prompt = '';
+  let imageUrl = null;
+
+  for (const msg of messages || []) {
+    if (msg.role === 'system' && typeof msg.content === 'string') {
+      system = msg.content;
+    }
+    if (msg.role === 'user') {
+      if (Array.isArray(msg.content)) {
+        for (const part of msg.content) {
+          if (part?.type === 'text') prompt = part.text;
+          if (part?.type === 'image_url') imageUrl = part.image_url?.url;
+        }
+      } else if (typeof msg.content === 'string') {
+        prompt = msg.content;
+      }
+    }
+  }
+
+  return {
+    prompt: (system ? `${system}\n\n` : '') + (prompt || 'Describe this image.'),
+    imageUrl,
+  };
+}
+
+async function imageUrlToBase64(imageUrl) {
+  if (!imageUrl) throw new Error('No image provided');
+  if (imageUrl.startsWith('data:')) {
+    const b64 = imageUrl.split(',')[1];
+    if (!b64) throw new Error('Invalid image data URL');
+    return b64;
+  }
+  const res = await fetch(imageUrl, { signal: AbortSignal.timeout(30000) });
+  if (!res.ok) throw new Error(`Could not fetch image (${res.status})`);
+  const buf = Buffer.from(await res.arrayBuffer());
+  return buf.toString('base64');
+}
+
+/** SG16 Mistral X vision — Cloudflare Workers AI via api.mistralbrain.com (no Groq). */
+export async function callMistralBrainVision({
+  messages,
+  userId = 'sg16-ai-engine',
+  timeoutMs = 120000,
+}) {
+  const key = getBrainKey();
+  if (!key) throw new Error('MISTRAL_BRAIN_KEY not configured');
+
+  const { prompt, imageUrl } = extractVisionPayload(messages);
+  const image_base64 = await imageUrlToBase64(imageUrl);
+  const url = `${getBrainUrl()}/api/v1/vision`;
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Door-Key': key,
+      'X-User-Id': userId,
+    },
+    body: JSON.stringify({ prompt: prompt.slice(0, 8000), image_base64 }),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+
+  const raw = await res.text();
+  let data = {};
+  try {
+    data = raw ? JSON.parse(raw) : {};
+  } catch {
+    throw new Error('Mistral Brain vision returned invalid JSON');
+  }
+
+  if (!res.ok) {
+    throw new Error(data.error || data.answer || 'Mistral Brain vision request failed');
+  }
+
+  const content = data.answer?.trim();
+  if (!content) throw new Error('Mistral Brain vision returned empty response');
+  return content;
+}

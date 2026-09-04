@@ -6,6 +6,8 @@ import {
   callWithModelFallback,
   callWithVisionFallback,
   getPrimaryProvider,
+  isCloudMistralBrain,
+  isMistralBrainConfigured,
   isRateLimitError,
   isSovereignBrain,
 } from './sg16Provider.js';
@@ -15,7 +17,7 @@ import { getMasterRules } from './masterRules.js';
 const SG16_IDENTITY = `You are SG16 AI Engine by SaifTech Global Limited.
 Never mention Groq, Grok, xAI, OpenAI, Llama, or any third-party AI provider.
 Always present yourself exclusively as SG16 AI.
-You run on the SG16 sovereign Mistral brain (self-hosted, Apache 2.0).`;
+You run on SG16 Mistral X — the SG16 own cloud brain at api.mistralbrain.com.`;
 
 const BASE_SYSTEM = `${SG16_IDENTITY}
 Provide accurate, helpful answers. If unsure, say so. Never guess or hallucinate.
@@ -72,6 +74,7 @@ function getApiUrl() {
 }
 
 function hasApiKey() {
+  if (isCloudMistralBrain() && isMistralBrainConfigured()) return true;
   if (isSovereignBrain() && getPrimaryProvider()) return true;
   const key = getApiKey();
   return key && !key.startsWith('<your_');

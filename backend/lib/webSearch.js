@@ -1,12 +1,6 @@
 import {
-  callChatCompletion,
   callWithModelFallback,
-  getApiKey,
-  getGroqApiUrl,
-  isProviderInCooldown,
-  isRateLimitError,
   isSovereignBrain,
-  markProviderCooldown,
   todayLabel,
 } from './sg16Provider.js';
 import {
@@ -14,9 +8,6 @@ import {
   formatContextBlock,
   formatDirectAnswer,
 } from './webFetcher.js';
-
-const COMPOUND_MINI = process.env.SG16_COMPOUND_MODEL || 'groq/compound-mini';
-const COMPOUND_FULL = process.env.SG16_COMPOUND_MODEL_FULL || 'groq/compound';
 
 const LIVE_PATTERNS = [
   /\b(news|headlines|breaking)\b/i,
@@ -34,14 +25,9 @@ const LIVE_PATTERNS = [
   /\b(update me|brief me|inform me)\b/i,
 ];
 
-const COMPLEX_LIVE_PATTERNS = [
-  /\b(compare|research|deep dive|comprehensive|detailed report)\b/i,
-  /\b(multiple sources|several sources)\b/i,
-];
-
 const LIVE_SYSTEM = `You are SG16 AI Engine by SaifTech Global Limited with live web intelligence.
-Never mention Groq, OpenAI, Llama, Compound, DuckDuckGo, or any third-party provider.
-Always present yourself exclusively as SG16 AI.
+Never mention Groq, OpenAI, Llama, Compound, DuckDuckGo, or any third-party AI provider.
+Always present yourself exclusively as SG16 AI on the SG16 Mistral X own brain.
 
 Rules:
 - Answer ONLY from the provided live web context when it is present.
@@ -52,7 +38,7 @@ Rules:
 
 const SYNTH_SYSTEM = `${LIVE_SYSTEM}
 
-You will receive numbered live web search results. Synthesize a clear, helpful answer like Google AI.`;
+You will receive numbered live web search results. Synthesize a clear, helpful answer.`;
 
 function isLiveSearchEnabled() {
   if (process.env.SG16_LIVE_SEARCH === '0' || process.env.SG16_LIVE_SEARCH === 'false') {
@@ -95,66 +81,6 @@ export function needsWebSearch(message, workspaceId = 'general') {
   return false;
 }
 
-function pickCompoundModel(message) {
-  if (COMPLEX_LIVE_PATTERNS.some((re) => re.test(message))) return COMPOUND_FULL;
-  return COMPOUND_MINI;
-}
-
-async function tryCompoundSearch({ message, history }) {
-  if (isProviderInCooldown('compound')) return null;
-  // Sovereign Ollama brain: compound needs Groq API — use fast RSS formatting instead.
-  if (isSovereignBrain()) return null;
-
-  const apiUrl = getGroqApiUrl();
-  const apiKey = getApiKey();
-  if (!apiUrl || !apiKey || apiKey === 'ollama') return null;
-
-  const model = pickCompoundModel(message);
-  const messages = [
-    { role: 'system', content: `${LIVE_SYSTEM}\n\nToday's date (UTC): ${todayLabel()}.` },
-  ];
-  for (const msg of history.slice(-6)) {
-    messages.push({ role: msg.role, content: msg.content });
-  }
-  messages.push({
-    role: 'user',
-    content: `${message.trim()}\n\n(Search the live web for the most current accurate answer.)`,
-  });
-
-  try {
-    const res = await fetch(apiUrl, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-        'Groq-Model-Version': 'latest',
-      },
-      body: JSON.stringify({ model, messages, temperature: 0.4, max_tokens: 2048 }),
-      signal: AbortSignal.timeout(120000),
-    });
-
-    const data = await res.json();
-    if (!res.ok) {
-      if (isRateLimitError(data.error?.message, res.status)) {
-        markProviderCooldown('compound');
-        console.warn('SG16 Compound rate limited — using SG16 web fallback');
-        return null;
-      }
-      throw new Error(data.error?.message || 'SG16 live search failed');
-    }
-
-    const reply = data.choices?.[0]?.message?.content?.trim();
-    if (!reply) return null;
-    return { reply, liveSearch: true, source: 'compound' };
-  } catch (err) {
-    if (isRateLimitError(err.message, err.status)) {
-      markProviderCooldown('compound');
-      return null;
-    }
-    throw err;
-  }
-}
-
 async function synthesizeFromWebContext({ message, history, results }) {
   const context = formatContextBlock(results);
   if (!context) return null;
@@ -180,7 +106,7 @@ async function synthesizeFromWebContext({ message, history, results }) {
       maxTokens: isSovereignBrain() ? Number(process.env.SG16_OLLAMA_MAX_TOKENS || 384) : 1800,
       timeoutMs: isSovereignBrain() ? Number(process.env.SG16_OLLAMA_TIMEOUT_MS || 180000) : 90000,
     });
-    return { reply: content, liveSearch: true, source: 'sg16-web', model };
+    return { reply: content, liveSearch: true, source: 'sg16-web-mistral', model };
   } catch (err) {
     console.warn('SG16 synthesize fallback:', err.message);
     return null;
@@ -190,7 +116,6 @@ async function synthesizeFromWebContext({ message, history, results }) {
 async function fallbackWebSearch({ message, history }) {
   const results = await fetchWebContext(message);
 
-  // Sovereign brain: skip slow Ollama synthesis — RSS/DDG direct answer in seconds.
   if (isSovereignBrain()) {
     const direct = formatDirectAnswer(results, message);
     if (direct) {
@@ -210,10 +135,8 @@ async function fallbackWebSearch({ message, history }) {
   throw new Error('SG16 AI could not reach live web sources right now. Please try again.');
 }
 
-export async function searchAndAnswer({ message, history = [], workspaceId = 'general' }) {
-  const compound = await tryCompoundSearch({ message, history });
-  if (compound) return compound;
-
+/** Live search: web fetch + SG16 Mistral X synthesis only — no Groq Compound. */
+export async function searchAndAnswer({ message, history = [] }) {
   return fallbackWebSearch({ message, history });
 }
 
