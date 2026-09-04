@@ -27,7 +27,7 @@ import {
 import { isLaunchFree } from './lib/launchMode.js';
 import { hasAnyEditProviderKey } from './lib/imageEngine.js';
 import { liveSearchAvailable } from './lib/webSearch.js';
-import { getProviderStatus, getTextModelChain, isSovereignBrain, probeOllamaChat } from './lib/sg16Provider.js';
+import { getProviderStatus, getTextModelChain, isSovereignBrain, isCloudMistralBrain, probeOllamaChat, probeMistralBrain } from './lib/sg16Provider.js';
 import { getActiveProviderSummary } from './lib/modelRouting.js';
 import { initDatabase, checkDatabaseHealth, isDatabaseReady } from './lib/db/index.js';
 import { handleGetUserRoom, handleGetUserHistory, handlePutUserHistory } from './lib/userRoom.js';
@@ -190,8 +190,8 @@ app.get('/health', async (_req, res) => {
     status: 'ok',
     engine: 'SG16 AI Engine',
     database: db,
-    brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
-    sovereign: isSovereignBrain(),
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'mistral-ollama' : 'api',
+    sovereign: isSovereignBrain() || isCloudMistralBrain(),
     centralRules: isMasterRulesLoaded() ? 'loaded' : 'missing',
     liveSearch: liveSearchAvailable() ? 'ready' : 'unavailable',
     providers: getProviderStatus(),
@@ -210,7 +210,9 @@ app.get('/health/deep', async (_req, res) => {
     kaliShell = { status: 'error' };
     personalDeveloper = { status: 'error' };
   }
-  if (isSovereignBrain()) {
+  if (isCloudMistralBrain()) {
+    brainChat = await probeMistralBrain();
+  } else if (isSovereignBrain()) {
     brainChat = await probeOllamaChat();
   }
   res.json({
@@ -219,8 +221,8 @@ app.get('/health/deep', async (_req, res) => {
     database: db,
     launchFree: isLaunchFree(),
     photoEdit: hasAnyEditProviderKey() ? 'ready' : 'needs_api_key',
-    brain: isSovereignBrain() ? 'mistral-ollama' : 'api',
-    sovereign: isSovereignBrain(),
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'mistral-ollama' : 'api',
+    sovereign: isSovereignBrain() || isCloudMistralBrain(),
     brainChat,
     centralRules: isMasterRulesLoaded() ? 'loaded' : 'missing',
     kaliShell,

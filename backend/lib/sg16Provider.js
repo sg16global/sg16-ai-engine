@@ -1,3 +1,10 @@
+import {
+  callMistralBrainChat,
+  isMistralBrainCloud,
+  isMistralBrainConfigured,
+  probeMistralBrain,
+} from './mistralBrainClient.js';
+
 const COOLDOWN_MS = Number(process.env.SG16_RATE_COOLDOWN_MS || 5 * 60 * 1000);
 
 const cooldowns = new Map();
@@ -39,7 +46,12 @@ function getSpeedMode() {
 }
 
 export function isSovereignBrain() {
-  return process.env.SG16_BRAIN?.trim().toLowerCase() === 'ollama';
+  const mode = process.env.SG16_BRAIN?.trim().toLowerCase();
+  return mode === 'ollama';
+}
+
+export function isCloudMistralBrain() {
+  return isMistralBrainCloud() && isMistralBrainConfigured();
 }
 
 function getOllamaBaseUrl() {
@@ -99,7 +111,7 @@ async function callOllamaNativeChat({ messages, model, temperature, maxTokens, t
   return content;
 }
 
-/** Quick chat probe for /health/deep — confirms Mistral can reply, not just list models. */
+/** Quick chat probe for /health/deep */
 export async function probeOllamaChat() {
   const started = Date.now();
   try {
@@ -123,6 +135,21 @@ export async function probeOllamaChat() {
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+function getMistralBrainProvider() {
+  if (!isMistralBrainConfigured()) return null;
+  return {
+    id: 'mistralbrain',
+    apiUrl: `${(process.env.MISTRAL_BRAIN_URL || 'https://api.mistralbrain.com').replace(/\/$/, '')}/api/v1/control`,
+    apiKey: process.env.MISTRAL_BRAIN_KEY || process.env.DOOR_API_KEY || process.env.SG16_MISTRAL_BRAIN_KEY,
+    models: {
+      text: 'SG16 Mistral X',
+      reasoning: 'SG16 Mistral X',
+      coding: 'SG16 Mistral X',
+      vision: null,
+    },
+  };
 }
 
 function getOllamaProvider() {
@@ -192,6 +219,9 @@ function getCustomProvider() {
 }
 
 export function getPrimaryProvider() {
+  const mistralBrain = getMistralBrainProvider();
+  if (mistralBrain) return mistralBrain;
+
   const ollama = getOllamaProvider();
   if (ollama) return ollama;
 
@@ -302,6 +332,10 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
     return [provider.models.text].filter(Boolean);
   }
 
+  if (provider.id === 'mistralbrain') {
+    return [provider.models.text].filter(Boolean);
+  }
+
   const primary = provider.models.text;
   const fallbacks = (process.env.SG16_AI_MODEL_FALLBACKS || 'llama-3.1-8b-instant,gemma2-9b-it')
     .split(',')
@@ -355,14 +389,21 @@ function appendApiProviders(chain) {
 }
 
 export function getChildrenWorldProviderChain() {
-  const chain = [];
+  const mistralBrain = getMistralBrainProvider();
+  if (mistralBrain) return [mistralBrain];
   const ollama = getOllamaProvider();
-  if (ollama) chain.push(ollama);
-  return chain;
+  if (ollama) return [ollama];
+  return [];
 }
 
 export function getProviderChain() {
   const chain = [];
+  const mistralBrain = getMistralBrainProvider();
+  if (mistralBrain) {
+    chain.push(mistralBrain);
+    return chain;
+  }
+
   const ollama = getOllamaProvider();
   if (ollama) chain.push(ollama);
   if (isSovereignBrain() && process.env.SG16_SOVEREIGN_FALLBACK?.trim() !== '1') {
@@ -388,6 +429,14 @@ export async function callChatCompletion({
     maxTokens = Math.min(maxTokens, Number(process.env.SG16_OLLAMA_MAX_TOKENS || 384));
     timeoutMs = Math.max(timeoutMs, Number(process.env.SG16_OLLAMA_TIMEOUT_MS || 180000));
     return callOllamaNativeChat({ messages, model, temperature, maxTokens, timeoutMs });
+  }
+
+  if (activeProvider.id === 'mistralbrain') {
+    return callMistralBrainChat({
+      messages,
+      userId: process.env.SG16_BRAIN_USER_ID || 'sg16-ai-engine',
+      timeoutMs: Math.max(timeoutMs, Number(process.env.MISTRAL_BRAIN_TIMEOUT_MS || 120000)),
+    });
   }
 
   const headers = {
@@ -546,6 +595,8 @@ export async function callWithVisionFallback({
   throw lastError || new Error('SG16 AI vision is temporarily unavailable. Please try again.');
 }
 
+export { probeMistralBrain };
+
 export function todayLabel() {
   return new Date().toLocaleDateString('en-US', {
     weekday: 'long',
@@ -560,9 +611,10 @@ export function getProviderStatus() {
   const primary = getPrimaryProvider();
   const backup = getBackupProvider();
   return {
-    brain: isSovereignBrain() ? 'sovereign' : 'api',
+    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'sovereign' : 'api',
     primary: primary ? primary.id : null,
-    backup: isSovereignBrain() ? null : backup ? backup.id : null,
+    backup: isSovereignBrain() || isCloudMistralBrain() ? null : backup ? backup.id : null,
+    mistralBrainUrl: isCloudMistralBrain() ? (process.env.MISTRAL_BRAIN_URL || 'https://api.mistralbrain.com') : null,
     ollamaUrl: isSovereignBrain() ? getOllamaBaseUrl() : null,
     speedMode: getSpeedMode(),
     chatModel: primary?.models?.text || null,
