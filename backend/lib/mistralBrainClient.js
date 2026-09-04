@@ -41,6 +41,15 @@ function messagesToTask(messages) {
   return task.slice(0, 10000);
 }
 
+function lastUserText(messages) {
+  for (let i = messages.length - 1; i >= 0; i--) {
+    if (messages[i]?.role === 'user' && messages[i].content) {
+      return String(messages[i].content).slice(0, 2000);
+    }
+  }
+  return '';
+}
+
 export async function pingMistralBrain() {
   const url = `${getBrainUrl()}/api/v1/ping`;
   const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
@@ -66,7 +75,7 @@ export async function callMistralBrainChat({
       'X-Door-Key': key,
       'X-User-Id': userId,
     },
-    body: JSON.stringify({ task, max_steps: 1 }),
+    body: JSON.stringify({ task, max_steps: 1, user_text: lastUserText(messages) }),
     signal: AbortSignal.timeout(timeoutMs),
   });
 
