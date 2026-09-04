@@ -184,6 +184,11 @@ app.use((req, res, next) => {
   next();
 });
 
+/** Railway liveness — no DB; must respond before initDatabase finishes */
+app.get('/health/live', (_req, res) => {
+  res.status(200).json({ status: 'ok', live: true });
+});
+
 app.get('/health', async (_req, res) => {
   const db = await checkDatabaseHealth();
   res.json({
@@ -344,25 +349,24 @@ app.use((err, _req, res, _next) => {
 });
 
 async function startServer() {
-  try {
-    await initDatabase();
-  } catch (err) {
-    console.error('[SG16 db] Startup failed:', err);
-    if (isProd && process.env.DATABASE_URL?.trim()) {
-      process.exit(1);
-    }
-  }
-
   const server = app.listen(PORT, HOST, () => {
     const googleReady = Boolean(process.env.GOOGLE_CLIENT_ID?.trim());
     console.log(`SG16 AI Engine running on http://${HOST}:${PORT} (${isProd ? 'production' : 'development'})`);
     console.log(`Google OAuth: ${googleReady ? 'configured' : 'MISSING — set GOOGLE_CLIENT_ID'}`);
-    console.log(`Database: ${isDatabaseReady() ? 'PostgreSQL' : 'JSON fallback (set DATABASE_URL for production)'}`);
+    console.log(`Database: ${isDatabaseReady() ? 'PostgreSQL' : 'initializing…'}`);
     console.log(`Launch mode: ${isLaunchFree() ? 'FREE UNLIMITED (checkout disabled)' : 'billing active'}`);
     console.log('Payments provider: pending (Paddle removed — wire Dodo when account is ready)');
     if (process.env.SG16_APP_URL) {
       console.log(`Public URL: ${process.env.SG16_APP_URL}`);
     }
+
+    initDatabase()
+      .then(() => {
+        console.log(`Database: ${isDatabaseReady() ? 'PostgreSQL ready' : 'JSON fallback'}`);
+      })
+      .catch((err) => {
+        console.error('[SG16 db] Startup failed:', err);
+      });
   });
 
   function shutdown(signal) {
