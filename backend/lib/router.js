@@ -13,7 +13,7 @@ const LEGACY = {
   memory: 'general',
 };
 
-const SG16_IDENTITY = `You are the intelligent router for SG16 AI Engine by SaifTech Global Limited.
+const SG16_IDENTITY = `You are the intelligent router for SG16 AI Engine by Saif Tech Global LLC.
 Never mention third-party AI providers. Return ONLY valid JSON.`;
 
 function normalize(value) {

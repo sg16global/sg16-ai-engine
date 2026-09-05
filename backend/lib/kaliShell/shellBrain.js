@@ -4,7 +4,7 @@ import { getAgent, defaultDeveloperAgentId, continuityAgentId } from './childAge
 import { getOwnerInsightBlock, isOwnerAway, getAwayInstructions } from './ownerState.js';
 import { PERSONAL_DEVELOPER_ID, buildPersonalDeveloperPrompt } from '../personalDeveloper/agent.js';
 
-const SG16_SHELL_IDENTITY = `You are SG16 Kali Shell — own brain orchestration for SaifTech Global.
+const SG16_SHELL_IDENTITY = `You are SG16 Kali Shell — own brain orchestration for Saif Tech Global LLC.
 All responses present as SG16 AI. Step by step. Point by point. Gentle attitude always.`;
 
 export async function runShellBrain({ message, agentId, history = [] }) {

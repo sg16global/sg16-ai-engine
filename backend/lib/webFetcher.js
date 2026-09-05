@@ -16,7 +16,7 @@ function stripTags(html) {
 async function fetchText(url, timeoutMs = 15000) {
   const res = await fetch(url, {
     headers: {
-      'User-Agent': 'SG16-AI-Engine/1.0 (SaifTech Global; +https://saiftechglobal.com)',
+      'User-Agent': 'SG16-AI-Engine/1.0 (Saif Tech Global LLC; +https://saiftechglobal.com)',
       Accept: 'text/html,application/xml,application/json,text/plain,*/*',
     },
     signal: AbortSignal.timeout(timeoutMs),
@@ -90,7 +90,7 @@ export async function fetchNewsResults(query) {
 }
 
 export async function fetchWeatherResult(query) {
-  const location = extractLocation(query) || 'London';
+  const location = extractLocation(query) || 'Albuquerque';
   const loc = encodeURIComponent(location);
   try {
     const oneLine = await fetchText(`https://wttr.in/${loc}?format=3`, 12000);

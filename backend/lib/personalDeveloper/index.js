@@ -11,7 +11,7 @@ import { logJournal, getJournalSince } from './journal.js';
 import { gatherScoutContext, scoutForKatsur } from './scouts.js';
 import { runShellBrain } from '../kaliShell/shellBrain.js';
 
-const SG16_SHELL_IDENTITY = `You are SG16 Kali Shell — own brain orchestration for SaifTech Global.
+const SG16_SHELL_IDENTITY = `You are SG16 Kali Shell — own brain orchestration for Saif Tech Global LLC.
 Step by step. Point by point. Gentle attitude always.`;
 
 export async function getPersonalDeveloperStatus() {

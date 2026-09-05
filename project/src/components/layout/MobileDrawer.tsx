@@ -59,7 +59,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
             <Sg16Logo className="w-10 h-10 rounded-xl" />
             <div>
               <div className="font-bold text-sm">SG16 AI ENGINE</div>
-              <div className="text-[10px] text-white/70">SaifTech Global</div>
+              <div className="text-[10px] text-white/70">Saif Tech Global LLC</div>
             </div>
           </div>
           <button type="button" onClick={onClose} className="p-2 rounded-xl hover:bg-black/25" aria-label="Close">

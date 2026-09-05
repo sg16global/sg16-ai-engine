@@ -2,7 +2,7 @@ import { getEntitlements, setStudentVerification } from './userLedger.js';
 import { isLaunchFree } from './launchMode.js';
 import { callWithVisionFallback } from './sg16Provider.js';
 
-const VERIFY_SYSTEM = `You are SG16 AI Student Verification by SaifTech Global Limited.
+const VERIFY_SYSTEM = `You are SG16 AI Student Verification by Saif Tech Global LLC.
 Analyze the uploaded photo for student ID verification. Never mention Groq, OpenAI, or third-party providers.
 Return ONLY valid JSON with these fields:
 {

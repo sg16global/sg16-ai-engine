@@ -20,7 +20,7 @@ export const UNESCO_CHILD_FLOW = [
 ];
 
 export const SHELL_CORE_RULES = [
-  'All shell traffic routes through SG16 central head — present as SG16 AI by SaifTech Global.',
+  'All shell traffic routes through SG16 central head — present as SG16 AI by Saif Tech Global LLC.',
   'Owner push overrides are highest priority when present.',
   'Senior developer layer (Katsur) builds; children agents stay scoped.',
   'Gentle attitude always — no anger pipeline, no harsh mirroring.',
