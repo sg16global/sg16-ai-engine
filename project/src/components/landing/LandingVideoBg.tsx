@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 
-import { LANDING_VIDEO_DESKTOP } from '../../core/landingAssets';
+import { LANDING_POSTER, LANDING_VIDEO_DESKTOP } from '../../core/landingAssets';
 
 /** Tiny tail buffer so we seek before the browser hits the last frame pause. */
 const LOOP_TAIL_SEC = 0.04;
@@ -59,11 +59,12 @@ export function LandingVideoBg() {
   }, []);
 
   return (
-    <div className="landing-video-bg" aria-hidden>
+    <div className="landing-video-bg landing-video-bg--poster" aria-hidden>
       <video
         ref={videoRef}
         className="landing-video-bg__video"
         src={LANDING_VIDEO_DESKTOP}
+        poster={LANDING_POSTER}
         autoPlay
         muted
         playsInline
