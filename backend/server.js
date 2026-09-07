@@ -66,6 +66,7 @@ import {
   handleChildrenWorldChatStream,
 } from './lib/childrenWorld/handlers.js';
 import { isChildrenWorldEnabled, requireChildrenClient } from './lib/childrenWorld/clientAuth.js';
+import { isSpaPath } from './lib/spaRoutes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -296,7 +297,18 @@ app.get('/api/v1/personal-developer/report', requireAuth, handlePersonalDevelope
 app.get('/api/v1/personal-developer/scout', requireAuth, handlePersonalDeveloperScout);
 
 const indexPath = path.join(frontendDist, 'index.html');
+const notFoundPath = path.join(frontendDist, '404.html');
 const frontendBuilt = fs.existsSync(indexPath);
+
+function sendNotFound(res) {
+  if (fs.existsSync(notFoundPath)) {
+    res.status(404);
+    return res.sendFile(notFoundPath);
+  }
+  return res.status(404).type('html').send(
+    '<!doctype html><title>Not found</title><h1>Page not found</h1><p><a href="/">SG16 AI Engine</a></p>',
+  );
+}
 
 if (!frontendBuilt) {
   console.warn('[SG16] Frontend not built — run: npm run build (from repo root)');
@@ -323,6 +335,7 @@ app.use(
       const base = path.basename(filePath);
       if (
         base === 'index.html' ||
+        base === '404.html' ||
         base === 'sw.js' ||
         base === 'manifest.json' ||
         base === 'sitemap.xml' ||
@@ -342,7 +355,13 @@ app.get('*', (req, res, next) => {
     return next();
   }
   if (isShieldHost(req) && fs.existsSync(shieldLandingPath)) {
-    return res.sendFile(shieldLandingPath);
+    if (req.path === '/' || req.path === '') {
+      return res.sendFile(shieldLandingPath);
+    }
+    return sendNotFound(res);
+  }
+  if (!isSpaPath(req.path)) {
+    return sendNotFound(res);
   }
   if (!frontendBuilt) {
     return res.status(503).send('SG16 AI Engine is starting — frontend build missing. Redeploy from repo root.');
