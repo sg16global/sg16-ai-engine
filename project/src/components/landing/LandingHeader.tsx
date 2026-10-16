@@ -1,24 +1,43 @@
 import { useState } from 'react';
-import { Lock, Menu, Rocket, X } from 'lucide-react';
+import {
+  Menu,
+  Rocket,
+  X,
+  Home,
+  Sparkles,
+  CreditCard,
+  ShieldCheck,
+  HelpCircle,
+  Mail,
+  Award,
+  UserRound,
+  FlaskConical,
+} from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { pushAppPath } from '../../core/routes';
 import { LandingBrandLogo } from './LandingBrandLogo';
 
 const NAV_LINKS = [
-  { id: 'home', label: 'Home', href: '/' },
-  { id: 'features', label: 'Features', href: '#features' },
-  { id: 'pricing', label: 'Pricing', href: '/pricing' },
-  { id: 'help', label: 'Help', href: '/help' },
-  { id: 'about', label: 'About', href: '/contact' },
+  { id: 'home', label: 'Home', href: '/', icon: Home },
+  { id: 'features', label: 'Features', href: '#features', icon: Sparkles },
+  { id: 'pricing', label: 'Pricing', href: '/pricing', icon: CreditCard },
+  { id: 'certificate', label: 'Entity License', href: '/license', icon: ShieldCheck },
+  { id: 'help', label: 'Help', href: '/help', icon: HelpCircle },
+  { id: 'about', label: 'Contact', href: '/contact', icon: Mail },
 ] as const;
 
 function BrandMark() {
   return <LandingBrandLogo compact />;
 }
 
-export function LandingHeader() {
+interface LandingHeaderProps {
+  onOpenMemorial?: () => void;
+}
+
+export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
   const openLoginModal = useAppStore((s) => s.openLoginModal);
   const enterGuestTour = useAppStore((s) => s.enterGuestTour);
+  const openStaging = useAppStore((s) => s.openStaging);
   const [menuOpen, setMenuOpen] = useState(false);
 
   const onNav = (href: string) => {
@@ -35,47 +54,68 @@ export function LandingHeader() {
   };
 
   return (
-    <header className="landing-header sticky top-0 z-50 min-h-[70px] border-b border-white/[0.08] bg-black/45 backdrop-blur-xl backdrop-saturate-150">
-      <div className="mx-auto flex min-h-[70px] max-w-[1240px] items-center justify-between gap-4 px-4 sm:px-5 lg:px-6">
-        <button type="button" onClick={() => onNav('/')} className="shrink-0">
+    <header className="lp-header">
+      <div className="lp-container lp-header__row">
+        <button type="button" onClick={() => onNav('/')} className="shrink-0 transition-opacity hover:opacity-90">
           <BrandMark />
         </button>
 
-        <nav className="hidden flex-1 items-center justify-center gap-8 lg:flex">
-          {NAV_LINKS.map((link) => (
+        <nav className="lp-nav hidden min-[1440px]:flex" aria-label="Primary">
+          {NAV_LINKS.map((link) => {
+            const Icon = link.icon;
+            const isHome = link.id === 'home';
+            return (
+              <button
+                key={link.id}
+                type="button"
+                onClick={() => onNav(link.href)}
+                className={`lp-nav__item ${isHome ? 'lp-nav__item--active' : ''}`}
+                aria-current={isHome ? 'page' : undefined}
+              >
+                <Icon />
+                <span>{link.label}</span>
+              </button>
+            );
+          })}
+          {onOpenMemorial && (
             <button
-              key={link.id}
               type="button"
-              onClick={() => onNav(link.href)}
-              className={`text-[14px] font-medium transition ${
-                link.id === 'home' ? 'text-[#7CFC00]' : 'text-white/60 hover:text-white'
-              }`}
+              onClick={onOpenMemorial}
+              className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-[#FF5CB8] hover:text-white transition px-2.5 py-1 rounded-lg bg-[#FF168D]/10 border border-[#FF168D]/30 hover:bg-[#FF168D]/20"
             >
-              {link.label}
+              <Award className="w-3.5 h-3.5 text-[#FF168D]" />
+              <span>AI Pioneers</span>
             </button>
-          ))}
+          )}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2.5 sm:gap-4">
+          <span className="lp-dot hidden lg:block" aria-hidden />
           <button
             type="button"
-            onClick={() => openLoginModal()}
-            className="inline-flex items-center gap-1.5 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2 text-[13px] font-medium text-white/90 transition hover:bg-white/10"
+            onClick={() => openStaging()}
+            className="lp-btn lp-btn--sm lp-btn--outline hidden lg:inline-flex"
+            title="Open Next-Gen Staging & 24/7 AI Support"
           >
-            <Lock className="h-3.5 w-3.5 text-[#7CFC00]" />
-            Login
+            <FlaskConical className="h-4 w-4 text-[#FF168D]" />
+            <span>Staging Lab</span>
+            <span className="lp-btn__tag">24/7 AI</span>
+          </button>
+          <button type="button" onClick={() => openLoginModal()} className="lp-btn lp-btn--sm lp-btn--ghost">
+            <UserRound className="h-4 w-4" />
+            <span>Login</span>
           </button>
           <button
             type="button"
             onClick={() => enterGuestTour()}
-            className="hidden items-center gap-1.5 rounded-md bg-[#7CFC00] px-4 py-[9px] text-[13px] font-semibold text-black transition hover:bg-[#8dff20] sm:inline-flex"
+            className="lp-btn lp-btn--sm lp-btn--primary hidden sm:inline-flex !px-5"
           >
             <Rocket className="h-4 w-4" />
-            Start Tour
+            <span>Start Tour</span>
           </button>
           <button
             type="button"
-            className="flex h-10 w-10 items-center justify-center rounded-md text-white/90 hover:bg-white/10 lg:hidden"
+            className="flex h-10 w-10 items-center justify-center rounded-lg border border-[#29202F] bg-[#0A0A12] text-white/90 hover:border-[#60304F] hover:bg-[#12121D] min-[1440px]:hidden"
             onClick={() => setMenuOpen(true)}
             aria-label="Open menu"
           >
@@ -85,50 +125,85 @@ export function LandingHeader() {
       </div>
 
       {menuOpen && (
-        <div className="fixed inset-0 z-[300] lg:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+        <div className="fixed inset-0 z-[300] min-[1440px]:hidden">
+          <div
+            className="fixed inset-0 bg-black/85 backdrop-blur-md"
             onClick={() => setMenuOpen(false)}
-            aria-label="Close menu"
+            aria-hidden
           />
-          <div className="absolute right-0 top-0 h-full w-[min(88vw,320px)] border-l border-white/10 bg-[#050505] p-5 shadow-2xl">
-            <div className="mb-6 flex items-center justify-between">
-              <BrandMark />
+          <div className="fixed top-0 right-0 bottom-0 w-full max-w-xs border-l border-[#29202F] bg-[#050509] p-6 shadow-2xl flex flex-col justify-between">
+            <div>
+              <div className="flex items-center justify-between mb-8 pb-4 border-b border-[#29202F]">
+                <BrandMark />
+                <button
+                  type="button"
+                  onClick={() => setMenuOpen(false)}
+                  className="p-2 text-white/70 hover:text-white"
+                  aria-label="Close menu"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="space-y-2">
+                {NAV_LINKS.map((link) => {
+                  const Icon = link.icon;
+                  const isHome = link.id === 'home';
+                  return (
+                    <button
+                      key={link.id}
+                      type="button"
+                      onClick={() => onNav(link.href)}
+                      className={`flex w-full items-center gap-3 py-2.5 px-3 rounded-lg text-sm font-medium transition ${
+                        isHome
+                          ? 'bg-[#191321] text-[#FF168D] border border-[#FF168D]/40'
+                          : 'text-white/80 hover:text-white hover:bg-[#0A0A12]'
+                      }`}
+                    >
+                      <Icon className={`w-4 h-4 ${isHome ? 'text-[#FF168D]' : 'text-white/50'}`} />
+                      <span>{link.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-[#29202F] space-y-3">
               <button
                 type="button"
-                onClick={() => setMenuOpen(false)}
-                className="rounded-lg p-2 hover:bg-white/10"
-                aria-label="Close"
+                onClick={() => {
+                  setMenuOpen(false);
+                  openStaging();
+                }}
+                className="lp-btn lp-btn--outline w-full py-2.5 text-sm lg:hidden"
               >
-                <X className="h-5 w-5" />
+                <span className="lp-dot" />
+                <span>Staging Lab</span>
+                <span className="lp-btn__tag">24/7 AI</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  enterGuestTour();
+                }}
+                className="lp-btn lp-btn--primary w-full py-3 text-sm"
+              >
+                <Rocket className="w-4 h-4" />
+                <span>Start Tour</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setMenuOpen(false);
+                  openLoginModal();
+                }}
+                className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#29202F] bg-[#0A0A12] py-2.5 text-sm font-medium text-white hover:border-[#60304F]"
+              >
+                <UserRound className="w-4 h-4 text-[#FF168D]" />
+                <span>Login</span>
               </button>
             </div>
-            <nav className="flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
-                <button
-                  key={link.id}
-                  type="button"
-                  onClick={() => onNav(link.href)}
-                  className={`rounded-xl px-3 py-2.5 text-left text-sm font-medium ${
-                    link.id === 'home' ? 'bg-[#7CFC00]/10 text-[#7CFC00]' : 'text-white/75 hover:bg-white/5'
-                  }`}
-                >
-                  {link.label}
-                </button>
-              ))}
-            </nav>
-            <button
-              type="button"
-              onClick={() => {
-                setMenuOpen(false);
-                enterGuestTour();
-              }}
-              className="mt-6 flex w-full items-center justify-center gap-2 rounded-md bg-[#7CFC00] py-3 text-sm font-bold text-black"
-            >
-              <Rocket className="h-4 w-4" />
-              Start Tour
-            </button>
           </div>
         </div>
       )}

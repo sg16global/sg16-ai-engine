@@ -40,8 +40,8 @@ export const GeneralWorkspace = () => {
       skin="shell"
     >
       <div className="h-full min-h-0 grid lg:grid-cols-[minmax(0,10rem)_minmax(0,1fr)] sg16-work-field">
-        {/* Inner side panel — maroon (slim history rail) */}
-        <aside className="hidden lg:flex flex-col sg16-side-maroon min-h-0 min-w-0 w-full max-w-[10rem] p-2 gap-1.5 border-r border-white/10">
+        {/* Inner side panel — slim history rail */}
+        <aside className="hidden lg:flex flex-col sg16-sidebar min-h-0 min-w-0 w-full max-w-[10rem] p-2 gap-1.5 border-r border-white/10">
           <button
             type="button"
             onClick={() => clearMessages('general')}
@@ -83,7 +83,7 @@ export const GeneralWorkspace = () => {
           )}
         </aside>
 
-        <div className="min-h-0 min-w-0 bg-black">
+        <div className="min-h-0 min-w-0">
           <ChatPanel
             workspaceId="general"
             placeholder={`Message ${SG16_BRAND.chatName}...`}

@@ -1,5 +1,6 @@
 import { SG16_BRAND } from '../../core/branding';
 import { LEGAL_SECTIONS, type LegalSection } from '../../content/legalContent';
+import { CompanyDetailsCard } from '../company/CompanyDetailsCard';
 
 interface LegalDocumentViewProps {
   section: LegalSection;
@@ -22,8 +23,14 @@ export function LegalDocumentView({ section, showNav = true, onSelectSection }: 
     <div className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 lg:py-10">
       <h1 className="text-2xl font-bold mb-2">{active.title}</h1>
       <p className="text-sm text-gray-500 mb-6">
-        {SG16_BRAND.company} — {SG16_BRAND.name}
+        {SG16_BRAND.company} — {SG16_BRAND.engineType}
       </p>
+
+      {(section === 'license' || section === 'contact') && (
+        <div className="mb-6">
+          <CompanyDetailsCard />
+        </div>
+      )}
 
       {showNav && (
         <div className="flex flex-wrap gap-2 mb-8">
@@ -49,7 +56,7 @@ export function LegalDocumentView({ section, showNav = true, onSelectSection }: 
         </div>
       )}
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6">
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6">
         <ul className="space-y-3">
           {active.body.map((line) => (
             <li key={line} className="text-sm text-gray-400 leading-relaxed flex gap-2">

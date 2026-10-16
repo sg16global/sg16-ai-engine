@@ -11,6 +11,9 @@ const publicDir = path.join(__dirname, '..', 'public');
 const heroPath = [path.join(publicDir, 'hero.png'), path.join(publicDir, 'hero-globe.png')].find((p) =>
   fs.existsSync(p),
 );
+/** App icons come from the SG16 neon emblem (opaque, square); hero art is the fallback. */
+const iconPath = [path.join(publicDir, 'brand', 'sg16-app-icon.png'), heroPath].find((p) => p && fs.existsSync(p));
+const ICON_BG = { r: 5, g: 5, b: 9, alpha: 1 };
 
 const RASTER_EXT = /\.(png|jpe?g)$/i;
 const PWA_PNG_ONLY = new Set(['icon-192.png', 'icon-512.png', 'icon-maskable.png']);
@@ -80,7 +83,7 @@ async function main() {
     return;
   }
 
-  if (heroPath) {
+  if (iconPath) {
     const iconsDir = path.join(publicDir, 'icons');
     fs.mkdirSync(iconsDir, { recursive: true });
 
@@ -92,20 +95,21 @@ async function main() {
 
     for (const { name, size, maskable } of sizes) {
       const out = path.join(iconsDir, name);
-      let pipeline = sharp(heroPath).resize(size, size, { fit: 'cover', position: 'centre' });
+      // Maskable: emblem at 80% inside the safe zone, padded to the full size.
+      const inner = maskable ? Math.round(size * 0.8) : size;
+      const pad = Math.round((size - inner) / 2);
+      let pipeline = sharp(iconPath).resize(inner, inner, { fit: 'cover', position: 'centre' });
       if (maskable) {
-        pipeline = pipeline.extend({
-          top: Math.round(size * 0.1),
-          bottom: Math.round(size * 0.1),
-          left: Math.round(size * 0.1),
-          right: Math.round(size * 0.1),
-          background: { r: 5, g: 5, b: 7, alpha: 1 },
-        });
+        pipeline = pipeline.extend({ top: pad, bottom: size - inner - pad, left: pad, right: size - inner - pad, background: ICON_BG });
       }
       await pipeline.png({ quality: 90 }).toFile(out);
       console.log(`[pwa-assets] wrote ${name}`);
     }
+  } else {
+    console.warn('[pwa-assets] no icon source found — skipping icon generation');
+  }
 
+  if (heroPath) {
     await sharp(heroPath)
       .resize(1024, 682, { fit: 'cover', position: 'centre' })
       .png()
@@ -118,7 +122,7 @@ async function main() {
       .toFile(path.join(publicDir, 'screenshot-mobile.png'));
     console.log('[pwa-assets] wrote screenshot-mobile.png');
   } else {
-    console.warn('[pwa-assets] hero.png / hero-globe.png not found — skipping icon generation');
+    console.warn('[pwa-assets] hero.png / hero-globe.png not found — skipping screenshot generation');
   }
 
   await optimizePublicImages(sharp);

@@ -13,7 +13,7 @@ export function Sg16Logo({ className = '', glow = false }: Sg16LogoProps) {
   const [sourceIndex, setSourceIndex] = useState(0);
 
   return (
-    <span className={`relative inline-flex shrink-0 ${glow ? 'before:absolute before:inset-0 before:bg-emerald-500/25 before:blur-2xl before:rounded-full before:scale-110' : ''}`}>
+    <span className={`relative inline-flex shrink-0 ${glow ? 'before:absolute before:inset-0 before:bg-[#FF168D]/30 before:blur-2xl before:rounded-full before:scale-110' : ''}`}>
       <OptimizedImage
         src={LOGO_SOURCES[sourceIndex]}
         alt={SG16_BRAND.logoAlt}

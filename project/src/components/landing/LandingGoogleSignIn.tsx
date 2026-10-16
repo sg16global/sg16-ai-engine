@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { CheckCircle2, Zap } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
+import { isValidGoogleClientId, resolveGoogleClientId } from '../../lib/googleIdentity';
 
 function GoogleGIcon() {
   return (
@@ -30,26 +32,42 @@ interface LandingGoogleSignInProps {
 
 export function LandingGoogleSignIn({ compact = false }: LandingGoogleSignInProps) {
   const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const enterLocalPreview = useAppStore((s) => s.enterLocalPreview);
+  const [hasClientId, setHasClientId] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    void resolveGoogleClientId().then((id) => {
+      setHasClientId(isValidGoogleClientId(id));
+    });
+  }, []);
+
+  const handleClick = () => {
+    if (hasClientId) {
+      openLoginModal();
+    } else {
+      void enterLocalPreview();
+    }
+  };
 
   return (
     <div className={`flex flex-col items-center ${compact ? 'gap-3 w-full' : 'gap-4 w-full max-w-[400px] mx-auto'}`}>
       <button
         type="button"
-        onClick={() => openLoginModal()}
-        className="flex w-full items-center justify-center gap-3 rounded-full border border-[#7CFC00]/55 bg-[#0a0a0a]/90 px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_28px_rgba(124,252,0,0.22)] transition hover:border-[#7CFC00] hover:shadow-[0_0_36px_rgba(124,252,0,0.35)]"
+        onClick={handleClick}
+        className="flex w-full items-center justify-center gap-3 rounded-full border border-[#FF168D]/60 bg-[#0D0D16]/90 px-6 py-3.5 text-[15px] font-semibold text-white shadow-[0_0_28px_rgba(255,122,0,0.25)] transition hover:border-[#FF3DA5] hover:shadow-[0_0_36px_rgba(255,122,0,0.42)]"
       >
         <GoogleGIcon />
-        <span>Continue with Google</span>
+        <span>Continue to SG16 Workspace</span>
       </button>
 
-      <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-[#7CFC00]/90 sm:gap-5 sm:text-xs">
+      <div className="flex flex-wrap items-center justify-center gap-4 text-[11px] text-[#FF5CB8]/90 sm:gap-5 sm:text-xs">
         <span className="inline-flex items-center gap-1.5">
-          <CheckCircle2 className="h-3.5 w-3.5 text-[#7CFC00]" />
-          Secure Login
+          <CheckCircle2 className="h-3.5 w-3.5 text-[#FF168D]" />
+          Instant Access
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <Zap className="h-3.5 w-3.5 text-[#7CFC00]" />
-          Fast &amp; Easy Access
+          <Zap className="h-3.5 w-3.5 text-[#FF168D]" />
+          All Workspaces Ready
         </span>
       </div>
     </div>

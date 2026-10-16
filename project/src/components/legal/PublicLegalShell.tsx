@@ -36,7 +36,7 @@ export function PublicLegalShell() {
   };
 
   return (
-    <div className="landing-page min-h-[100dvh] bg-[#030308] text-white">
+    <div className="landing-page sg16-app-shell min-h-[100dvh] text-white">
       <LandingHeader />
       <LegalDocumentView section={section} onSelectSection={selectSection} />
       <SiteFooter />

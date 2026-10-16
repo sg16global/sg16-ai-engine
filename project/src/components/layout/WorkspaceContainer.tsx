@@ -19,7 +19,7 @@ export const WorkspaceContainer = () => {
   }
 
   return (
-    <div key={currentWorkspace} className="h-full min-h-0 bg-black text-white">
+    <div key={currentWorkspace} className="h-full min-h-0 text-white">
       {(() => {
         switch (currentWorkspace) {
           case 'coding':

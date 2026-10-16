@@ -23,11 +23,11 @@ export function SolutionCard({
       onClick={onClick}
       className="group sg16-card sg16-card-hover sg16-card-solution w-full text-left"
     >
-      <span className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${iconClass}`}>
+      <span className={`sg16-icon-tile w-14 h-14 rounded-2xl flex items-center justify-center mb-5 ${iconClass}`}>
         {icon}
       </span>
       <h3 className="text-lg font-semibold text-white tracking-tight">{title}</h3>
-      <p className="text-sm text-[color:var(--sg16-muted)] mt-2 leading-relaxed flex-1">{desc}</p>
+      <p className="text-sm text-[color:var(--sg16-text-muted)] mt-2 leading-relaxed flex-1">{desc}</p>
       <div className="mt-5 flex justify-end">
         <span className={`sg16-orb ${orbClass}`}>
           <ArrowRight className="w-4 h-4" />
@@ -57,11 +57,11 @@ export function ToolCard({
       onClick={onClick}
       className="sg16-card sg16-card-hover sg16-card-tool w-full text-left"
     >
-      <span className={`w-11 h-11 rounded-2xl flex items-center justify-center mb-3 ${iconClass}`}>
+      <span className={`sg16-icon-tile w-11 h-11 rounded-xl flex items-center justify-center mb-3 ${iconClass}`}>
         {icon}
       </span>
       <h3 className="font-semibold text-white tracking-tight text-[0.95rem]">{title}</h3>
-      <p className="text-xs text-[color:var(--sg16-muted)] mt-1 leading-relaxed line-clamp-2">{desc}</p>
+      <p className="text-xs text-[color:var(--sg16-text-muted)] mt-1 leading-relaxed line-clamp-2">{desc}</p>
     </button>
   );
 }
@@ -86,17 +86,17 @@ export function HeroCard({
     <button type="button" onClick={onClick} className="sg16-card-hero w-full text-left group">
       <div className="flex flex-col sm:flex-row sm:items-center gap-5 justify-between">
         <div className="flex items-start gap-4">
-          <span className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${iconClass}`}>
+          <span className={`sg16-icon-tile w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${iconClass}`}>
             {icon}
           </span>
           <div>
             <h3 className="text-xl font-semibold text-white tracking-tight">{title}</h3>
-            <p className="text-sm text-[color:var(--sg16-muted)] mt-1.5 leading-relaxed max-w-md">
+            <p className="text-sm text-[color:var(--sg16-text-muted)] mt-1.5 leading-relaxed max-w-md">
               {desc}
             </p>
           </div>
         </div>
-        <span className="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-semibold shrink-0 bg-[color:var(--sg16-red)] text-white group-hover:bg-[#FF5C5C] transition">
+        <span className="inline-flex items-center justify-center px-4 py-2.5 rounded-full text-sm font-semibold shrink-0 bg-[color:var(--sg16-primary)] text-[#09060B] group-hover:bg-[#FF3DA5] transition">
           {cta}
         </span>
       </div>

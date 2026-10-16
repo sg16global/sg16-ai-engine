@@ -29,7 +29,7 @@ export const MarketWorkspace = () => {
         badgeClass="text-white"
         skin="shell"
       >
-        <div className="h-full flex flex-col min-h-0 bg-black text-white">
+        <div className="h-full flex flex-col min-h-0 text-white">
           <div className="px-4 sm:px-5 pt-3">
             <button
               type="button"

@@ -38,6 +38,7 @@ import { SeoCanonical } from './components/SeoCanonical';
 import { LandingPage } from './components/landing/LandingPage';
 
 import { PublicLegalShell } from './components/legal/PublicLegalShell';
+import { StagingWindow } from './staging/StagingWindow';
 
 import { isPublicLegalPath } from './content/legalContent';
 
@@ -52,7 +53,6 @@ import { useTrialSync } from './hooks/useTrialSync';
 
 import type { WorkspaceType } from './core/types';
 import { PilotOrb } from './components/pilot/PilotOrb';
-import { ShieldBgSlides } from './components/home/ShieldBgSlides';
 import { skinForWorkspace } from './core/sectionThemes';
 
 
@@ -101,9 +101,9 @@ function AuthSplash() {
 
   return (
 
-    <div className="flex min-h-[100dvh] items-center justify-center bg-[#030308]">
+    <div className="sg16-app-shell flex min-h-[100dvh] items-center justify-center">
 
-      <div className="h-10 w-10 animate-pulse rounded-full bg-emerald-500/20 shadow-[0_0_24px_rgba(57,255,20,0.3)]" />
+      <div className="h-10 w-10 animate-pulse rounded-full bg-[#FF168D]/20 shadow-[0_0_24px_rgba(255,22,141,0.35)]" />
 
     </div>
 
@@ -251,7 +251,7 @@ function AppShell() {
   };
 
   const isHome = currentWorkspace === 'home';
-  /** Student Shield uses Picture-1 own maroon panel — hide global chrome. */
+  /** Student Shield has its own internal sidebar/header — hide global chrome. */
   const isStudentShell = currentWorkspace === 'student-shield';
   const hideGlobalChrome = isHome || isStudentShell;
   const chromeAutoHide = !hideGlobalChrome;
@@ -270,9 +270,11 @@ function AppShell() {
     return (
       <div
         data-skin={sectionSkin}
-        className="sg16-app-shell sg16-home-shell h-[100dvh] max-h-[100dvh] text-white overflow-hidden bg-[#05060D] supports-[height:100dvh]:h-[100dvh]"
+        className="sg16-app-shell sg16-home-shell h-[100dvh] max-h-[100dvh] text-white overflow-hidden supports-[height:100dvh]:h-[100dvh]"
       >
         <HomePage />
+        {/* Pilot opens from the Shield Home status bar — panel only, no floating launcher */}
+        <PilotOrb launcher={false} />
         <GoogleLoginModal />
         <LaunchSubscriptionModal />
         <InstallPrompt />
@@ -286,8 +288,6 @@ function AppShell() {
       data-skin={sectionSkin}
       className={`sg16-app-shell sg16-workspace-shell sg16-skin-${sectionSkin} relative flex flex-col h-[100dvh] max-h-[100dvh] text-white overflow-hidden`}
     >
-      <ShieldBgSlides />
-
       <div className="sg16-workspace-frame sg16-chrome-auto relative z-[1] flex min-h-0 flex-1 w-full">
 
       {!hideGlobalChrome && <MobileDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />}
@@ -375,6 +375,23 @@ function App() {
 
   }, [restoreAuthSession]);
 
+  const stagingOpen = useAppStore((state) => state.stagingOpen);
+  const closeStaging = useAppStore((state) => state.closeStaging);
+  const openStaging = useAppStore((state) => state.openStaging);
+
+  // Staging Window query trigger: ?staging=1 or #staging
+  useEffect(() => {
+    const checkStaging = () => {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('staging') === '1' || params.get('staging') === 'true' || window.location.hash === '#staging') {
+        openStaging();
+      }
+    };
+    checkStaging();
+    window.addEventListener('hashchange', checkStaging);
+    return () => window.removeEventListener('hashchange', checkStaging);
+  }, [openStaging]);
+
   // Direct preview: http://localhost:5173/?preview=1
   useEffect(() => {
     if (!authHydrated) return;
@@ -442,7 +459,7 @@ function App() {
       '/terms': 'Terms of Service — SG16 AI Engine',
 
       '/contact': 'Contact — SG16 AI Engine',
-      '/license': 'License & Sovereign Brain — SG16 AI Engine',
+      '/license': 'License & Entity Verification — SG16 AI Engine',
       '/help': 'Help — SG16 AI Engine',
 
     };
@@ -478,6 +495,7 @@ function App() {
       <>
         <SeoCanonical />
         <PublicLegalShell />
+        <StagingWindow isOpen={stagingOpen} onClose={closeStaging} />
       </>
     );
   }
@@ -488,6 +506,7 @@ function App() {
         <SeoCanonical />
         <LandingPage />
         <InstallPrompt />
+        <StagingWindow isOpen={stagingOpen} onClose={closeStaging} />
       </>
     );
   }
@@ -497,6 +516,7 @@ function App() {
       <>
         <SeoCanonical />
         <AppShell />
+        <StagingWindow isOpen={stagingOpen} onClose={closeStaging} />
       </>
     );
   }
@@ -505,6 +525,7 @@ function App() {
     <>
       <SeoCanonical />
       <AppShell />
+      <StagingWindow isOpen={stagingOpen} onClose={closeStaging} />
     </>
   );
 }

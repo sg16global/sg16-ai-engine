@@ -36,6 +36,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
   const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const openStaging = useAppStore((s) => s.openStaging);
   const logout = useAppStore((s) => s.logout);
   const goToHome = useAppStore((s) => s.goToHome);
 
@@ -44,14 +45,14 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const planBadge = (compact = false) => {
     if (launchFree || authUser?.launchFree) {
       return (
-        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg whitespace-nowrap">
+        <span className="text-xs bg-[#FF168D]/12 border border-[#FF168D]/30 text-[#FF5CB8] px-2 py-1 rounded-lg whitespace-nowrap">
           Launch · Full access
         </span>
       );
     }
     if (authUser?.trialActive) {
       return (
-        <span className="text-xs bg-[#FF2E2E]/12 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg">
+        <span className="text-xs bg-[#FF168D]/12 border border-[#FF168D]/30 text-[#FF5CB8] px-2 py-1 rounded-lg">
           Trial · {authUser.trialDaysRemaining}d left
         </span>
       );
@@ -61,7 +62,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
         <button
           type="button"
           onClick={openPricing}
-          className="flex items-center gap-1.5 text-xs bg-[#FF2E2E]/15 border border-[#FF2E2E]/30 text-[#FF8A8A] px-2 py-1 rounded-lg hover:bg-[#FF2E2E]/25 transition"
+          className="flex items-center gap-1.5 text-xs bg-[#FF168D]/15 border border-[#FF168D]/30 text-[#FF5CB8] px-2 py-1 rounded-lg hover:bg-[#FF168D]/25 transition"
         >
           <Crown className="w-3.5 h-3.5" />
           {!compact && <span className="hidden sm:inline">Pro Premium</span>}
@@ -95,7 +96,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
       <button
         type="button"
         onClick={openPricing}
-        className="text-xs bg-zinc-800 border border-white/10 text-gray-400 px-2 py-1 rounded-lg hover:border-[#FF2E2E]/30 hover:text-white transition"
+        className="text-xs bg-[#12121D] border border-white/10 text-gray-400 px-2 py-1 rounded-lg hover:border-[#FF168D]/30 hover:text-white transition"
       >
         {compact ? 'Free' : planLabel(subscription.plan)}
       </button>
@@ -103,7 +104,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   };
 
   return (
-    <header className="h-14 lg:h-16 border-b border-[#2a1218] bg-[#050307]/90 backdrop-blur-xl flex items-center gap-2 px-3 sm:px-6 z-50 shrink-0 pt-[env(safe-area-inset-top)] lg:pt-0">
+    <header className="h-14 lg:h-16 border-b border-[#29202F] bg-[#050509]/90 backdrop-blur-xl flex items-center gap-2 px-3 sm:px-6 z-50 shrink-0 pt-[env(safe-area-inset-top)] lg:pt-0">
       <button
         type="button"
         onClick={onMenuClick}
@@ -118,7 +119,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
           <button
             type="button"
             onClick={goToHome}
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#FF8A8A] border border-[#FF2E2E]/35 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 px-2.5 py-1.5 rounded-lg shrink-0"
+            className="hidden sm:inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#FF5CB8] border border-[#FF168D]/35 bg-[#FF168D]/10 hover:bg-[#FF168D]/20 px-2.5 py-1.5 rounded-lg shrink-0"
             title="Back to Shield Home"
           >
             <Home className="w-3.5 h-3.5" />
@@ -132,7 +133,19 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {planBadge(true)}
+        {/* Plan badge is hidden on phones so the profile button never clips */}
+        <div className="hidden sm:flex">{planBadge(true)}</div>
+
+        <button
+          type="button"
+          onClick={openStaging}
+          className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gradient-to-r from-[#FF168D]/20 to-[#FF5CB8]/20 hover:from-[#FF168D]/30 hover:to-[#FF5CB8]/30 border border-[#FF168D]/40 text-white text-xs font-semibold transition shadow-[0_0_12px_rgba(255,22,141,0.2)]"
+          title="Open Next-Gen Architecture & 24/7 AI Support Staging Window"
+        >
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shrink-0" />
+          <span className="hidden sm:inline font-bold text-[#FF5CB8]">Staging Lab</span>
+          <span className="text-[10px] px-1 rounded bg-[#FF168D]/30 text-[#FF5CB8] font-mono">24/7 AI</span>
+        </button>
 
         <button
           type="button"
@@ -155,8 +168,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <div className="text-sm font-medium truncate max-w-[8rem]">
               {isAuthenticated(authUser) ? authUser!.name : settings.displayName}
             </div>
-            <div className="text-xs text-[#FF8A8A] flex items-center gap-1 justify-end">
-              <span className="w-2 h-2 bg-[#FF2E2E] rounded-full inline-block" />
+            <div className="text-xs text-[#FF5CB8] flex items-center gap-1 justify-end">
+              <span className="w-2 h-2 bg-[#FF168D] rounded-full inline-block" />
               {isAuthenticated(authUser) ? 'Signed in' : 'Guest'}
             </div>
           </div>
@@ -164,7 +177,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <button
               type="button"
               onClick={logout}
-              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-[#FF2E2E]/40 transition focus:outline-none focus-visible:ring-[#FF2E2E]/60"
+              className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-[#FF168D]/40 transition focus:outline-none focus-visible:ring-[#FF168D]/60"
               title="Sign out"
               aria-label="Sign out"
             >
@@ -175,7 +188,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
                   className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl sm:rounded-2xl object-cover"
                 />
               ) : (
-                <span className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF2E2E] to-[#A30000] rounded-xl sm:rounded-2xl flex items-center justify-center text-white">
+                <span className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF168D] to-[#B91669] rounded-xl sm:rounded-2xl flex items-center justify-center text-white">
                   <LogOut className="w-4 h-4" />
                 </span>
               )}
@@ -184,7 +197,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             <button
               type="button"
               onClick={() => openLoginModal()}
-              className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF2E2E] to-[#A30000] rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold text-xs"
+              className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF168D] to-[#B91669] rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold text-xs"
               title="Sign in"
             >
               {settings.displayName.slice(0, 2).toUpperCase()}

@@ -90,13 +90,13 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
       <div className="sg16-chat-col">
         <div className="sg16-card p-4">
           <div className="flex items-center gap-2 mb-2.5">
-            <span className="w-9 h-9 rounded-2xl bg-sky-500/15 border border-sky-400/20 flex items-center justify-center">
-              <ClipboardCheck className="w-4 h-4 text-sky-300" />
+            <span className="w-9 h-9 rounded-2xl bg-[#FF168D]/15 border border-[#FF168D]/20 flex items-center justify-center">
+              <ClipboardCheck className="w-4 h-4 text-[#FF5CB8]" />
             </span>
             <div className="min-w-0">
               <div className="text-sm font-semibold text-white tracking-tight flex items-center gap-1.5">
                 Coding Shield
-                <Shield className="w-3.5 h-3.5 text-sky-300/80" />
+                <Shield className="w-3.5 h-3.5 text-[#FF5CB8]/80" />
               </div>
               <div className="text-[11px] text-white/40">
                 10-tool scan · shield.sg16engine.com · Score free
@@ -113,14 +113,14 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
             onChange={(e) => setCode(e.target.value)}
             rows={3}
             placeholder="Paste code — ESLint, Sonar rules, Acorn, Gitleaks patterns run for real..."
-            className="w-full rounded-[var(--sg16-r-bar)] bg-black/45 border border-white/[0.08] focus:border-sky-400/40 outline-none text-sm text-white/90 p-3 resize-y min-h-[72px] max-h-40 font-mono placeholder:text-white/25"
+            className="w-full rounded-[var(--sg16-r-bar)] bg-black/45 border border-white/[0.08] focus:border-[#FF168D]/40 outline-none text-sm text-white/90 p-3 resize-y min-h-[72px] max-h-40 font-mono placeholder:text-white/25"
           />
           <div className="flex flex-wrap gap-2 mt-2.5">
             <button
               type="button"
               onClick={analyze}
               disabled={!code.trim() || scanning}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-sky-500/15 text-sky-100 border border-sky-400/25 hover:bg-sky-500/25 disabled:opacity-40 transition"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#FF168D]/15 text-[#FFE0F0] border border-[#FF168D]/25 hover:bg-[#FF168D]/25 disabled:opacity-40 transition"
             >
               {scanning ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Sparkles className="w-3.5 h-3.5" />}
               {scanning ? 'Scanning…' : 'Shield scan'}
@@ -129,7 +129,7 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
               type="button"
               onClick={repair}
               disabled={!code.trim()}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#FF2E2E]/12 text-[#FFB4B4] border border-[#FF2E2E]/25 hover:bg-[#FF2E2E]/20 disabled:opacity-40 transition"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#FF168D]/12 text-[#FFB3DA] border border-[#FF168D]/25 hover:bg-[#FF168D]/20 disabled:opacity-40 transition"
             >
               {!premium && <Lock className="w-3.5 h-3.5" />}
               Repair / rewrite

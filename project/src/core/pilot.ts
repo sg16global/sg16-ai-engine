@@ -1,7 +1,7 @@
 import type { WorkspaceId, WorkspaceType } from './types';
 
-/** Brand accent for shields / home identity — matches Shield Home pure red. */
-export const SG16_SHIELD_RED = '#ff173d';
+/** Brand accent (neon pink) — mirrors --sg16-primary for inline styles. */
+export const SG16_ACCENT = '#FF168D';
 
 export type PilotId =
   | 'study'
@@ -164,25 +164,28 @@ export function buildSmartSuggestions(workspace: WorkspaceType): PilotSuggestion
       workspaceId: 'student-shield',
       prompt: 'Help me clear pending assignments with a short plan.',
     },
-  ];
-
-  const mod = pilotForWorkspace(workspace);
-  if (!mod) return base.slice(0, 3);
-
-  return [
     {
-      id: `enter-${mod.pilotId}`,
-      text: mod.enterHint,
-      kind: 'info',
+      id: 'market-mood',
+      text: 'Markets moved today — want a plain-language summary?',
+      kind: 'action',
+      workspaceId: 'market',
+      prompt: 'Summarize today’s global market mood in plain language (not financial advice).',
     },
-    ...mod.quickActions.slice(0, 2).map((a, i) => ({
-      id: `${mod.pilotId}-qa-${i}`,
-      text: a.label,
-      kind: 'action' as const,
-      workspaceId: mod.workspaceId,
-      prompt: a.prompt,
-    })),
+    {
+      id: 'daily-brief',
+      text: 'Want a short daily briefing to start?',
+      kind: 'action',
+      workspaceId: 'general',
+      prompt: 'Give me a short useful daily briefing.',
+    },
   ];
+
+  // Inside a shield, the header hint and quick-action chips already cover that
+  // shield — suggest work waiting in the other shields instead of repeating them.
+  if (pilotForWorkspace(workspace)) {
+    return base.filter((s) => s.workspaceId !== workspace).slice(0, 3);
+  }
+  return base.slice(0, 3);
 }
 
 export function createPilotJob(

@@ -5,6 +5,7 @@ import { checkEngineHealth } from '../../lib/apiStatus';
 import { isStudentVerified, verificationStatusLabel } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
+import { CompanyDetailsCard } from '../company/CompanyDetailsCard';
 
 export function SettingsPanel() {
   const settings = useAppStore((s) => s.settings);
@@ -39,14 +40,14 @@ export function SettingsPanel() {
         <p className="text-sm text-gray-500 mt-1">Manage your SG16 AI Engine preferences on this device.</p>
       </div>
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-4">
         <h2 className="font-semibold">Profile</h2>
         <label className="block text-sm text-gray-400">
           Display name
           <input
             value={settings.displayName}
             onChange={(e) => updateSettings({ displayName: e.target.value })}
-            className="mt-1.5 w-full bg-zinc-950 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500/40"
+            className="mt-1.5 w-full bg-[#08080F] border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-emerald-500/40"
           />
         </label>
         <button
@@ -58,7 +59,7 @@ export function SettingsPanel() {
         </button>
       </section>
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-4">
         <h2 className="font-semibold">Voice AI</h2>
         <label className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer">
           <input
@@ -71,7 +72,7 @@ export function SettingsPanel() {
         </label>
       </section>
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-3">
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-3">
         <h2 className="font-semibold">Engine Status</h2>
         <p className="text-xs text-gray-500">
           Photo edits use in-place editing — your original face and photo are preserved, not recreated from scratch.
@@ -83,7 +84,7 @@ export function SettingsPanel() {
                 ? 'bg-yellow-400 animate-pulse'
                 : engineOnline
                   ? 'bg-emerald-400'
-                  : 'bg-red-400'
+                  : 'bg-[#FF526B]'
             }`}
           />
           {engineOnline === null && 'Checking SG16 AI Engine...'}
@@ -92,12 +93,12 @@ export function SettingsPanel() {
         </div>
       </section>
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-4">
         <h2 className="font-semibold">Subscription</h2>
 
         {launchFree ? (
           <>
-            <div className="rounded-xl border border-emerald-500/25 bg-gradient-to-br from-emerald-950/50 to-zinc-950/80 p-4 space-y-3">
+            <div className="rounded-xl border border-emerald-500/25 bg-gradient-to-br from-emerald-950/50 to-[#07070D]/80 p-4 space-y-3">
               <div className="flex items-center gap-2 text-emerald-300">
                 <Sparkles className="w-4 h-4 shrink-0" />
                 <span className="text-sm font-semibold">Launch — Full unlimited access</span>
@@ -152,7 +153,7 @@ export function SettingsPanel() {
               <button
                 type="button"
                 onClick={openPricing}
-                className="text-xs bg-rose-600 hover:bg-rose-500 px-3 py-2 rounded-lg font-medium"
+                className="text-xs bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] px-3 py-2 rounded-lg font-semibold transition"
               >
                 View pricing
               </button>
@@ -170,7 +171,7 @@ export function SettingsPanel() {
         )}
       </section>
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-4">
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-4">
         <h2 className="font-semibold">Account</h2>
         {authUser ? (
           <div className="text-sm text-gray-300 space-y-2">
@@ -185,7 +186,7 @@ export function SettingsPanel() {
             <button
               type="button"
               onClick={logout}
-              className="text-xs border border-white/10 hover:border-red-500/40 px-3 py-2 rounded-lg text-gray-400 hover:text-red-400"
+              className="text-xs border border-white/10 hover:border-[#FF526B]/40 px-3 py-2 rounded-lg text-gray-400 hover:text-[#FF526B]"
             >
               Sign out & wipe session
             </button>
@@ -201,15 +202,20 @@ export function SettingsPanel() {
         )}
       </section>
 
-      <section className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-3">
-        <h2 className="font-semibold text-red-400">Privacy</h2>
+      <section className="space-y-3">
+        <h2 className="font-semibold text-white">Company & Entity Registration</h2>
+        <CompanyDetailsCard />
+      </section>
+
+      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-3">
+        <h2 className="font-semibold text-[#FF526B]">Privacy</h2>
         <p className="text-xs text-gray-500">
           Your chat history syncs to your user room when signed in. Sign out clears this session on this device only.
         </p>
         <button
           type="button"
           onClick={wipeSession}
-          className="text-xs border border-white/10 hover:border-red-500/40 px-3 py-2 rounded-lg text-gray-400 hover:text-red-400"
+          className="text-xs border border-white/10 hover:border-[#FF526B]/40 px-3 py-2 rounded-lg text-gray-400 hover:text-[#FF526B]"
         >
           Wipe this session now
         </button>
