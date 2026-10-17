@@ -75,7 +75,7 @@ export function getFastChatModelChain(provider = getPrimaryProvider()) {
     return splitModels(process.env.SG16_AI_MODEL_TEXT, 'llama-3.1-8b-instant');
   }
 
-  if (provider.id === 'ollama') {
+  if (provider.id === 'ollama' || provider.id === 'api') {
     return [provider.models.text].filter(Boolean);
   }
 
@@ -111,7 +111,7 @@ export function getCodingModelChain(provider = getPrimaryProvider()) {
     );
   }
 
-  if (provider.id === 'ollama') {
+  if (provider.id === 'ollama' || provider.id === 'api') {
     return [provider.models.coding || provider.models.text].filter(Boolean);
   }
 
@@ -149,7 +149,7 @@ export function getReasoningModelChain(provider = getPrimaryProvider()) {
     return splitModels(process.env.SG16_AI_MODEL_REASONING, 'llama-3.3-70b-versatile');
   }
 
-  if (provider.id === 'ollama') {
+  if (provider.id === 'ollama' || provider.id === 'api') {
     return [provider.models.reasoning || provider.models.text].filter(Boolean);
   }
 

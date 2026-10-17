@@ -43,7 +43,10 @@ npm run dev                             # backend :8000 + frontend :5173
 npm run api:check                       # confirms the backend answers
 ```
 
-- No Postgres? The backend falls back to a JSON store. Chat needs `MISTRAL_BRAIN_KEY`.
+- No Postgres? The backend falls back to a JSON store.
+- Chat needs an AI: set `AI_API_URL`, `AI_API_KEY` (optional) and `AI_MODEL` in `backend/.env`. Any
+  OpenAI-compatible API works: OpenAI, Groq, OpenRouter, Mistral, or your own Ollama VPS (`http://IP:11434/v1`).
+  `npm run api:check` sends a test prompt and shows whether the AI answers.
 - UI only, against the live engine: set `SG16_DEV_API_TARGET=https://sg16engine.com` in `project/.env`, then `npm run dev -- --ui`.
 - Check any deployment: `npm run api:check -- https://sg16engine.com`.
 

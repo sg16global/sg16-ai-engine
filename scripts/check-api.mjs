@@ -56,8 +56,19 @@ async function main() {
   const shield = await get('/api/v1/coding-shield/health');
   console.log(`${mark(shield.ok)} /api/v1/coding-shield  ${shield.status}`);
 
-  const allOk = auth.ok && billing.ok && shield.ok;
-  console.log(allOk ? '\nAll public endpoints respond. The app can connect.' : '\nSome endpoints failed — see above.');
+  // /health/deep sends one tiny prompt to the configured AI, so this shows whether chat really works.
+  const deep = await get('/health/deep');
+  const brainChat = deep.json?.brainChat;
+  const aiOk = brainChat?.ok === true;
+  const aiDetail = brainChat
+    ? aiOk
+      ? `answered with ${brainChat.model ?? 'model'} in ${brainChat.latencyMs}ms`
+      : `FAILED — ${brainChat.error}`
+    : 'no AI configured (set AI_API_URL, AI_API_KEY, AI_MODEL in backend/.env)';
+  console.log(`${mark(aiOk)} AI chat                ${aiDetail}`);
+
+  const allOk = auth.ok && billing.ok && shield.ok && aiOk;
+  console.log(allOk ? '\nEverything responds, including the AI. The app can connect.' : '\nSome checks failed — see above.');
   return allOk;
 }
 
