@@ -25,13 +25,19 @@ import {
   type AppSettings,
 } from '../lib/utils';
 import { ApiError } from '../lib/apiClient';
-import { clearAuthToken, fetchAuthMe, loadAuthToken, saveAuthToken as persistToken } from '../lib/authApi';
+import {
+  clearAuthToken,
+  fetchAuthMe,
+  hasDeviceId,
+  loadAuthToken,
+  loginDevice,
+  saveAuthToken as persistToken,
+} from '../lib/authApi';
 import {
   fetchBillingConfig,
   fetchBillingEntitlements,
   subscriptionFromApi,
 } from '../lib/billingApi';
-import { scheduleHistorySync, syncUserHistoryOnLogin } from '../lib/userRoomApi';
 import { pushAppPath, routeToPath } from './routes';
 
 interface AppState {
@@ -45,8 +51,6 @@ interface AppState {
   subscription: Subscription;
   authUser: AuthUser | null;
   authToken: string | null;
-  loginModalOpen: boolean;
-  pendingAuthAction: (() => void) | null;
   loading: boolean;
   error: string | null;
   launchFree: boolean;
@@ -70,12 +74,13 @@ interface AppState {
   consumePendingImage: () => string | null;
 
   requireAuth: (action: () => void) => void;
-  openLoginModal: (action?: () => void) => void;
-  closeLoginModal: () => void;
+  /**
+   * Enter SG16 without any account: starts an anonymous device session (no Google, no email),
+   * then runs `action` or opens the AI chat. Chat history stays on this device.
+   */
+  startSession: (action?: () => void) => Promise<void>;
   setAuthSession: (token: string, user: AuthUser) => void;
-  /** Local / preview enter — no Google. Use when OAuth is blocked. */
-  enterLocalPreview: () => Promise<void>;
-  /** Public tour — open Shield Home without sign-in; shields prompt Google login. */
+  /** Public tour — open Shield Home without a session; shields start one when opened. */
   enterGuestTour: () => void;
   refreshAuthUser: () => Promise<void>;
   restoreAuthSession: () => Promise<void>;
@@ -96,9 +101,9 @@ interface AppState {
   setError: (error: string | null) => void;
 }
 
+/** Chat history is stored on this device only — never sent to the server for storage. */
 function persistMessages(messages: AppState['messages'], userId?: string | null) {
   saveChatHistory(messages, userId);
-  if (userId) scheduleHistorySync(messages);
 }
 
 function tryOpenWorkspace(
@@ -150,8 +155,6 @@ export const useAppStore = create<AppState>((set, getState) => ({
   subscription: loadSubscription(),
   authUser: null,
   authToken: loadAuthToken(),
-  loginModalOpen: false,
-  pendingAuthAction: null,
   loading: false,
   error: null,
   launchFree: true,
@@ -164,20 +167,27 @@ export const useAppStore = create<AppState>((set, getState) => ({
   openStaging: () => set({ stagingOpen: true }),
   closeStaging: () => set({ stagingOpen: false }),
 
-  openLoginModal: (action) =>
-    set({
-      loginModalOpen: true,
-      pendingAuthAction: action ?? null,
-    }),
-
-  closeLoginModal: () => set({ loginModalOpen: false, pendingAuthAction: null }),
+  startSession: async (action) => {
+    try {
+      const result = await loginDevice();
+      getState().setAuthSession(result.token, result.user);
+    } catch (err) {
+      set({ error: err instanceof Error ? err.message : 'Could not start SG16. Please try again.' });
+      return;
+    }
+    if (action) {
+      action();
+    } else if (getState().currentWorkspace === 'home') {
+      getState().setWorkspace('general');
+    }
+  },
 
   requireAuth: (action) => {
     if (isAuthenticated(getState().authUser)) {
       action();
       return;
     }
-    getState().openLoginModal(action);
+    void getState().startSession(action);
   },
 
   setAuthSession: (token, user) => {
@@ -189,43 +199,18 @@ export const useAppStore = create<AppState>((set, getState) => ({
     saveSubscription(subscription);
     const settings = { ...getState().settings, displayName: enriched.name };
     saveSettings(settings);
-    const pending = getState().pendingAuthAction;
     set({
       authToken: token,
       authUser: enriched,
       subscription,
       settings,
       messages: loadChatHistory(enriched.id),
-      loginModalOpen: false,
-      pendingAuthAction: null,
       error: null,
       ...(user.launchFree !== undefined
         ? { launchFree: user.launchFree, checkoutEnabled: !user.launchFree }
         : {}),
     });
-    queueMicrotask(() => {
-      if (pending) {
-        pending();
-      } else if (getState().currentWorkspace === 'home') {
-        getState().setWorkspace('general');
-      }
-      void getState().syncSubscriptionFromServer();
-      void syncUserHistoryOnLogin(enriched.id, loadChatHistory, saveChatHistory).then((merged) => {
-        set({ messages: merged });
-      });
-    });
-  },
-
-  enterLocalPreview: async () => {
-    const { loginPreview } = await import('../lib/authApi');
-    const result = await loginPreview();
-    const pending = getState().pendingAuthAction;
-    getState().setAuthSession(result.token, result.user);
-    if (pending) {
-      pending();
-    } else if (getState().currentWorkspace === 'home') {
-      getState().setWorkspace('general');
-    }
+    queueMicrotask(() => void getState().syncSubscriptionFromServer());
   },
 
   enterGuestTour: () => {
@@ -285,11 +270,22 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   restoreAuthSession: async () => {
+    // A returning device renews its anonymous session silently; new visitors see the landing page.
+    const resumeDevice = async () => {
+      if (!hasDeviceId()) return;
+      try {
+        const result = await loginDevice();
+        getState().setAuthSession(result.token, result.user);
+      } catch {
+        /* engine offline — the landing page and offline banner explain it */
+      }
+    };
+
     const token = loadAuthToken();
-    if (!token) return;
-    if (token === 'local-preview-token' || token.startsWith('local-preview') || !token.includes('.')) {
-      clearAuthToken();
+    if (!token || token.startsWith('local-preview') || !token.includes('.')) {
+      if (token) clearAuthToken();
       set({ authToken: null, authUser: null, messages: emptyChatHistory() });
+      await resumeDevice();
       return;
     }
     set({ authToken: token });
@@ -306,13 +302,12 @@ export const useAppStore = create<AppState>((set, getState) => ({
         messages: loadChatHistory(user.id),
         settings: { ...getState().settings, displayName: user.name },
       });
-      void syncUserHistoryOnLogin(user.id, loadChatHistory, saveChatHistory).then((merged) => {
-        set({ messages: merged });
-      });
     } catch (err) {
       // Only a rejected token ends the session; if the engine is unreachable, keep it for the next load.
-      if (!(err instanceof ApiError) || !err.offline) clearAuthToken();
+      const offline = err instanceof ApiError && err.offline;
+      if (!offline) clearAuthToken();
       set({ authToken: null, authUser: null, messages: emptyChatHistory() });
+      if (!offline) await resumeDevice();
     }
   },
 
@@ -326,8 +321,6 @@ export const useAppStore = create<AppState>((set, getState) => ({
     set({
       authUser: null,
       authToken: null,
-      loginModalOpen: false,
-      pendingAuthAction: null,
       currentWorkspace: 'home',
       messages: emptyChatHistory(),
     });
@@ -347,7 +340,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
       if (path) pushAppPath(path);
       return;
     }
-    tryOpenWorkspace(ws, subscription, authUser, set, getState().openLoginModal, () =>
+    tryOpenWorkspace(ws, subscription, authUser, set, getState().startSession, () =>
       getState().setWorkspace(ws),
     );
   },

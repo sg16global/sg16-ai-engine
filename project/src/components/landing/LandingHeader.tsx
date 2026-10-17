@@ -35,7 +35,7 @@ interface LandingHeaderProps {
 }
 
 export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
   const enterGuestTour = useAppStore((s) => s.enterGuestTour);
   const openStaging = useAppStore((s) => s.openStaging);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -101,9 +101,9 @@ export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
             <span>Staging Lab</span>
             <span className="lp-btn__tag">24/7 AI</span>
           </button>
-          <button type="button" onClick={() => openLoginModal()} className="lp-btn lp-btn--sm lp-btn--ghost">
+          <button type="button" onClick={() => startSession()} className="lp-btn lp-btn--sm lp-btn--ghost">
             <UserRound className="h-4 w-4" />
-            <span>Login</span>
+            <span>Enter</span>
           </button>
           <button
             type="button"
@@ -196,12 +196,12 @@ export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
-                  openLoginModal();
+                  startSession();
                 }}
                 className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#29202F] bg-[#0A0A12] py-2.5 text-sm font-medium text-white hover:border-[#60304F]"
               >
                 <UserRound className="w-4 h-4 text-[#FF168D]" />
-                <span>Login</span>
+                <span>Enter</span>
               </button>
             </div>
           </div>

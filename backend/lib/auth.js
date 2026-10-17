@@ -186,6 +186,26 @@ export function getGoogleClientIdForFrontend(_req, res) {
   });
 }
 
+const DEVICE_ID_PATTERN = /^[A-Za-z0-9-]{16,64}$/;
+
+/**
+ * Anonymous device session — no Google account, no name or email, nothing written to disk.
+ * The browser keeps a random device id; chat history stays on that device.
+ */
+export async function handleDeviceAuth(req, res) {
+  const deviceId = typeof req.body?.deviceId === 'string' ? req.body.deviceId.trim() : '';
+  if (!DEVICE_ID_PATTERN.test(deviceId)) {
+    return res.status(400).json({ error: 'A valid deviceId is required.' });
+  }
+  try {
+    const session = { sub: `device-${deviceId}`, signupDate: Date.now(), name: 'SG16 User', device: true };
+    res.json({ token: signSession(session), user: await buildUserPayload(session) });
+  } catch (err) {
+    console.error('[SG16 device auth]', err);
+    res.status(500).json({ error: 'Could not start a session.' });
+  }
+}
+
 export function isDevAuthEnabled() {
   if (process.env.NODE_ENV === 'production') {
     return process.env.SG16_DEV_AUTH === '1';

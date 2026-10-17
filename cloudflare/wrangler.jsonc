@@ -1,7 +1,7 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "sg16-engine-web",
-  "main": "src/worker.js",
+  "main": "src/index.js",
   "compatibility_date": "2026-01-01",
   "observability": { "enabled": true },
 
@@ -13,14 +13,35 @@
     "run_worker_first": true
   },
 
+  // The Node backend runs as a Cloudflare Container built from the repo Dockerfile.
+  // "basic" = 1/4 vCPU, 1 GiB RAM, 4 GB disk. Use "standard-1" (4 GiB) if Coding Shield scans run out of memory.
+  "containers": [
+    {
+      "class_name": "Backend",
+      "image": "../Dockerfile",
+      "image_build_context": "..",
+      "instance_type": "basic",
+      "max_instances": 1
+    }
+  ],
+  "durable_objects": {
+    "bindings": [{ "name": "BACKEND", "class_name": "Backend" }]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["Backend"] }],
+
   "vars": {
-    // Your backend (Node, on the VPS). Must be a hostname, not a bare IP — see README.md.
+    // Leave empty to use the container above. Set to an external backend URL to bypass it.
     "BACKEND_URL": "",
-    "SHIELD_HOST": "shield.sg16engine.com"
+    "SHIELD_HOST": "shield.sg16engine.com",
+    "SG16_APP_URL": "https://sg16engine.com"
   }
 
-  // After the first deploy works on *.workers.dev, serve the real domains (delete their old
-  // Railway DNS records first), then deploy again:
+  // Backend secrets (set once with `npx wrangler secret put <NAME>`, passed into the container):
+  //   JWT_SECRET (signs anonymous device sessions), AI_API_URL, AI_MODEL, AI_API_KEY (if needed),
+  //   optional AI_VISION_MODEL, DATABASE_URL (only to keep student verification across restarts)
+
+  // When the site works on *.workers.dev, serve the real domains (delete their old DNS records
+  // first), then deploy again:
   // "routes": [
   //   { "pattern": "sg16engine.com", "custom_domain": true },
   //   { "pattern": "www.sg16engine.com", "custom_domain": true },

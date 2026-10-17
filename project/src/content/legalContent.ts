@@ -10,8 +10,8 @@ export const LEGAL_SECTIONS: { id: LegalSection; title: string; body: string[] }
     body: [
       'Open Shield Home and choose one of five shields: AI Chat, Coding Hub, Health, Student, or Market.',
       'Each shield is a separate workspace — coding, health, and student conversations are not mixed together.',
-      'AI Chat Shield is free after Google sign-in. Other shields require All Access when billing is active.',
-      'Sign in with Google only — we never ask for your password on this site.',
+      'Press Enter to start — no account, no Google sign-in, no password. Other shields require All Access when billing is active.',
+      'Your chat history is saved on your own device, not on SG16 servers.',
       'Use History and Settings from the sidebar inside any shield. Help Center covers privacy, terms, and contact.',
     ],
   },
@@ -20,9 +20,9 @@ export const LEGAL_SECTIONS: { id: LegalSection; title: string; body: string[] }
     title: 'Privacy Policy',
     body: [
       `${SG16_BRAND.name} is operated by ${SG16_BRAND.company}. Official website: ${SG16_BRAND.companyUrl}.`,
-      'Sign-in uses Google OAuth only. We never ask for your Google password on this site.',
+      'No accounts: SG16 does not use Google sign-in or ask for your name, email, or password. Your browser gets a random device ID that is not linked to you.',
       'SG16 Secure Processing Room: when you send a message, it goes to sg16engine.com first. SG16 processes your request, applies safety checks, and delivers the answer back to you. You never connect to outside AI apps directly from your browser.',
-      'We store your Google account identifier, signup date, subscription status, and coding fair-use counters on our servers to run your account. Chat history stays in your browser on this device unless you clear it in Settings.',
+      'Chat history is stored only in your browser on this device; SG16 servers refuse to store it. If you use Student verification, its result (status and institution name) is kept against your random device ID. You can clear local data anytime in Settings.',
       'We do not store your chat message content in our database. Messages are processed in real time to generate a response, then discarded from our servers.',
       'We do not sell your personal data. You can delete local data anytime from Settings.',
       `Privacy questions: ${SG16_BRAND.contactEmail}`,

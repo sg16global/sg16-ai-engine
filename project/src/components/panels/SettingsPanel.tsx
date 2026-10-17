@@ -16,7 +16,7 @@ export function SettingsPanel() {
   const launchMessage = useAppStore((s) => s.launchMessage);
   const openLaunchNotice = useAppStore((s) => s.openLaunchNotice);
   const logout = useAppStore((s) => s.logout);
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
   const wipeSession = useAppStore((s) => s.wipeSession);
   const openPricing = useAppStore((s) => s.openPricing);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
@@ -176,7 +176,7 @@ export function SettingsPanel() {
         <h2 className="font-semibold">Account</h2>
         {authUser ? (
           <div className="text-sm text-gray-300 space-y-2">
-            <p>Signed in as <strong className="text-white">{authUser.name}</strong></p>
+            <p>No account — this device has its own private SG16 space.</p>
             {launchFree ? (
               <p className="text-xs text-emerald-400">Launch period — all workspaces are free and unlimited.</p>
             ) : authUser.trialActive ? (
@@ -189,16 +189,16 @@ export function SettingsPanel() {
               onClick={logout}
               className="text-xs border border-white/10 hover:border-[#FF526B]/40 px-3 py-2 rounded-lg text-gray-400 hover:text-[#FF526B]"
             >
-              Sign out & wipe session
+              Exit
             </button>
           </div>
         ) : (
           <button
             type="button"
-            onClick={() => openLoginModal()}
+            onClick={() => startSession()}
             className="text-sm bg-emerald-600 hover:bg-emerald-500 px-4 py-2 rounded-lg font-medium"
           >
-            Login with Google
+            Enter SG16
           </button>
         )}
       </section>
@@ -211,7 +211,7 @@ export function SettingsPanel() {
       <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-3">
         <h2 className="font-semibold text-[#FF526B]">Privacy</h2>
         <p className="text-xs text-gray-500">
-          Your chat history syncs to your user room when signed in. Sign out clears this session on this device only.
+          Your chat history is saved on this device only — SG16 never stores it on its servers. Clear it anytime below.
         </p>
         <button
           type="button"

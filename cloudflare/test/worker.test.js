@@ -91,3 +91,45 @@ describe('backend forwarding', () => {
     assert.equal(res.status, 503);
   });
 });
+
+describe('backend container', () => {
+  it('forwards /api to the container when BACKEND_URL is empty', async () => {
+    let seen;
+    const BACKEND = {
+      idFromName: (name) => `id:${name}`,
+      get: (id) => ({
+        async fetch(request) {
+          seen = { id, url: request.url, method: request.method, body: await request.text(), fwd: request.headers.get('X-Forwarded-Host') };
+          return Response.json({ from: 'container' });
+        },
+      }),
+    };
+    const res = await worker.fetch(
+      new Request('https://sg16engine.com/api/v1/chat?x=1', { method: 'POST', body: '{"m":1}' }),
+      env({ BACKEND_URL: '', BACKEND }),
+    );
+    assert.deepEqual(await res.json(), { from: 'container' });
+    assert.equal(seen.id, 'id:main');
+    assert.equal(seen.url, 'http://backend.internal/api/v1/chat?x=1');
+    assert.equal(seen.method, 'POST');
+    assert.equal(seen.body, '{"m":1}');
+    assert.equal(seen.fwd, 'sg16engine.com');
+  });
+  it('returns 503 while the container cannot start', async () => {
+    const BACKEND = {
+      idFromName: () => 'id',
+      get: () => ({
+        fetch: async () => {
+          throw new Error('container not ready');
+        },
+      }),
+    };
+    const res = await worker.fetch(new Request('https://sg16engine.com/health'), env({ BACKEND_URL: '', BACKEND }));
+    assert.equal(res.status, 503);
+  });
+  it('passes only known, non-empty secrets to the backend process', async () => {
+    const { backendEnv } = await import('../src/backendEnv.js');
+    const vars = backendEnv({ JWT_SECRET: ' s ', AI_MODEL: 'devstral', DATABASE_URL: '', GOOGLE_CLIENT_ID: 'g', UNRELATED: 'x' });
+    assert.deepEqual(vars, { NODE_ENV: 'production', HOST: '0.0.0.0', PORT: '8000', JWT_SECRET: 's', AI_MODEL: 'devstral' });
+  });
+});

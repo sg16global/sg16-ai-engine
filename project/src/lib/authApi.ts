@@ -1,12 +1,6 @@
 import type { AuthUser } from '../core/types';
 import { API_V1, apiRequest } from './apiClient';
 
-export interface AuthConfigResponse {
-  clientId: string;
-  authorizedJavaScriptOrigins: string[];
-  currentOriginHint: string;
-}
-
 const AUTH_TOKEN_KEY = 'sg16_auth_token';
 const AUTH_FETCH_TIMEOUT_MS = 12_000;
 
@@ -22,37 +16,43 @@ function readStoredToken(): string | null {
   }
 }
 
-export async function fetchAuthConfig(): Promise<AuthConfigResponse> {
-  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+const DEVICE_ID_KEY = 'sg16_device_id';
+
+function readDeviceId(): string | null {
   try {
-    const data = await apiRequest<Partial<AuthConfigResponse>>(`${API_V1}/auth/config`, {
-      timeoutMs: AUTH_FETCH_TIMEOUT_MS,
-    });
-    return {
-      clientId: (data.clientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim(),
-      authorizedJavaScriptOrigins: data.authorizedJavaScriptOrigins ?? [],
-      currentOriginHint: data.currentOriginHint ?? origin,
-    };
+    return localStorage.getItem(DEVICE_ID_KEY);
   } catch {
-    // The Google client ID is public; the build-time copy lets the sign-in button render while the engine wakes up.
-    return {
-      clientId: (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim(),
-      authorizedJavaScriptOrigins: [],
-      currentOriginHint: origin,
-    };
+    return null;
   }
 }
 
-export async function loginPreview(): Promise<{ token: string; user: AuthUser }> {
-  return apiRequest(`${API_V1}/auth/preview`, { method: 'POST', timeoutMs: AUTH_FETCH_TIMEOUT_MS });
+/** True once this browser has entered SG16 before (it has a device id). */
+export function hasDeviceId(): boolean {
+  return Boolean(readDeviceId());
 }
 
-export async function loginWithGoogle(credential: string): Promise<{ token: string; user: AuthUser }> {
-  return apiRequest(`${API_V1}/auth/google`, {
+/** Random id kept on this device. It names the local chat history; it is not linked to any person. */
+function getOrCreateDeviceId(): string {
+  const existing = readDeviceId();
+  if (existing) return existing;
+  const id = crypto.randomUUID();
+  try {
+    localStorage.setItem(DEVICE_ID_KEY, id);
+  } catch {
+    /* private mode — the session still works, history lasts for this tab only */
+  }
+  return id;
+}
+
+/** Anonymous session for this device — no Google account, name or email. */
+export async function loginDevice(): Promise<{ token: string; user: AuthUser }> {
+  const result = await apiRequest<{ token: string; user: AuthUser }>(`${API_V1}/auth/device`, {
     method: 'POST',
-    body: { credential },
+    body: { deviceId: getOrCreateDeviceId() },
     timeoutMs: AUTH_FETCH_TIMEOUT_MS,
   });
+  saveAuthToken(result.token);
+  return result;
 }
 
 export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subscription?: AuthUser['subscription'] }> {

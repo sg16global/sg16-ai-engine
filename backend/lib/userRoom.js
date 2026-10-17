@@ -172,7 +172,10 @@ export async function buildUserRoomPayload(session) {
   };
 }
 
+const DEVICE_ONLY = { error: 'Chat history is stored on your device only.', code: 'DEVICE_ONLY' };
+
 export async function handleGetUserRoom(req, res) {
+  if (req.auth?.device) return res.status(403).json(DEVICE_ONLY);
   try {
     const payload = await buildUserRoomPayload(req.auth);
     res.json(payload);
@@ -183,6 +186,7 @@ export async function handleGetUserRoom(req, res) {
 }
 
 export async function handleGetUserHistory(req, res) {
+  if (req.auth?.device) return res.status(403).json(DEVICE_ONLY);
   try {
     const room = await getUserRoomData(req.auth.sub);
     res.json({ chatHistory: room.chatHistory, updatedAt: room.updatedAt });
@@ -193,6 +197,7 @@ export async function handleGetUserHistory(req, res) {
 }
 
 export async function handlePutUserHistory(req, res) {
+  if (req.auth?.device) return res.status(403).json(DEVICE_ONLY);
   try {
     const { chatHistory, settings } = req.body ?? {};
     if (!chatHistory || typeof chatHistory !== 'object') {

@@ -71,7 +71,7 @@ export function accessDeniedMessage(
   authUser: AuthUser | null,
 ): string {
   if (!isAuthenticated(authUser)) {
-    return 'Sign in with Google to use SG16 AI workspaces.';
+    return 'Enter SG16 to use the AI workspaces — no account needed.';
   }
 
   if (isLaunchPeriod(authUser)) {

@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 
-import { GoogleLoginModal } from './components/auth/GoogleLoginModal';
 
 import { TopBar } from './components/layout/TopBar';
 
@@ -277,7 +276,6 @@ function AppShell() {
         <HomePage />
         {/* Pilot opens from the Shield Home status bar — panel only, no floating launcher */}
         <PilotOrb launcher={false} />
-        <GoogleLoginModal />
         <LaunchSubscriptionModal />
         <InstallPrompt />
         <EngineOfflineBanner />
@@ -342,8 +340,6 @@ function AppShell() {
 
       <InstallPrompt />
 
-      <GoogleLoginModal />
-
       <LaunchSubscriptionModal />
 
       <EngineOfflineBanner />
@@ -404,7 +400,7 @@ function App() {
     if (!authHydrated) return;
     const params = new URLSearchParams(window.location.search);
     if (params.get('preview') === '1' && !isAuthenticated(useAppStore.getState().authUser)) {
-      useAppStore.getState().enterLocalPreview();
+      void useAppStore.getState().startSession();
       params.delete('preview');
       const next = `${window.location.pathname}${params.toString() ? `?${params}` : ''}`;
       window.history.replaceState({}, '', next);
