@@ -1,0 +1,25 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sg16-core-brain",
+  "main": "src/index.js",
+  "compatibility_date": "2026-01-01",
+  "observability": { "enabled": true },
+
+  // Mistral 7B and the vision model run on Cloudflare's GPUs through this binding.
+  "ai": { "binding": "AI" },
+
+  "vars": {
+    "CORE_MODEL": "@cf/mistral/mistral-7b-instruct-v0.2-lora",
+    // Optional comma-separated fallbacks inside Cloudflare, tried before add-on APIs,
+    // e.g. "@cf/mistralai/mistral-small-3.1-24b-instruct" (larger, costs more per request).
+    "CORE_FALLBACK_MODELS": "",
+    "VISION_MODEL": "@cf/llava-hf/llava-1.5-7b-hf"
+  }
+
+  // Secrets (never commit these — set with `npx wrangler secret put <NAME>`):
+  //   CORE_API_KEYS    comma-separated keys clients send as X-Door-Key or Bearer token
+  //   EXTRA_PROVIDERS  optional JSON array of add-on OpenAI-compatible APIs, see README.md
+
+  // To serve on your own domain instead of *.workers.dev, uncomment:
+  // "routes": [{ "pattern": "brain.sg16engine.com", "custom_domain": true }]
+}

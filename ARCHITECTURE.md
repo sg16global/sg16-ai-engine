@@ -4,7 +4,7 @@
 
 | Service | URL | Role |
 |---------|-----|------|
-| SG16 Mistral X | `https://api.mistralbrain.com` | Cloudflare Workers AI — primary brain for all SG16 AI products |
+| SG16 Core Brain | `https://api.mistralbrain.com` | `sg16-core-brain/` — Cloudflare Worker: Mistral 7B (Workers AI) + exact Math Core (matrix/vector), OpenAI-compatible `/v1` API. Primary brain for all SG16 AI products. See `sg16-core-brain/README.md`. |
 
 Each product calls the brain **directly** from its own Cloudflare Pages Functions (or from this Engine app for Engine users only).
 

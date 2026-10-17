@@ -1,0 +1,18 @@
+{
+  "name": "sg16-core-brain",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SG16 Core Brain — Mistral 7B on Cloudflare Workers AI + exact math core (matrix/vector). OpenAI-compatible API.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "mathjs": "15.2.0"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.1"
+  }
+}
