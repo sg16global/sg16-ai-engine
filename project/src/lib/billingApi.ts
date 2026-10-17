@@ -1,4 +1,5 @@
 import type { PlanTier, Subscription } from '../core/types';
+import { API_V1, apiRequest } from './apiClient';
 import { authHeaders } from './authApi';
 
 export interface BillingPublicConfig {
@@ -48,89 +49,20 @@ export interface CheckoutSessionResponse {
 }
 
 export async function fetchBillingConfig(): Promise<BillingPublicConfig> {
-  try {
-    const res = await fetch('/api/v1/billing/config');
-    const data = await res.json();
-    if (res.ok) return data;
-  } catch {
-    // Fallback
-  }
-  return {
-    enabled: false,
-    environment: 'production',
-    clientToken: '',
-    prices: { student: '$0.00', pro: '$0.00' },
-    launchFree: true,
-    checkoutEnabled: false,
-    launchMessage: 'SG16 Launch Mode — All shields, AI models, and scanners are 100% free with unlimited access.',
-    contactEmail: 'support@sg16engine.com',
-  };
+  return apiRequest(`${API_V1}/billing/config`);
 }
 
 export async function fetchBillingEntitlements(): Promise<BillingEntitlementsResponse> {
-  try {
-    const res = await fetch('/api/v1/billing/entitlements', { headers: authHeaders() });
-    const data = await res.json();
-    if (res.ok) return data;
-  } catch {
-    // Fallback
-  }
-  return {
-    entitlements: {
-      planTier: 'pro',
-      studentVerified: true,
-      subscription: {
-        plan: 'pro',
-        studentVerification: { status: 'verified' },
-        subscriptionStatus: 'active',
-        paddleCustomerId: null,
-        paddleSubscriptionId: null,
-        billingActive: true,
-      },
-    },
-    subscription: {
-      plan: 'pro',
-      studentVerification: { status: 'verified' },
-      subscriptionStatus: 'active',
-      paddleCustomerId: null,
-      paddleSubscriptionId: null,
-      billingActive: true,
-    },
-  };
+  return apiRequest(`${API_V1}/billing/entitlements`, { headers: authHeaders() });
 }
 
 export async function createCheckoutSession(plan: 'student' | 'pro'): Promise<CheckoutSessionResponse> {
-  try {
-    const res = await fetch('/api/v1/billing/checkout', {
-      method: 'POST',
-      headers: authHeaders(),
-      body: JSON.stringify({ plan }),
-    });
-    const data = await res.json();
-    if (res.ok) return data;
-  } catch {
-    // Fallback
-  }
-  return {
-    priceId: 'pri_launch_free',
-    plan,
-    googleSub: 'launch-user',
-    customData: { googleSub: 'launch-user' },
-  };
+  return apiRequest(`${API_V1}/billing/checkout`, { method: 'POST', headers: authHeaders(), body: { plan } });
 }
 
 export async function openBillingPortal(): Promise<string> {
-  try {
-    const res = await fetch('/api/v1/billing/portal', {
-      method: 'POST',
-      headers: authHeaders(),
-    });
-    const data = await res.json();
-    if (res.ok && data.url) return data.url as string;
-  } catch {
-    // Fallback
-  }
-  return '/app?workspace=pricing';
+  const data = await apiRequest<{ url: string }>(`${API_V1}/billing/portal`, { method: 'POST', headers: authHeaders() });
+  return data.url;
 }
 
 export function subscriptionFromApi(raw: BillingEntitlementsResponse['subscription']): Subscription {

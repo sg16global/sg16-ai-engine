@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Building2, ShieldCheck, FileCheck, CheckCircle2 } from 'lucide-react';
+import { Building2, ShieldCheck, FileCheck } from 'lucide-react';
 import { SG16_BRAND } from '../../core/branding';
 import { CompanyCertificateModal } from './CompanyCertificateModal';
 

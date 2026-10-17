@@ -24,6 +24,7 @@ import {
   saveSubscription,
   type AppSettings,
 } from '../lib/utils';
+import { ApiError } from '../lib/apiClient';
 import { clearAuthToken, fetchAuthMe, loadAuthToken, saveAuthToken as persistToken } from '../lib/authApi';
 import {
   fetchBillingConfig,
@@ -277,8 +278,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
       saveSubscription(subscription);
       set({ authUser: user, subscription });
     } catch (err) {
-      const message = err instanceof Error ? err.message : '';
-      if (message.toLowerCase().includes('session') || message.toLowerCase().includes('sign in')) {
+      if (err instanceof ApiError && err.unauthorized) {
         getState().logout();
       }
     }
@@ -309,8 +309,9 @@ export const useAppStore = create<AppState>((set, getState) => ({
       void syncUserHistoryOnLogin(user.id, loadChatHistory, saveChatHistory).then((merged) => {
         set({ messages: merged });
       });
-    } catch {
-      clearAuthToken();
+    } catch (err) {
+      // Only a rejected token ends the session; if the engine is unreachable, keep it for the next load.
+      if (!(err instanceof ApiError) || !err.offline) clearAuthToken();
       set({ authToken: null, authUser: null, messages: emptyChatHistory() });
     }
   },

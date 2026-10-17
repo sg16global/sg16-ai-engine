@@ -1,6 +1,5 @@
+import { API_V1, ApiError, apiRequest } from './apiClient';
 import { authHeaders } from './authApi';
-
-const API = '/api/v1';
 
 export async function transcribeVoiceAudio(
   blob: Blob,
@@ -9,20 +8,17 @@ export async function transcribeVoiceAudio(
 ): Promise<string> {
   const base64 = await blobToBase64(blob);
   try {
-    const res = await fetch(`${API}/speech/transcribe`, {
+    const data = await apiRequest<{ text?: string }>(`${API_V1}/speech/transcribe`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ audio: base64, mimeType, language }),
+      body: { audio: base64, mimeType, language },
+      timeoutMs: 60_000,
     });
-
-    const data = await res.json();
-    if (res.ok && data.text) {
-      return String(data.text).trim();
-    }
-  } catch {
-    // Web audio fallback
+    return String(data.text || '').trim();
+  } catch (err) {
+    if (err instanceof ApiError && err.code === 'AUTH_REQUIRED') throw new Error('AUTH_REQUIRED');
+    throw err;
   }
-  return 'Voice note captured (Speech Engine active)';
 }
 
 function blobToBase64(blob: Blob): Promise<string> {

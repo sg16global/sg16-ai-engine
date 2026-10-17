@@ -33,3 +33,26 @@ Each project owns its own fallback (offline demo, static copy, retry) — **no c
 
 - `/api/sg16/*` routes on Engine remain for backward compatibility but are **deprecated** for sg16children.com production.
 - Ollama/sovereign code paths in this repo are legacy; production Railway uses cloud brain only.
+
+## Running locally
+
+```bash
+npm install --prefix backend && npm install --prefix project
+cp backend/.env.example backend/.env    # fill in the keys you have
+npm run dev                             # backend :8000 + frontend :5173
+npm run api:check                       # confirms the backend answers
+```
+
+- No Postgres? The backend falls back to a JSON store. Chat needs `MISTRAL_BRAIN_KEY`.
+- UI only, against the live engine: set `SG16_DEV_API_TARGET=https://sg16engine.com` in `project/.env`, then `npm run dev -- --ui`.
+- Check any deployment: `npm run api:check -- https://sg16engine.com`.
+
+## Frontend API connection
+
+All frontend calls go through `project/src/lib/apiClient.ts` (`apiRequest`):
+
+- Same-origin by default; `VITE_API_BASE_URL` points a build at another backend origin.
+- Errors are thrown as `ApiError` (`status`, `code`, `offline`, `unauthorized`) — responses are never faked.
+- Every request updates the shared engine status (`lib/apiStatus.ts`). The sidebar, settings and
+  `EngineOfflineBanner` read it, and the monitor re-checks `/health` every 15s while offline.
+- A saved session is only cleared when the server rejects it (401), not when the engine is unreachable.

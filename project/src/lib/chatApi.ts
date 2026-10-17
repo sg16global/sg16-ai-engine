@@ -1,5 +1,6 @@
 import type { ChatRequest, ChatResponse, RouteResponse, StudentVerifyResponse } from '../core/types';
 import * as pdfjs from 'pdfjs-dist';
+import { API_V1, ApiError, apiRequest } from './apiClient';
 import { authHeaders } from './authApi';
 
 pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -7,229 +8,50 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-const API = '/api/v1';
 const CHAT_TIMEOUT_MS = 95_000;
 
-async function readApiJson(res: Response) {
-  const text = await res.text();
-  try {
-    return text ? JSON.parse(text) : {};
-  } catch {
-    if (res.status === 524 || res.status === 504 || res.status === 502) {
-      throw new Error('SG16 AI is warming up. Please try again in a few seconds.');
-    }
-    throw new Error('SG16 AI request failed. Please try again.');
-  }
-}
-
-function generateFallbackReply(request: ChatRequest): ChatResponse {
-  const q = (request.message || '').trim();
-  const ws = request.workspace || 'general';
-
-  if (ws === 'coding') {
-    return {
-      reply: `### SG16 Coding Shield Analysis
-
-Here is the targeted solution for your technical request:
-
-\`\`\`typescript
-// SG16 Optimized Implementation
-export async function executeEngineTask(payload: Record<string, unknown>): Promise<{ success: boolean; data: unknown }> {
-  try {
-    // 1. Validate inputs and sanitize parameters
-    if (!payload || typeof payload !== 'object') {
-      throw new Error('Invalid payload parameters');
-    }
-
-    // 2. Execute core logic with defense-in-depth safeguards
-    const result = {
-      timestamp: Date.now(),
-      status: 'verified',
-      processed: true,
-      ...payload,
-    };
-
-    return { success: true, data: result };
-  } catch (error) {
-    console.error('[SG16 Engine Error]:', error);
-    return { success: false, data: null };
-  }
-}
-\`\`\`
-
-#### Key Highlights & Security Best Practices:
-1. **Defensive Validation**: Guards against arbitrary property injection and unexpected types.
-2. **Deterministic Error Boundary**: Catches exceptions cleanly without exposing stack traces.
-3. **Coding Shield Compliance**: 100/100 score across ESLint, Semgrep, Gitleaks, and SonarJS audit standards.`,
-      provider: 'SG16 AI Engine',
-      model: 'sg16-engine-v1',
-      tokens: 284,
-    };
-  }
-
-  if (ws === 'health') {
-    return {
-      reply: `### Health Shield Triage & Clinical Guidance
-
-> **Medical Disclaimer**: *SG16 Health Shield provides educational and clinical guidance only. It is not a replacement for emergency emergency medical care. If you are experiencing chest pain, difficulty breathing, or severe trauma, call local emergency services immediately.*
-
-#### Assessment for: "${q.slice(0, 80)}"
-
-1. **Primary Considerations**:
-   - Evaluate onset time, severity scale (1–10), and accompanying red-flag symptoms.
-   - Monitor vital signs including resting heart rate, hydration level, and temperature.
-
-2. **Recommended Action Steps**:
-   - Maintain proper hydration with electrolytes.
-   - Rest in a comfortable, elevated posture to reduce circulatory or respiratory strain.
-   - Note any changes or worsening trends over a 4 to 8 hour observation window.
-
-3. **When to Seek Immediate Care**:
-   - Severe sudden pain, high persistent fever unresponsive to antipyretics, or neurological symptoms (dizziness, numbness).`,
-      provider: 'SG16 Health Shield AI',
-      model: 'med-guard-v2',
-      tokens: 310,
-    };
-  }
-
-  if (ws === 'student') {
-    return {
-      reply: `### Student Shield Academic Coaching
-
-Let's break down your topic systematically:
-
-#### Conceptual Overview
-Understanding the core principles behind your inquiry: **"${q.slice(0, 80)}"**
-
-#### Step-by-Step Breakdown
-1. **Core Definition**: Deconstruct the problem into foundational components.
-2. **Practical Application**: Apply the theorem or formula to standard cases to verify intuition.
-3. **Common Pitfalls**: Watch out for edge conditions, sign errors, or misapplied assumptions.
-
-#### Study Checkpoint
-- Can you explain this concept in 2 sentences to a peer without referencing notes?
-- Try working through a related practice problem or summarizing the key takeaway!`,
-      provider: 'SG16 Student Shield Coach',
-      model: 'scholar-x1',
-      tokens: 260,
-    };
-  }
-
-  if (ws === 'market') {
-    return {
-      reply: `### Market Shield Financial Intelligence
-
-#### Macro & Asset Analysis for: "${q.slice(0, 80)}"
-
-| Metric / Dimension | Observation | Risk Assessment |
-| :--- | :--- | :--- |
-| **Market Volatility** | Moderate range | Standard hedge recommended |
-| **Liquidity Depth** | High across primary pairs | Low slippage expectation |
-| **Trend Momentum** | Macro consolidation | Wait for breakout confirmation |
-
-#### Strategic Risk Guidelines:
-- **Capital Preservation**: Never allocate more than 2–5% of portfolio risk to a single directional position.
-- **Stop-Loss Discipline**: Predefine invalidation levels before entry.
-- **Diversification**: Maintain exposure across uncorrelated asset classes and defensive reserves.`,
-      provider: 'SG16 Market Shield AI',
-      model: 'market-quant-v4',
-      tokens: 295,
-    };
-  }
-
-  // General workspace fallback
-  return {
-    reply: `Hello! I am your **SG16 AI ENGINE**.
-
-Regarding **"${q || 'your request'}"**:
-
-Everything is operational and ready. You have full access to all 5 shields in this unified workspace:
-- **AI Chat Hub**: Deep reasoning, research, and synthesis
-- **Coding Shield**: Automated security, AST parsing, and 10-tool auditing
-- **Health Shield**: Symptom triage, wellness guidance, and safety monitoring
-- **Student Shield**: Academic research, study schedules, and curriculum mastery
-- **Market Shield**: Real-time financial analysis, macro risk metrics, and strategy
-
-How would you like to proceed?`,
-    provider: 'SG16 AI Engine',
-    model: 'sg16-engine-v1',
-    tokens: 220,
-  };
+/** Keeps the AUTH_REQUIRED signal that ChatPanel listens for to open the sign-in modal. */
+function rethrowApiError(err: unknown): never {
+  if (err instanceof ApiError && err.code === 'AUTH_REQUIRED') throw new Error('AUTH_REQUIRED');
+  throw err;
 }
 
 export async function sendChat(request: ChatRequest): Promise<ChatResponse> {
   try {
-    const res = await fetch(`${API}/chat`, {
+    return await apiRequest<ChatResponse>(`${API_V1}/chat`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify(request),
-      signal: AbortSignal.timeout(CHAT_TIMEOUT_MS),
+      body: request,
+      timeoutMs: CHAT_TIMEOUT_MS,
     });
-
-    const data = await readApiJson(res);
-    if (res.ok && data.reply) return data;
-  } catch {
-    // Client-side fallback
+  } catch (err) {
+    return rethrowApiError(err);
   }
-
-  return generateFallbackReply(request);
 }
 
 export async function verifyStudentId(imageUrl: string): Promise<StudentVerifyResponse> {
   try {
-    const res = await fetch(`${API}/student/verify`, {
+    return await apiRequest<StudentVerifyResponse>(`${API_V1}/student/verify`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ imageUrl }),
+      body: { imageUrl },
+      timeoutMs: 60_000,
     });
-
-    const data = await res.json();
-    if (res.ok && data.verified !== undefined) return data;
-  } catch {
-    // Fallback
+  } catch (err) {
+    return rethrowApiError(err);
   }
-
-  return {
-    verified: true,
-    institution: 'Global Academic Partner Network',
-    expirationDate: '2028-12-31',
-    confidence: 0.99,
-  };
 }
 
 export async function routeIntent(query: string): Promise<RouteResponse> {
   try {
-    const res = await fetch(`${API}/route`, {
+    return await apiRequest<RouteResponse>(`${API_V1}/route`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ query }),
+      body: { query },
     });
-
-    const data = await res.json();
-    if (res.ok && data.workspace) return data;
-  } catch {
-    // Fallback
+  } catch (err) {
+    return rethrowApiError(err);
   }
-
-  const q = query.toLowerCase();
-  let workspace: RouteResponse['workspace'] = 'general';
-  let confidence = 0.85;
-
-  if (/\b(code|function|bug|typescript|javascript|python|sql|api|error|git|compile)\b/.test(q)) {
-    workspace = 'coding';
-    confidence = 0.96;
-  } else if (/\b(pain|doctor|symptom|health|fever|pill|medicine|ache|blood|hospital)\b/.test(q)) {
-    workspace = 'health';
-    confidence = 0.95;
-  } else if (/\b(student|study|exam|homework|school|university|class|lecture|thesis)\b/.test(q)) {
-    workspace = 'student';
-    confidence = 0.94;
-  } else if (/\b(stock|crypto|market|invest|trading|forex|inflation|etf|portfolio|price)\b/.test(q)) {
-    workspace = 'market';
-    confidence = 0.95;
-  }
-
-  return { workspace, confidence, reason: `Matched keyword pattern for ${workspace} workspace.` };
 }
 
 const MAX_DOC_CHARS = 400_000;

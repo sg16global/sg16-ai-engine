@@ -1,4 +1,5 @@
 import type { AuthUser } from '../core/types';
+import { API_V1, apiRequest } from './apiClient';
 
 export interface AuthConfigResponse {
   clientId: string;
@@ -13,14 +14,6 @@ function isLegacyPreviewToken(token: string) {
   return token === 'local-preview-token' || token.startsWith('local-preview');
 }
 
-async function authFetch(input: RequestInfo | URL, init?: RequestInit) {
-  const res = await fetch(input, {
-    ...init,
-    signal: AbortSignal.timeout(AUTH_FETCH_TIMEOUT_MS),
-  });
-  return res;
-}
-
 function readStoredToken(): string | null {
   try {
     return localStorage.getItem(AUTH_TOKEN_KEY) ?? sessionStorage.getItem(AUTH_TOKEN_KEY);
@@ -30,122 +23,44 @@ function readStoredToken(): string | null {
 }
 
 export async function fetchAuthConfig(): Promise<AuthConfigResponse> {
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
   try {
-    const res = await authFetch('/api/v1/auth/config');
-    const data = await res.json();
-    const clientId = (data.clientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
+    const data = await apiRequest<Partial<AuthConfigResponse>>(`${API_V1}/auth/config`, {
+      timeoutMs: AUTH_FETCH_TIMEOUT_MS,
+    });
     return {
-      clientId,
+      clientId: (data.clientId || import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim(),
       authorizedJavaScriptOrigins: data.authorizedJavaScriptOrigins ?? [],
-      currentOriginHint: data.currentOriginHint ?? (typeof window !== 'undefined' ? window.location.origin : ''),
+      currentOriginHint: data.currentOriginHint ?? origin,
     };
   } catch {
+    // The Google client ID is public; the build-time copy lets the sign-in button render while the engine wakes up.
     return {
       clientId: (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim(),
-      authorizedJavaScriptOrigins: [typeof window !== 'undefined' ? window.location.origin : ''],
-      currentOriginHint: typeof window !== 'undefined' ? window.location.origin : '',
+      authorizedJavaScriptOrigins: [],
+      currentOriginHint: origin,
     };
   }
 }
 
 export async function loginPreview(): Promise<{ token: string; user: AuthUser }> {
-  const token = 'sg16-session-' + Date.now();
-  const now = Date.now();
-  const user: AuthUser = {
-    id: 'usr-commander',
-    name: 'SG16 Commander',
-    email: 'commander@sg16engine.com',
-    signupDate: now,
-    launchFree: true,
-    trialActive: true,
-    trialDaysRemaining: 30,
-    subscription: {
-      plan: 'pro',
-      studentVerification: { status: 'approved' },
-      billingActive: true,
-    },
-  };
-  saveAuthToken(token);
-  return { token, user };
+  return apiRequest(`${API_V1}/auth/preview`, { method: 'POST', timeoutMs: AUTH_FETCH_TIMEOUT_MS });
 }
 
 export async function loginWithGoogle(credential: string): Promise<{ token: string; user: AuthUser }> {
-  try {
-    const res = await authFetch('/api/v1/auth/google', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ credential }),
-    });
-    const data = await res.json();
-    if (res.ok && data.token) return data;
-  } catch {
-    // Offline / client fallback
-  }
-
-  // Parse JWT payload safely if present
-  let email = 'user@sg16engine.com';
-  let name = 'Google User';
-  let picture = '';
-  try {
-    const parts = credential.split('.');
-    if (parts.length >= 2) {
-      const payload = JSON.parse(atob(parts[1]));
-      if (payload.email) email = payload.email;
-      if (payload.name) name = payload.name;
-      if (payload.picture) picture = payload.picture;
-    }
-  } catch {
-    /* ignore parse errors */
-  }
-
-  const token = 'sg16-google-' + Date.now();
-  const now = Date.now();
-  const user: AuthUser = {
-    id: 'usr-' + Math.random().toString(36).slice(2, 9),
-    name,
-    email,
-    picture,
-    signupDate: now,
-    launchFree: true,
-    trialActive: true,
-    trialDaysRemaining: 30,
-    subscription: {
-      plan: 'pro',
-      studentVerification: { status: 'approved' },
-      billingActive: true,
-    },
-  };
-  saveAuthToken(token);
-  return { token, user };
+  return apiRequest(`${API_V1}/auth/google`, {
+    method: 'POST',
+    body: { credential },
+    timeoutMs: AUTH_FETCH_TIMEOUT_MS,
+  });
 }
 
 export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subscription?: AuthUser['subscription'] }> {
-  try {
-    const res = await authFetch('/api/v1/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (res.ok && data.user) {
-      return { user: data.user as AuthUser, subscription: data.subscription };
-    }
-  } catch {
-    // Offline fallback
-  }
-  return {
-    user: {
-      id: 'usr-commander',
-      name: 'SG16 Commander',
-      email: 'commander@sg16engine.com',
-      signupDate: Date.now(),
-      launchFree: true,
-      trialActive: true,
-      trialDaysRemaining: 30,
-    },
-    subscription: {
-      plan: 'pro',
-      studentVerification: { status: 'approved' },
-    },
-  };
+  const data = await apiRequest<{ user: AuthUser; subscription?: AuthUser['subscription'] }>(`${API_V1}/auth/me`, {
+    headers: { Authorization: `Bearer ${token}` },
+    timeoutMs: AUTH_FETCH_TIMEOUT_MS,
+  });
+  return { user: data.user, subscription: data.subscription };
 }
 
 export function loadAuthToken(): string | null {

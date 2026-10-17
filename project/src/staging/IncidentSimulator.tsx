@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Play, AlertTriangle, ShieldCheck, CheckCircle2, RefreshCw, Sparkles, Terminal, Activity, Zap } from 'lucide-react';
+import { Play, ShieldCheck, CheckCircle2, RefreshCw, Activity, Zap } from 'lucide-react';
 import { cyberAudio } from './cyberSound';
 
 interface SimulationStep {
@@ -43,7 +43,7 @@ export function IncidentSimulator() {
   const [steps, setSteps] = useState<SimulationStep[]>([]);
   const [summary, setSummary] = useState<string | null>(null);
 
-  const runSimulation = (scenarioName: string, description: string) => {
+  const runSimulation = (scenarioName: string, _description: string) => {
     cyberAudio.scan();
     setIsRunning(true);
     setActiveScenario(scenarioName);

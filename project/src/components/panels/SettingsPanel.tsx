@@ -1,7 +1,7 @@
 import { Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../../core/appState';
-import { checkEngineHealth } from '../../lib/apiStatus';
+import { checkEngineHealth, useEngineStatus } from '../../lib/apiStatus';
 import { isStudentVerified, verificationStatusLabel } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
@@ -20,11 +20,12 @@ export function SettingsPanel() {
   const wipeSession = useAppStore((s) => s.wipeSession);
   const openPricing = useAppStore((s) => s.openPricing);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
-  const [engineOnline, setEngineOnline] = useState<boolean | null>(null);
+  const engineStatus = useEngineStatus();
+  const engineOnline = engineStatus === 'checking' ? null : engineStatus === 'online';
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    checkEngineHealth().then(setEngineOnline);
+    void checkEngineHealth();
   }, []);
 
   const handleSave = () => {

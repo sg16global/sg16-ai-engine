@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import {
   Bot,
   Send,
-  Sparkles,
   CheckCircle2,
   Wrench,
   Zap,
@@ -13,8 +12,6 @@ import {
   Volume2,
   VolumeX,
   Radio,
-  Play,
-  RotateCcw,
 } from 'lucide-react';
 import type { SupportChatMessage } from './types';
 import { cyberAudio } from './cyberSound';
