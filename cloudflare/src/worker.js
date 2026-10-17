@@ -2,8 +2,9 @@
  * SG16 AI Engine website on Cloudflare.
  *
  * - Serves the built React app (backend/public) from Cloudflare's edge.
- * - Forwards /api/* and /health* to the Node backend at BACKEND_URL (your VPS),
- *   so the browser only ever talks to one origin — no CORS, same as production before.
+ * - Forwards /api/* and /health* to the Node backend: the Backend container (src/backend.js)
+ *   by default, or an external server when BACKEND_URL is set. The browser only ever talks
+ *   to one origin — no CORS, same as production before.
  * - Mirrors backend/server.js page rules: app routes get index.html, unknown paths a real 404,
  *   the shield subdomain gets its landing page, and the Google sign-in headers are kept.
  */
@@ -19,11 +20,19 @@ function backendUnavailable(message) {
   return Response.json({ error: message }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
 }
 
-async function proxyToBackend(request, env, url) {
-  const backend = (env.BACKEND_URL || '').trim();
-  if (!backend) return backendUnavailable('SG16 backend is not connected (set BACKEND_URL)');
+/** The single backend container instance (same as getContainer(env.BACKEND, 'main')). */
+function backendContainer(env) {
+  return env.BACKEND.get(env.BACKEND.idFromName('main'));
+}
 
-  const target = new URL(url.pathname + url.search, backend);
+async function proxyToBackend(request, env, url) {
+  const external = (env.BACKEND_URL || '').trim();
+  if (!external && !env.BACKEND) {
+    return backendUnavailable('SG16 backend is not connected (set BACKEND_URL)');
+  }
+
+  // The container ignores the host part; only path and query matter.
+  const target = new URL(url.pathname + url.search, external || 'http://backend.internal');
   const headers = new Headers(request.headers);
   headers.delete('host');
   headers.set('X-Forwarded-Host', url.host);
@@ -31,15 +40,19 @@ async function proxyToBackend(request, env, url) {
   const clientIp = request.headers.get('CF-Connecting-IP');
   if (clientIp) headers.set('X-Forwarded-For', clientIp);
 
+  const init = {
+    method: request.method,
+    headers,
+    body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
+    duplex: 'half',
+    redirect: 'manual',
+  };
   try {
-    return await fetch(target, {
-      method: request.method,
-      headers,
-      body: request.method === 'GET' || request.method === 'HEAD' ? undefined : request.body,
-      redirect: 'manual',
-    });
-  } catch {
-    return backendUnavailable('SG16 backend is unreachable');
+    if (external) return await fetch(target, init);
+    return await backendContainer(env).fetch(new Request(target, init));
+  } catch (err) {
+    console.error('[sg16-web] backend unreachable:', err?.message || err);
+    return backendUnavailable('SG16 backend is starting or unreachable');
   }
 }
 
