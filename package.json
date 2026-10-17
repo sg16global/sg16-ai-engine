@@ -26,6 +26,7 @@
     "dev:backend": "npm run dev --prefix backend",
     "dev:frontend": "npm run dev --prefix project",
     "api:check": "node scripts/check-api.mjs",
+    "cf:deploy": "npm run build --prefix project && npm run deploy --prefix cloudflare",
     "android:sync": "npm run build && npm run cap:sync --prefix project",
     "android:open": "npm run cap:open --prefix project",
     "shield": "node coding-shield/run.mjs",

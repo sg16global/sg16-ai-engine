@@ -59,3 +59,10 @@ All frontend calls go through `project/src/lib/apiClient.ts` (`apiRequest`):
 - Every request updates the shared engine status (`lib/apiStatus.ts`). The sidebar, settings and
   `EngineOfflineBanner` read it, and the monitor re-checks `/health` every 15s while offline.
 - A saved session is only cleared when the server rejects it (401), not when the engine is unreachable.
+
+## Hosting without Railway
+
+- **Website**: Cloudflare Worker in `cloudflare/`. It serves the built React app and forwards `/api/*` and
+  `/health` to `BACKEND_URL`. Deploy with `npm run cf:deploy`. See `cloudflare/README.md`.
+- **Backend**: Node (`backend/server.js`) on the VPS, reachable by hostname (Cloudflare Tunnel or DNS + TLS).
+- **AI**: any OpenAI-compatible API via `AI_API_URL` / `AI_API_KEY` / `AI_MODEL` in `backend/.env`.

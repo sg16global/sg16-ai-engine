@@ -1,0 +1,29 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "sg16-engine-web",
+  "main": "src/worker.js",
+  "compatibility_date": "2026-01-01",
+  "observability": { "enabled": true },
+
+  // The built website (npm run build --prefix project writes it here).
+  // The worker runs first so app routes, 404s and /api forwarding match backend/server.js.
+  "assets": {
+    "directory": "../backend/public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  "vars": {
+    // Your backend (Node, on the VPS). Must be a hostname, not a bare IP — see README.md.
+    "BACKEND_URL": "",
+    "SHIELD_HOST": "shield.sg16engine.com"
+  }
+
+  // After the first deploy works on *.workers.dev, serve the real domains (delete their old
+  // Railway DNS records first), then deploy again:
+  // "routes": [
+  //   { "pattern": "sg16engine.com", "custom_domain": true },
+  //   { "pattern": "www.sg16engine.com", "custom_domain": true },
+  //   { "pattern": "shield.sg16engine.com", "custom_domain": true }
+  // ]
+}
