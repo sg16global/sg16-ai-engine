@@ -23,7 +23,7 @@ export function ModuleHub({ title, subtitle, skin = 'shell', children }: ModuleH
               {title}
             </h1>
             {subtitle && (
-              <p className="text-sm text-[color:var(--sg16-muted)] mt-1 max-w-2xl">{subtitle}</p>
+              <p className="text-sm text-[color:var(--sg16-text-muted)] mt-1 max-w-2xl">{subtitle}</p>
             )}
           </div>
         </div>

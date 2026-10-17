@@ -60,7 +60,7 @@ export const TranslateWorkspace = () => {
                   value={languageSearch}
                   onChange={(e) => setLanguageSearch(e.target.value)}
                   placeholder="Search languages…"
-                  className="w-full bg-zinc-900 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:border-emerald-500/40"
+                  className="w-full bg-[#0A0A12] border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:border-emerald-500/40"
                   aria-label="Search languages"
                 />
               </div>
@@ -68,7 +68,7 @@ export const TranslateWorkspace = () => {
                 id="translate-target-lang"
                 value={targetLanguage}
                 onChange={(e) => setTargetLanguage(e.target.value)}
-                className="bg-zinc-900 border border-white/10 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500/40 min-w-[160px] max-w-full"
+                className="bg-[#0A0A12] border border-white/10 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500/40 min-w-[160px] max-w-full"
               >
                 {!languageSearch && visibleLanguages.popular.length > 0 && (
                   <optgroup label="Popular">

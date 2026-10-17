@@ -95,10 +95,10 @@ export function HelperBot() {
   return (
     <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] lg:bottom-5 right-3 z-40 flex flex-col items-end gap-2">
       {open && (
-        <div className="w-[min(92vw,340px)] rounded-2xl border border-[#FF2E2E]/25 bg-[#0c0a0e]/96 backdrop-blur-xl shadow-[0_0_40px_rgba(255,46,46,0.12)] overflow-hidden">
-          <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.06] bg-[#FF2E2E]/08">
+        <div className="w-[min(92vw,340px)] rounded-2xl border border-[#FF168D]/25 bg-[#0A0A12]/96 backdrop-blur-xl shadow-[0_0_40px_rgba(255,22,141,0.12)] overflow-hidden">
+          <div className="flex items-center justify-between px-3 py-2.5 border-b border-white/[0.06] bg-[#FF168D]/08">
             <div className="flex items-center gap-2">
-              <Headphones className="w-4 h-4 text-[#FF8A8A]" />
+              <Headphones className="w-4 h-4 text-[#FF5CB8]" />
               <div>
                 <div className="text-xs font-semibold text-white">Helping hand · 24h</div>
                 <div className="text-[10px] text-white/45">Basic auto · strong → email</div>
@@ -114,7 +114,7 @@ export function HelperBot() {
                 key={`${i}-${l.role}`}
                 className={`text-xs leading-relaxed rounded-xl px-2.5 py-2 ${
                   l.role === 'user'
-                    ? 'bg-[#FF2E2E]/15 text-[#FFE0E0] ml-6'
+                    ? 'bg-[#FF168D]/15 text-[#FFE0F0] ml-6'
                     : 'bg-white/[0.04] text-white/80 mr-4'
                 }`}
               >
@@ -128,12 +128,12 @@ export function HelperBot() {
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && send()}
               placeholder="Ask basic help..."
-              className="flex-1 rounded-lg bg-black/40 border border-white/10 px-2.5 py-1.5 text-xs outline-none focus:border-[#FF2E2E]/45"
+              className="flex-1 rounded-lg bg-black/40 border border-white/10 px-2.5 py-1.5 text-xs outline-none focus:border-[#FF168D]/45"
             />
             <button
               type="button"
               onClick={send}
-              className="p-2 rounded-lg bg-[#FF2E2E] text-white"
+              className="p-2 rounded-lg bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B]"
               aria-label="Send"
             >
               <Send className="w-3.5 h-3.5" />
@@ -151,9 +151,9 @@ export function HelperBot() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full border border-[#FF2E2E]/35 bg-[#0c0a0e] text-white shadow-[0_0_24px_rgba(255,46,46,0.2)]"
+        className="flex items-center gap-2 pl-3 pr-4 py-2.5 rounded-full border border-[#FF168D]/35 bg-[#0A0A12] text-white shadow-[0_0_24px_rgba(255,22,141,0.2)]"
       >
-        <span className="w-8 h-8 rounded-full bg-[#FF2E2E] flex items-center justify-center">
+        <span className="w-8 h-8 rounded-full bg-[#FF168D] flex items-center justify-center">
           <Headphones className="w-4 h-4 text-white" />
         </span>
         <span className="text-[11px] font-semibold uppercase tracking-wider">Help</span>

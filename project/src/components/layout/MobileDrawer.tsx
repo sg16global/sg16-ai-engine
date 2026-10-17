@@ -18,6 +18,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
+  const openStaging = useAppStore((s) => s.openStaging);
 
   useEffect(() => {
     if (open) {
@@ -53,7 +54,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
         aria-label="Close menu"
       />
 
-      <aside className="absolute inset-y-0 left-0 w-[min(20rem,88vw)] sg16-side-maroon flex flex-col shadow-2xl animate-slide-in-left">
+      <aside className="absolute inset-y-0 left-0 w-[min(20rem,88vw)] sg16-sidebar flex flex-col shadow-2xl animate-slide-in-left">
         <div className="flex items-center justify-between p-4 border-b border-white/10 pt-[max(1rem,env(safe-area-inset-top))]">
           <div className="flex items-center gap-3">
             <Sg16Logo className="w-10 h-10 rounded-xl" />
@@ -78,7 +79,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
                 type="button"
                 onClick={() => navigate(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm ${
-                  active ? 'bg-black/40 text-white' : 'text-white/85 hover:bg-black/25'
+                  active ? 'sg16-nav-active' : 'text-white/85 hover:bg-white/[0.04]'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -98,7 +99,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
                   type="button"
                   onClick={() => navigate(item.id)}
                   className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm ${
-                    active ? 'bg-black/40 text-white' : 'text-white/75 hover:bg-black/25'
+                    active ? 'sg16-nav-active' : 'text-white/75 hover:bg-white/[0.04]'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -109,7 +110,19 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
           </div>
         </div>
 
-        <div className="p-4 border-t border-white/10 pb-[max(1rem,env(safe-area-inset-bottom))]">
+        <div className="p-4 border-t border-white/10 pb-[max(1rem,env(safe-area-inset-bottom))] space-y-2">
+          <button
+            type="button"
+            onClick={() => {
+              openStaging();
+              onClose();
+            }}
+            className="w-full bg-gradient-to-r from-[#FF168D]/25 to-[#FF5CB8]/20 border border-[#FF168D]/40 hover:bg-[#FF168D]/35 py-2.5 rounded-xl text-sm font-bold text-white flex items-center justify-center gap-2 shadow-lg"
+          >
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>Staging Lab (24/7 AI)</span>
+          </button>
+
           <button
             type="button"
             onClick={() => {

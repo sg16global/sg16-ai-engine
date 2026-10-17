@@ -7,7 +7,7 @@ import { checkEngineHealth } from '../../lib/apiStatus';
 import { Sg16Logo } from '../ui/Sg16Logo';
 import type { WorkspaceType } from '../../core/types';
 
-/** Maroon side panel — shown after leaving Home (working modules). */
+/** Workspace side panel — shown after leaving Home (working modules). */
 export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
   const subscription = useAppStore((s) => s.subscription);
@@ -15,6 +15,7 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
+  const openStaging = useAppStore((s) => s.openStaging);
   const [online, setOnline] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -42,7 +43,7 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
   };
 
   return (
-    <aside className="flex w-full sg16-side-maroon flex-col shrink-0 h-full">
+    <aside className="flex w-full sg16-sidebar flex-col shrink-0 h-full">
       <div className="p-4 border-b border-white/10">
         <div className="flex items-center gap-3">
           <Sg16Logo className="w-11 h-11 rounded-xl shrink-0" />
@@ -69,10 +70,10 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
               onClick={() => goWorkspace(item.id)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all text-sm ${
                 isActive
-                  ? 'bg-black/40 text-white shadow-[0_0_16px_rgba(0,0,0,0.35)]'
+                  ? 'sg16-nav-active'
                   : locked
-                    ? 'text-white/45 hover:bg-black/20'
-                    : 'text-white/85 hover:bg-black/25'
+                    ? 'text-white/45 hover:bg-white/[0.03]'
+                    : 'text-white/85 hover:bg-white/[0.04] hover:text-white'
               }`}
             >
               <Icon className="w-4 h-4 shrink-0" />
@@ -95,7 +96,7 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
                 type="button"
                 onClick={() => openBottom(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm transition-all ${
-                  isActive ? 'bg-black/40 text-white' : 'text-white/75 hover:bg-black/25'
+                  isActive ? 'sg16-nav-active' : 'text-white/75 hover:bg-white/[0.04]'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -111,13 +112,13 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
           <span>v1.0.0</span>
           <span
             className={`flex items-center gap-1.5 ${
-              online === false ? 'text-red-200' : online ? 'text-emerald-300' : 'text-yellow-200'
+              online === false ? 'text-[#FFB3BE]' : online ? 'text-emerald-300' : 'text-yellow-200'
             }`}
           >
             <span
               className={`w-1.5 h-1.5 rounded-full ${
                 online === false
-                  ? 'bg-red-300'
+                  ? 'bg-[#FF8A9B]'
                   : online
                     ? 'bg-emerald-300 animate-pulse'
                     : 'bg-yellow-300 animate-pulse'
@@ -126,6 +127,24 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
             {online === null ? 'Checking…' : online ? 'Online' : 'Offline'}
           </span>
         </div>
+
+        <button
+          type="button"
+          onClick={() => {
+            openStaging();
+            onNavSelect?.();
+          }}
+          className="w-full text-left rounded-xl bg-gradient-to-r from-[#FF168D]/20 to-[#FF5CB8]/10 hover:from-[#FF168D]/30 hover:to-[#FF5CB8]/20 border border-[#FF168D]/35 p-2.5 transition group"
+        >
+          <div className="flex items-center justify-between">
+            <div className="text-xs font-bold text-white flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span>Staging Lab</span>
+            </div>
+            <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FF168D]/30 text-[#FF5CB8] font-mono font-bold">24/7 AI</span>
+          </div>
+          <p className="text-[10px] text-white/60 mt-1">Next-gen design & automated support</p>
+        </button>
 
         <button
           type="button"

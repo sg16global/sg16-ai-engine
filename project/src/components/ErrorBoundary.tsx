@@ -32,18 +32,18 @@ export class ErrorBoundary extends Component<Props, State> {
             fontFamily: 'system-ui, sans-serif',
           }}
         >
-          <h1 style={{ color: '#FF2E2E', fontSize: 20, marginBottom: 12 }}>SG16 UI error</h1>
+          <h1 style={{ color: '#FF168D', fontSize: 20, marginBottom: 12 }}>SG16 UI error</h1>
           <p style={{ color: '#94a3b8', marginBottom: 16 }}>
             The app crashed instead of going white. Details:
           </p>
           <pre
             style={{
               background: '#12080e',
-              border: '1px solid #4a1a28',
+              border: '1px solid #60304F',
               borderRadius: 12,
               padding: 16,
               overflow: 'auto',
-              color: '#FF8A8A',
+              color: '#FF5CB8',
               fontSize: 13,
             }}
           >
@@ -56,7 +56,7 @@ export class ErrorBoundary extends Component<Props, State> {
             onClick={() => window.location.reload()}
             style={{
               marginTop: 16,
-              background: '#FF2E2E',
+              background: '#FF168D',
               color: '#fff',
               border: 0,
               borderRadius: 10,

@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { useAppStore } from '../../core/appState';
-import { SG16_SHIELD_RED } from '../../core/pilot';
+import { SG16_ACCENT } from '../../core/pilot';
 import { useAutoHideChrome } from '../../hooks/useAutoHideChrome';
 
 type StudentView =
@@ -84,7 +84,7 @@ export const StudentShieldWorkspace = () => {
   };
 
   return (
-    <div className="sg16-earth-stage sg16-student-chrome h-full flex overflow-hidden relative">
+    <div className="sg16-student-chrome h-full flex overflow-hidden relative">
       {!chromeOpen && (
         <>
           <button
@@ -120,12 +120,12 @@ export const StudentShieldWorkspace = () => {
         onMouseEnter={chrome.onChromeEnter}
         onMouseLeave={chrome.onChromeLeave}
       >
-      <aside className="sg16-side-maroon flex w-full flex-col shrink-0 h-full relative z-10">
+      <aside className="sg16-sidebar flex w-full flex-col shrink-0 h-full relative z-10">
         <div className="p-4 border-b border-white/10">
           <div className="flex items-center gap-2">
             <span
               className="w-11 h-11 rounded-xl flex items-center justify-center"
-              style={{ background: 'rgba(0,0,0,0.35)', boxShadow: `0 0 16px ${SG16_SHIELD_RED}` }}
+              style={{ background: 'rgba(0,0,0,0.35)', boxShadow: `0 0 16px ${SG16_ACCENT}` }}
             >
               <GraduationCap className="w-6 h-6 text-white" />
             </span>
@@ -149,8 +149,8 @@ export const StudentShieldWorkspace = () => {
                 onClick={() => openTool(item.id, item.prompt)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition ${
                   isDash || (view === 'chat' && item.prompt && active)
-                    ? 'bg-black/35 text-white shadow-[0_0_16px_rgba(0,0,0,0.35)]'
-                    : 'text-white/80 hover:bg-black/25'
+                    ? 'sg16-nav-active'
+                    : 'text-white/80 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -164,7 +164,7 @@ export const StudentShieldWorkspace = () => {
           <button
             type="button"
             onClick={() => setWorkspace('home')}
-            className="w-full flex items-center justify-center gap-2 text-xs py-2.5 rounded-xl bg-black/30 hover:bg-black/45"
+            className="sg16-btn-secondary w-full flex items-center justify-center gap-2 text-xs py-2.5"
           >
             <ChevronLeft className="w-3.5 h-3.5" /> Back to Shields
           </button>
@@ -180,10 +180,10 @@ export const StudentShieldWorkspace = () => {
             onMouseEnter={chrome.onChromeEnter}
             onMouseLeave={chrome.onChromeLeave}
           >
-          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[rgba(128,0,0,0.5)] bg-black/40">
+          <div className="flex items-center justify-between gap-3 px-4 py-3 border-b border-[rgba(185,22,105,0.5)] bg-black/40">
             <div
               className="text-xs sm:text-sm font-bold tracking-[0.18em] px-3 py-1 rounded-md"
-              style={{ border: `1px solid ${SG16_SHIELD_RED}`, color: '#ffb3b3' }}
+              style={{ border: `1px solid ${SG16_ACCENT}`, color: '#FFB3DA' }}
             >
               STUDENT SHIELD
             </div>
@@ -193,13 +193,13 @@ export const StudentShieldWorkspace = () => {
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   {name}
                 </div>
-                <div className="text-[10px]" style={{ color: '#ffb3b3' }}>
+                <div className="text-[10px]" style={{ color: '#FFB3DA' }}>
                   Student ID: SG16-2026
                 </div>
               </div>
               <button type="button" onClick={() => openHelp('overview')} className="relative p-2">
-                <Bell className="w-4 h-4" style={{ color: '#ffb3b3' }} />
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-[#ff173d]">
+                <Bell className="w-4 h-4" style={{ color: '#FFB3DA' }} />
+                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-[#FF168D]">
                   3
                 </span>
               </button>
@@ -214,7 +214,7 @@ export const StudentShieldWorkspace = () => {
             <div className="flex-1 overflow-auto p-4 sm:p-6 bg-black/50">
               <div className="mb-5">
                 <div className="text-sm text-white/70">Welcome Back,</div>
-                <div className="text-2xl sm:text-3xl font-bold" style={{ color: '#ff4d4d', textShadow: '0 0 18px rgba(128,0,0,0.55)' }}>
+                <div className="text-2xl sm:text-3xl font-bold" style={{ color: '#FF3DA5', textShadow: '0 0 18px rgba(185,22,105,0.55)' }}>
                   {name}
                 </div>
                 <div className="text-sm text-white/55 mt-1">Stay focused and keep learning.</div>
@@ -233,15 +233,15 @@ export const StudentShieldWorkspace = () => {
                     >
                       <span
                         className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: 'rgba(128,0,0,0.45)' }}
+                        style={{ background: 'rgba(185,22,105,0.45)' }}
                       >
-                        <Icon className="w-5 h-5" style={{ color: '#ffb3b3' }} />
+                        <Icon className="w-5 h-5" style={{ color: '#FFB3DA' }} />
                       </span>
                       <div className="min-w-0 flex-1">
                         <div className="font-semibold text-sm">{c.title}</div>
                         <div className="text-[11px] text-white/50 mt-0.5 leading-snug">{c.desc}</div>
                       </div>
-                      <ArrowRight className="w-4 h-4 shrink-0" style={{ color: '#ffb3b3' }} />
+                      <ArrowRight className="w-4 h-4 shrink-0" style={{ color: '#FFB3DA' }} />
                     </button>
                   );
                 })}
@@ -254,12 +254,12 @@ export const StudentShieldWorkspace = () => {
                   className="sg16-neon-frame rounded-xl p-4 text-left"
                 >
                   <div className="flex items-center gap-2 mb-3">
-                    <QrCode className="w-5 h-5" style={{ color: '#ffb3b3' }} />
+                    <QrCode className="w-5 h-5" style={{ color: '#FFB3DA' }} />
                     <span className="font-semibold text-sm">QR ID Card</span>
                   </div>
                   <div
                     className="w-28 h-28 mx-auto rounded-lg flex items-center justify-center text-[10px] text-center p-2"
-                    style={{ border: `1px solid ${SG16_SHIELD_RED}`, boxShadow: `0 0 20px rgba(128,0,0,0.4)` }}
+                    style={{ border: `1px solid ${SG16_ACCENT}`, boxShadow: `0 0 20px rgba(185,22,105,0.4)` }}
                   >
                     Digital ID
                     <br />
@@ -281,7 +281,7 @@ export const StudentShieldWorkspace = () => {
                     ].map((s) => (
                       <div key={s.label} className="text-center">
                         <div className="text-[10px] text-white/45 uppercase tracking-wide">{s.label}</div>
-                        <div className="text-2xl font-bold mt-1" style={{ color: '#ff4d4d' }}>
+                        <div className="text-2xl font-bold mt-1" style={{ color: '#FF3DA5' }}>
                           {s.value}
                         </div>
                       </div>
@@ -300,7 +300,7 @@ export const StudentShieldWorkspace = () => {
                     key={n.id}
                     type="button"
                     onClick={() => openTool(n.id, n.prompt)}
-                    className="text-[11px] px-3 py-2 rounded-full border border-[rgba(128,0,0,0.7)]"
+                    className="text-[11px] px-3 py-2 rounded-full border border-[rgba(185,22,105,0.7)]"
                   >
                     {n.label}
                   </button>

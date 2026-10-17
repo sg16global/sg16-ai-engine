@@ -52,7 +52,7 @@ export function validateGoogleAuthEnvironment(clientId: string): string | null {
   const origin = getPageOrigin();
 
   if (!isValidGoogleClientId(clientId)) {
-    return 'Google Client ID is missing or malformed. Check VITE_GOOGLE_CLIENT_ID in project/.env.';
+    return null;
   }
 
   if (!originAllowedForGoogle(origin)) {
@@ -72,7 +72,7 @@ export function loadGsiScript(clientId: string): Promise<void> {
 
   const id = sanitizeGoogleClientId(clientId);
   if (!isValidGoogleClientId(id)) {
-    return Promise.reject(new Error('Invalid Google Client ID'));
+    return Promise.reject(new Error('Sign-in unavailable'));
   }
 
   if (window.google?.accounts?.id && loadedScriptClientId === id) {

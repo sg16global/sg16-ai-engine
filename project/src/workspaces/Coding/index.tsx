@@ -54,7 +54,7 @@ export const CodingWorkspace = () => {
             : 'AI coding help for your project'
         }
         badge="Developer"
-        badgeClass="text-sky-300"
+        badgeClass="text-[#FF5CB8]"
         skin="coding"
       >
         <div className="h-full flex flex-col min-h-0">
@@ -97,7 +97,7 @@ export const CodingWorkspace = () => {
           title="Check Your Code"
           desc="Full-side score: structure, security, quality, tests, clarity."
           icon={<Code2 className="w-7 h-7" />}
-          iconClass="bg-sky-500/15 text-sky-300"
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           cta="+ New check"
           onClick={() => setView('check')}
         />
@@ -106,21 +106,21 @@ export const CodingWorkspace = () => {
             title="View Reports"
             desc="Recent scores & checks"
             icon={<ClipboardList className="w-5 h-5" />}
-            iconClass="bg-sky-500/15 text-sky-300"
+            iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
             onClick={() => setView('check')}
           />
           <ToolCard
             title="AI Solution"
             desc="Ask Coding Hub to fix or build"
             icon={<Lightbulb className="w-5 h-5" />}
-            iconClass="bg-sky-500/15 text-sky-300"
+            iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
             onClick={() => openChat('Help me solve a coding problem step by step.')}
           />
           <ToolCard
             title="My Snippets"
             desc="Paste a snippet and improve it"
             icon={<FileCode2 className="w-5 h-5" />}
-            iconClass="bg-sky-500/15 text-sky-300"
+            iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
             onClick={() => openChat('Improve this code snippet for clarity and safety:')}
           />
         </div>
@@ -135,7 +135,7 @@ export const CodingWorkspace = () => {
             No reports yet — run{' '}
             <button
               type="button"
-              className="text-sky-300 hover:underline"
+              className="text-[#FF5CB8] hover:underline"
               onClick={() => setView('check')}
             >
               Check Your Code
@@ -149,11 +149,11 @@ export const CodingWorkspace = () => {
                 <span className="text-white/35 text-xs w-5">{i + 1}</span>
                 <div className="min-w-0">
                   <div className="text-sm text-white truncate">{r.title}</div>
-                  <div className="text-[11px] text-sky-300/90 mt-0.5">{r.language}</div>
+                  <div className="text-[11px] text-[#FF5CB8]/90 mt-0.5">{r.language}</div>
                 </div>
               </div>
               <div className="flex items-center gap-4 shrink-0 text-xs">
-                <span className="text-[#FF8A8A]">{r.errors} err</span>
+                <span className="text-[#FF5CB8]">{r.errors} err</span>
                 <span className="text-emerald-400 font-medium">{r.score}/100</span>
                 <span className="text-white/35 hidden sm:inline">{r.date}</span>
               </div>

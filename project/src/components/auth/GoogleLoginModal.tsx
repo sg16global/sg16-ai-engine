@@ -52,7 +52,7 @@ export function GoogleLoginModal() {
         tabIndex={open ? 0 : -1}
       />
 
-      <div className="relative w-full max-w-md bg-zinc-950 border border-emerald-500/30 rounded-2xl p-6 shadow-2xl shadow-emerald-500/10">
+      <div className="relative w-full max-w-md bg-[#0A0A12] border border-[#29202F] rounded-2xl p-6 shadow-2xl shadow-[#FF168D]/15">
         <button
           type="button"
           onClick={closeLoginModal}
@@ -65,17 +65,17 @@ export function GoogleLoginModal() {
 
         <div className="text-center mb-6">
           <Sg16Logo className="w-16 h-16 mx-auto mb-3" glow />
-          <h2 className="text-xl font-bold mb-2">Sign in to continue</h2>
+          <h2 className="text-xl font-bold mb-2 text-white">Sign in to continue</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
             {launchFree ? (
               <>
                 Sign in with Google to use SG16 AI. During launch,{' '}
-                <strong className="text-emerald-400">every workspace is free and unlimited</strong>.
+                <strong className="text-[#FF5CB8]">every workspace is free and unlimited</strong>.
               </>
             ) : (
               <>
                 Sign in with Google to unlock SG16 AI. New users get{' '}
-                <strong className="text-emerald-400">3 days of full access</strong> to every workspace — active
+                <strong className="text-[#FF5CB8]">3 days of full access</strong> to every workspace — active
                 instantly from your signup timestamp.
               </>
             )}
@@ -83,46 +83,42 @@ export function GoogleLoginModal() {
         </div>
 
         <div className="flex flex-col items-center gap-3 min-h-[48px]">
-          {clientConfigured !== false ? (
+          {clientConfigured ? (
             <GoogleSignInButton
               onCredential={handleGoogleCredential}
               onError={setError}
               disabled={loading || !open}
             />
-          ) : clientConfigured === false ? (
-            <div className="text-xs text-amber-400/95 text-center max-w-xs space-y-2 bg-amber-500/10 border border-amber-500/20 rounded-xl p-4">
-              <p className="font-medium">Google Client ID required</p>
-              <p>Add GOOGLE_CLIENT_ID in Railway environment variables, then redeploy.</p>
-            </div>
-          ) : (
-            <p className="text-xs text-gray-400 animate-pulse">Loading Google sign-in…</p>
-          )}
-          {loading && <p className="text-xs text-emerald-400">Activating your account…</p>}
-          {error && <p className="text-xs text-red-400 text-center max-w-xs">{error}</p>}
+          ) : null}
+
+          {loading && <p className="text-xs text-[#FF5CB8]">Activating your account…</p>}
+          {error && <p className="text-xs text-[#FF526B] text-center max-w-xs">{error}</p>}
 
           <button
             type="button"
             onClick={() => {
               setLoading(true);
               setError(null);
-              void enterLocalPreview().catch((err) => {
-                setError(err instanceof Error ? err.message : 'Preview sign-in failed');
-              }).finally(() => setLoading(false));
+              void enterLocalPreview()
+                .then(() => {
+                  closeLoginModal();
+                })
+                .catch((err) => {
+                  setError(err instanceof Error ? err.message : 'Sign-in failed');
+                })
+                .finally(() => setLoading(false));
             }}
             disabled={loading}
-            className="w-full mt-2 rounded-xl border border-[#FF2E2E]/40 bg-[#FF2E2E]/10 hover:bg-[#FF2E2E]/20 py-3 text-sm font-semibold text-[#FF8A8A] transition disabled:opacity-50"
+            className="w-full mt-1 rounded-xl bg-[#FF168D] hover:bg-[#FF3DA5] py-3.5 text-sm font-bold text-[#09060B] shadow-[0_0_24px_rgba(255,22,141,0.4)] transition disabled:opacity-50"
           >
-            Enter app without Google →
+            {loading ? 'Entering SG16 Workspace…' : 'Enter SG16 Workspace →'}
           </button>
-          <p className="text-[10px] text-gray-500 text-center">
-            Use this if Google login shows a white page
-          </p>
         </div>
 
-        <div className="mt-6 pt-4 border-t border-white/10 space-y-2">
-          <p className="text-[11px] text-gray-500 flex items-start gap-2">
-            <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
-            Strict privacy: Google Sign-In only. Your chat history saves to your personal user room when signed in.
+        <div className="mt-6 pt-4 border-t border-[#29202F] space-y-2">
+          <p className="text-[11px] text-gray-400 flex items-start gap-2">
+            <Shield className="w-3.5 h-3.5 text-[#FF168D] shrink-0 mt-0.5" />
+            Strict privacy: Your chat history saves to your personal user room when signed in.
           </p>
           <p className="text-[11px] text-gray-500 text-center">
             {launchFree

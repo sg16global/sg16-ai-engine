@@ -1,20 +1,29 @@
-import { LANDING_LOGO } from './LandingVideoBg';
+import { SG16_BRAND } from '../../core/branding';
+import './landingStyles.css';
 
 type LandingBrandLogoProps = {
   className?: string;
   compact?: boolean;
 };
 
-/** SG16 earth + DNA logo — header, hero, footer. */
+/**
+ * SG16 brand lockup — neon emblem + chrome-pink "SG16" + white "AI Engine".
+ * `compact` drops the "AI Engine" wordmark below the sm breakpoint.
+ */
 export function LandingBrandLogo({ className = '', compact = false }: LandingBrandLogoProps) {
   return (
-    <img
-      src={LANDING_LOGO}
-      alt="SG16 AI Engine"
-      className={`object-contain object-left ${compact ? 'h-9 sm:h-10 w-auto max-w-[140px]' : 'h-auto w-full max-w-[min(92vw,520px)]'} ${className}`.trim()}
-      width={compact ? 140 : 520}
-      height={compact ? 40 : 280}
-      decoding="async"
-    />
+    <span className={`lp-brand ${className}`.trim()}>
+      <picture>
+        <source srcSet={SG16_BRAND.logo.replace(/\.png$/, '.webp')} type="image/webp" />
+        <img src={SG16_BRAND.logo} alt="" className="lp-brand__emblem" width={48} height={48} decoding="async" />
+      </picture>
+      <span className="lp-brand__mark" aria-hidden>
+        SG16
+      </span>
+      <span className={`lp-brand__name ${compact ? 'hidden sm:inline' : ''}`.trim()} aria-hidden>
+        AI Engine
+      </span>
+      <span className="sr-only">{SG16_BRAND.name}</span>
+    </span>
   );
 }

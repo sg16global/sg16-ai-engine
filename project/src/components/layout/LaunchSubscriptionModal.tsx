@@ -22,7 +22,7 @@ export function LaunchSubscriptionModal() {
         tabIndex={open ? 0 : -1}
       />
 
-      <div className="relative w-full max-w-md bg-[#0c0a0e] border border-[#FF2E2E]/30 rounded-2xl p-6 shadow-2xl shadow-[0_0_40px_rgba(255,46,46,0.12)]">
+      <div className="relative w-full max-w-md bg-[#0A0A12] border border-[#FF168D]/30 rounded-2xl p-6 shadow-2xl shadow-[0_0_40px_rgba(255,22,141,0.12)]">
         <button
           type="button"
           onClick={closeLaunchNotice}
@@ -33,8 +33,8 @@ export function LaunchSubscriptionModal() {
         </button>
 
         <div className="text-center mb-5">
-          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#FF2E2E]/15 flex items-center justify-center">
-            <Sparkles className="w-7 h-7 text-[#FF8A8A]" />
+          <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[#FF168D]/15 flex items-center justify-center">
+            <Sparkles className="w-7 h-7 text-[#FF5CB8]" />
           </div>
           <h2 className="text-xl font-bold mb-2">Full access — pricing coming soon</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
@@ -43,8 +43,8 @@ export function LaunchSubscriptionModal() {
           </p>
         </div>
 
-        <div className="rounded-xl border border-[#FF2E2E]/20 bg-[#FF2E2E]/5 px-4 py-3 text-sm text-white/85 mb-5">
-          <p className="font-medium text-[#FF8A8A] mb-1">Your access today</p>
+        <div className="rounded-xl border border-[#FF168D]/20 bg-[#FF168D]/5 px-4 py-3 text-sm text-white/85 mb-5">
+          <p className="font-medium text-[#FF5CB8] mb-1">Your access today</p>
           <ul className="space-y-1 text-xs text-white/65 text-left">
             <li>• All AI workspaces — unlimited</li>
             <li>• No payment required right now</li>
@@ -55,7 +55,7 @@ export function LaunchSubscriptionModal() {
         <button
           type="button"
           onClick={closeLaunchNotice}
-          className="w-full bg-[#FF2E2E] hover:bg-[#FF5C5C] py-2.5 rounded-xl text-sm font-medium text-white"
+          className="w-full bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] font-semibold hover:shadow-[0_0_18px_rgba(255,22,141,0.4)] py-2.5 rounded-xl text-sm transition"
         >
           Continue with free unlimited access
         </button>

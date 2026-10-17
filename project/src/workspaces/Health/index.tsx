@@ -31,7 +31,7 @@ export const HealthWorkspace = () => {
         title="Health Guide"
         subtitle="Wellness questions & report explain — not a medical diagnosis"
         badge="Worldwide"
-        badgeClass="text-teal-300"
+        badgeClass="text-[#FF5CB8]"
         skin="health"
       >
         <div className="h-full flex flex-col min-h-0">
@@ -74,28 +74,28 @@ export const HealthWorkspace = () => {
           title="Medical Services"
           desc="Ask wellness & lifestyle questions"
           icon={<Stethoscope className="w-5 h-5" />}
-          iconClass="bg-teal-500/15 text-teal-300"
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           onClick={() => openChat()}
         />
         <ToolCard
           title="Health Reports"
           desc="Paste a summary for plain-language explain"
           icon={<FileHeart className="w-5 h-5" />}
-          iconClass="bg-teal-500/15 text-teal-300"
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           onClick={() => openChat('Explain this health report summary in simple words:')}
         />
         <ToolCard
           title="Appointments"
           desc="Prep questions before you see a doctor"
           icon={<CalendarDays className="w-5 h-5" />}
-          iconClass="bg-teal-500/15 text-teal-300"
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           onClick={() => openChat('Help me prepare questions for a doctor appointment.')}
         />
         <ToolCard
           title="Prescriptions"
           desc="General info about habits & meds (not advice)"
           icon={<Pill className="w-5 h-5" />}
-          iconClass="bg-teal-500/15 text-teal-300"
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           onClick={() => openChat('Explain general prescription safety tips (not medical advice).')}
         />
       </div>

@@ -10,7 +10,6 @@ import { isAuthenticated } from '../core/access';
 import { pushAppPath } from '../core/routes';
 import { usePilotStore } from '../core/pilotState';
 import type { WorkspaceId } from '../core/types';
-import { ShieldHomeBg } from './home/ShieldHomeBg';
 import './shieldHome.css';
 
 type ShieldItem = {
@@ -23,26 +22,26 @@ type ShieldItem = {
   featured?: boolean;
 };
 
-/** AIO Shield Home — custom shield logos from CURSOR BOSS/logo. */
+/** AIO Shield Home — custom shield logos (transparent WebP cut from the CURSOR BOSS/logo JPGs). */
 const shields: ShieldItem[] = [
   {
     key: 'student',
     label: 'Student Shield',
-    logo: '/shield-home/logos/student-shield.jpg',
+    logo: '/shield-home/logos/student-shield-alpha.webp',
     className: 'student',
     workspace: 'student-shield',
   },
   {
     key: 'health',
     label: 'Health Shield',
-    logo: '/shield-home/logos/health-shield.jpg',
+    logo: '/shield-home/logos/health-shield-alpha.webp',
     className: 'health',
     workspace: 'health',
   },
   {
     key: 'ai',
     label: 'AI Chat Shield',
-    logo: '/shield-home/logos/ai-chat.jpg',
+    logo: '/shield-home/logos/ai-chat-alpha.webp',
     className: 'ai',
     workspace: 'general',
     featured: true,
@@ -50,14 +49,14 @@ const shields: ShieldItem[] = [
   {
     key: 'coding',
     label: 'Coding Hub Shield',
-    logo: '/shield-home/logos/coding-hub.jpg',
+    logo: '/shield-home/logos/coding-hub-alpha.webp',
     className: 'coding',
     workspace: 'coding',
   },
   {
     key: 'market',
     label: 'Market Shield',
-    logo: '/shield-home/logos/market-shield.jpg',
+    logo: '/shield-home/logos/market-shield-alpha.webp',
     className: 'market',
     workspace: 'market',
   },
@@ -116,10 +115,6 @@ export const HomePage = () => {
 
   return (
     <section className="shield-home" aria-label="SG16 Shield Home">
-      <ShieldHomeBg />
-      <div className="shield-home__stars" />
-      <div className="shield-home__scanlines" />
-
       <header className="shield-home__topbar">
         <button
           type="button"
@@ -179,6 +174,7 @@ export const HomePage = () => {
               onClick={() => openShield(item)}
               aria-label={item.label}
             >
+              <span className="shield-node__neon-aura" aria-hidden="true" />
               <img
                 src={item.logo}
                 alt={item.label}
@@ -186,6 +182,7 @@ export const HomePage = () => {
                 draggable={false}
                 loading="eager"
               />
+              <span className="shield-node__neon-tag">{item.label}</span>
             </button>
           ))}
 
@@ -221,9 +218,9 @@ export const HomePage = () => {
           </strong>
         </div>
         <div>
-          <span>SOVEREIGN BRAIN</span>
+          <span>SG16 AI ENGINE</span>
           <strong>
-            <i className="ok" /> MISTRAL
+            <i className="ok" /> VERIFIED
           </strong>
         </div>
         <div>

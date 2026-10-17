@@ -33,7 +33,7 @@ export function InstallPrompt() {
 
   return (
     <div className={`fixed inset-x-0 ${bottomClass} lg:bottom-6 z-[100] px-4 pointer-events-none`}>
-      <div className="pointer-events-auto max-w-md mx-auto bg-zinc-900/95 backdrop-blur-xl border border-[#FF365A]/35 rounded-2xl p-4 shadow-2xl shadow-black/50">
+      <div className="pointer-events-auto max-w-md mx-auto bg-[#0A0A12]/95 backdrop-blur-xl border border-[#FF168D]/35 rounded-2xl p-4 shadow-2xl shadow-black/50">
         <div className="flex items-start gap-3">
           <Sg16Logo className="w-11 h-11 rounded-xl shrink-0" />
           <div className="flex-1 min-w-0">
@@ -53,7 +53,7 @@ export function InstallPrompt() {
                 <button
                   type="button"
                   onClick={() => install()}
-                  className="flex-1 bg-[#FF173D] hover:bg-[#ff365a] text-xs font-medium py-2.5 min-h-[44px] rounded-xl transition"
+                  className="flex-1 bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] text-xs font-semibold py-2.5 min-h-[44px] rounded-xl transition"
                 >
                   Install app
                 </button>

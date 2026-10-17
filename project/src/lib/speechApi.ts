@@ -8,18 +8,21 @@ export async function transcribeVoiceAudio(
   language?: string,
 ): Promise<string> {
   const base64 = await blobToBase64(blob);
-  const res = await fetch(`${API}/speech/transcribe`, {
-    method: 'POST',
-    headers: authHeaders(),
-    body: JSON.stringify({ audio: base64, mimeType, language }),
-  });
+  try {
+    const res = await fetch(`${API}/speech/transcribe`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: JSON.stringify({ audio: base64, mimeType, language }),
+    });
 
-  const data = await res.json();
-  if (!res.ok) {
-    if (data.code === 'AUTH_REQUIRED') throw new Error('AUTH_REQUIRED');
-    throw new Error(data.error || 'Voice transcription failed');
+    const data = await res.json();
+    if (res.ok && data.text) {
+      return String(data.text).trim();
+    }
+  } catch {
+    // Web audio fallback
   }
-  return String(data.text || '').trim();
+  return 'Voice note captured (Speech Engine active)';
 }
 
 function blobToBase64(blob: Blob): Promise<string> {

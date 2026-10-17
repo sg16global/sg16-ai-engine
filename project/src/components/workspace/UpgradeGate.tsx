@@ -24,7 +24,7 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
 
   return (
     <div className="h-full flex items-center justify-center p-4 sm:p-8">
-      <div className="max-w-lg w-full bg-zinc-900/80 border border-white/10 rounded-2xl p-5 sm:p-8 text-center">
+      <div className="max-w-lg w-full bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-5 sm:p-8 text-center">
         <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/15 flex items-center justify-center">
           <Lock className="w-7 h-7 text-amber-400" />
         </div>
@@ -68,7 +68,7 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
                 <button
                   type="button"
                   onClick={openPricing}
-                  className="inline-flex items-center justify-center gap-2 bg-rose-600 hover:bg-rose-500 px-5 py-2.5 rounded-xl text-sm font-medium"
+                  className="inline-flex items-center justify-center gap-2 bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] font-semibold hover:shadow-[0_0_18px_rgba(255,22,141,0.4)] px-5 py-2.5 rounded-xl text-sm transition"
                 >
                   View pricing
                 </button>

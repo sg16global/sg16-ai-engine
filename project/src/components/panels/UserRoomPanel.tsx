@@ -64,11 +64,11 @@ function ActivityRow({ item, onOpen }: { item: UserRoomActivity; onOpen: () => v
     <button
       type="button"
       onClick={onOpen}
-      className="w-full text-left rounded-xl border border-white/10 bg-zinc-900/60 p-4 hover:border-[#FF2E2E]/30 transition"
+      className="w-full text-left rounded-xl border border-white/10 bg-[#0A0A12]/60 p-4 hover:border-[#FF168D]/30 transition"
     >
       <div className="flex items-start gap-3">
-        <span className="w-10 h-10 rounded-lg bg-[#FF2E2E]/10 flex items-center justify-center shrink-0">
-          <Icon className="w-5 h-5 text-[#FF8A8A]" />
+        <span className="w-10 h-10 rounded-lg bg-[#FF168D]/10 flex items-center justify-center shrink-0">
+          <Icon className="w-5 h-5 text-[#FF5CB8]" />
         </span>
         <div className="min-w-0 flex-1">
           <div className="flex items-center justify-between gap-2">
@@ -124,7 +124,7 @@ export function UserRoomPanel() {
   if (!isAuthenticated(authUser)) {
     return (
       <div className="p-6 lg:p-8 max-w-2xl mx-auto text-center space-y-4">
-        <Shield className="w-12 h-12 mx-auto text-[#FF8A8A]/60" />
+        <Shield className="w-12 h-12 mx-auto text-[#FF5CB8]/60" />
         <h1 className="text-2xl font-bold">Your User Room</h1>
         <p className="text-sm text-gray-400">
           Sign in with Google to open your personal room. Your history and account restore every time you return.
@@ -132,7 +132,7 @@ export function UserRoomPanel() {
         <button
           type="button"
           onClick={() => openLoginModal()}
-          className="bg-[#FF2E2E] hover:bg-[#FF5C5C] px-5 py-2.5 rounded-xl text-sm font-medium"
+          className="bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] font-semibold hover:shadow-[0_0_18px_rgba(255,22,141,0.4)] px-5 py-2.5 rounded-xl text-sm transition"
         >
           Sign in with Google
         </button>
@@ -157,7 +157,7 @@ export function UserRoomPanel() {
         </button>
       </div>
 
-      <section className="rounded-2xl border border-[#FF2E2E]/25 bg-gradient-to-br from-[#1a080c] to-zinc-950 p-6">
+      <section className="rounded-2xl border border-[#FF168D]/25 bg-gradient-to-br from-[#191321] to-[#07070D] p-6">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4">
           {authUser.picture ? (
             <img
@@ -166,12 +166,12 @@ export function UserRoomPanel() {
               className="w-16 h-16 rounded-2xl border border-white/10 object-cover"
             />
           ) : (
-            <div className="w-16 h-16 rounded-2xl bg-[#FF2E2E]/15 flex items-center justify-center">
-              <UserRound className="w-8 h-8 text-[#FF8A8A]" />
+            <div className="w-16 h-16 rounded-2xl bg-[#FF168D]/15 flex items-center justify-center">
+              <UserRound className="w-8 h-8 text-[#FF5CB8]" />
             </div>
           )}
           <div className="flex-1 min-w-0">
-            <p className="text-xs uppercase tracking-wider text-[#FF8A8A]/80">Your User Room</p>
+            <p className="text-xs uppercase tracking-wider text-[#FF5CB8]/80">Your User Room</p>
             <h1 className="text-2xl font-bold truncate">{authUser.name}</h1>
             {email && <p className="text-sm text-gray-400 truncate">{email}</p>}
             <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
@@ -188,8 +188,8 @@ export function UserRoomPanel() {
         </div>
 
         {launchFree && (
-          <div className="mt-4 rounded-xl border border-[#FF2E2E]/20 bg-black/30 p-3 text-xs text-gray-400 flex gap-2">
-            <Sparkles className="w-4 h-4 text-[#FF8A8A] shrink-0 mt-0.5" />
+          <div className="mt-4 rounded-xl border border-[#FF168D]/20 bg-black/30 p-3 text-xs text-gray-400 flex gap-2">
+            <Sparkles className="w-4 h-4 text-[#FF5CB8] shrink-0 mt-0.5" />
             <span>{launchMessage}</span>
           </div>
         )}
@@ -224,7 +224,7 @@ export function UserRoomPanel() {
             <button
               type="button"
               onClick={goToHome}
-              className="mt-4 text-xs bg-[#FF2E2E] hover:bg-[#FF5C5C] px-4 py-2 rounded-lg font-medium"
+              className="mt-4 text-xs bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] font-semibold hover:shadow-[0_0_18px_rgba(255,22,141,0.4)] px-4 py-2 rounded-lg transition"
             >
               Go to Shield Home
             </button>
@@ -246,14 +246,14 @@ export function UserRoomPanel() {
         <button
           type="button"
           onClick={() => setWorkspace('history')}
-          className="text-xs border border-white/10 hover:border-[#FF2E2E]/30 px-3 py-2 rounded-lg text-gray-300"
+          className="text-xs border border-white/10 hover:border-[#FF168D]/30 px-3 py-2 rounded-lg text-gray-300"
         >
           Session history
         </button>
         <button
           type="button"
           onClick={() => setWorkspace('settings')}
-          className="text-xs border border-white/10 hover:border-[#FF2E2E]/30 px-3 py-2 rounded-lg text-gray-300"
+          className="text-xs border border-white/10 hover:border-[#FF168D]/30 px-3 py-2 rounded-lg text-gray-300"
         >
           Settings
         </button>
@@ -261,7 +261,7 @@ export function UserRoomPanel() {
           <button
             type="button"
             onClick={openPricing}
-            className="text-xs border border-white/10 hover:border-[#FF2E2E]/30 px-3 py-2 rounded-lg text-gray-300"
+            className="text-xs border border-white/10 hover:border-[#FF168D]/30 px-3 py-2 rounded-lg text-gray-300"
           >
             Subscription
           </button>
@@ -269,7 +269,7 @@ export function UserRoomPanel() {
         <button
           type="button"
           onClick={logout}
-          className="text-xs border border-white/10 hover:border-red-500/40 px-3 py-2 rounded-lg text-gray-400 hover:text-red-400 inline-flex items-center gap-1.5"
+          className="text-xs border border-white/10 hover:border-[#FF526B]/40 px-3 py-2 rounded-lg text-gray-400 hover:text-[#FF526B] inline-flex items-center gap-1.5"
         >
           <LogOut className="w-3.5 h-3.5" />
           Sign out

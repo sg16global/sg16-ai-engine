@@ -262,7 +262,7 @@ export function ChatPanel({
             <button
               type="button"
               onClick={() => clearMessages(workspaceId)}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-[#FF8A8A] transition px-2 py-1"
+              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-[#FF5CB8] transition px-2 py-1"
             >
               <Trash2 className="w-3.5 h-3.5" /> Clear
             </button>
@@ -287,7 +287,7 @@ export function ChatPanel({
                     key={s}
                     type="button"
                     onClick={() => sendMessage(s)}
-                    className="sg16-bar-row w-full text-left text-sm text-white/80"
+                    className="sg16-bar-row sg16-bar-row--prompt w-full text-left text-sm text-white/85"
                   >
                     {s}
                   </button>
@@ -304,7 +304,7 @@ export function ChatPanel({
               }`}
             >
               {msg.role === 'assistant' && (
-                <div className="text-[10px] text-[#FF8A8A] mb-1.5 font-semibold tracking-[0.12em] uppercase">
+                <div className="text-[10px] text-[#FF5CB8] mb-1.5 font-semibold tracking-[0.12em] uppercase">
                   {workspaceId === 'general' ? SG16_BRAND.chatName : 'SG16 AI'}
                 </div>
               )}
@@ -321,7 +321,7 @@ export function ChatPanel({
                   <a
                     href={msg.generatedImageUrl}
                     download={`sg16-image-${msg.id}.png`}
-                    className="inline-flex items-center gap-1.5 mt-2 text-xs text-[#FF8A8A] hover:text-[#FF2E2E]"
+                    className="inline-flex items-center gap-1.5 mt-2 text-xs text-[#FF5CB8] hover:text-[#FF168D]"
                   >
                     <Download className="w-3.5 h-3.5" /> Download image
                   </a>
@@ -339,7 +339,7 @@ export function ChatPanel({
           ))}
 
           {loading && (
-            <div className="sg16-bar-soft flex items-center gap-2 text-[#FF8A8A] text-sm">
+            <div className="sg16-bar-soft flex items-center gap-2 text-[#FF5CB8] text-sm">
               <Loader2 className="w-4 h-4 animate-spin" /> {activeLoadingLabel}
             </div>
           )}
@@ -359,7 +359,7 @@ export function ChatPanel({
               <button
                 type="button"
                 onClick={() => setImageUrl(undefined)}
-                className="text-xs text-white/40 hover:text-[#FF8A8A]"
+                className="text-xs text-white/40 hover:text-[#FF5CB8]"
               >
                 Remove
               </button>
@@ -368,7 +368,7 @@ export function ChatPanel({
 
           {pendingDoc && (
             <div className="sg16-bar-soft flex items-center gap-2 text-xs">
-              <Upload className="w-4 h-4 text-[#FF8A8A] shrink-0" />
+              <Upload className="w-4 h-4 text-[#FF5CB8] shrink-0" />
               <span className="text-white/80 truncate flex-1">
                 {pendingDoc.name} · {Math.round(pendingDoc.text.length / 1000)}K chars — type your
                 question, then send
@@ -376,7 +376,7 @@ export function ChatPanel({
               <button
                 type="button"
                 onClick={() => setPendingDoc(null)}
-                className="text-white/40 hover:text-[#FF8A8A] shrink-0"
+                className="text-white/40 hover:text-[#FF5CB8] shrink-0"
               >
                 Remove
               </button>
@@ -428,7 +428,7 @@ export function ChatPanel({
                 onClick={toggleVoice}
                 className={`p-2.5 rounded-xl shrink-0 ${
                   listening
-                    ? 'bg-[#FF2E2E]/20 text-[#FF8A8A]'
+                    ? 'bg-[#FF168D]/20 text-[#FF5CB8]'
                     : 'hover:bg-white/[0.06] text-white/50 hover:text-white'
                 }`}
                 title={listening ? 'Stop recording' : 'Voice input'}
@@ -469,13 +469,13 @@ export function ChatPanel({
                 const last = [...messages].reverse().find((m) => m.role === 'assistant');
                 if (last) speakText(last.content);
               }}
-              className="flex items-center gap-1.5 text-xs text-white/35 hover:text-[#FF8A8A]"
+              className="flex items-center gap-1.5 text-xs text-white/35 hover:text-[#FF5CB8]"
             >
               <Volume2 className="w-3.5 h-3.5" /> Read last reply aloud
             </button>
           )}
           {allowVoice && listening && (
-            <p className="text-[11px] text-[#FF8A8A]">
+            <p className="text-[11px] text-[#FF5CB8]">
               Recording… tap mic again when finished speaking.
             </p>
           )}

@@ -67,13 +67,13 @@ export function StudentVerifyPanel() {
       )}
 
       {verification.status === 'rejected' && verification.reason && (
-        <div className="mb-6 flex items-start gap-3 bg-red-500/10 border border-red-500/30 rounded-xl p-4 text-sm text-red-300">
+        <div className="mb-6 flex items-start gap-3 bg-[#FF526B]/10 border border-[#FF526B]/30 rounded-xl p-4 text-sm text-[#FF8A9B]">
           <XCircle className="w-5 h-5 shrink-0 mt-0.5" />
           {verification.reason}
         </div>
       )}
 
-      <div className="bg-zinc-900/80 border border-white/10 rounded-2xl p-6 space-y-5">
+      <div className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-5">
         <div className="flex items-center gap-3 text-sm text-gray-300">
           <Camera className="w-5 h-5 text-emerald-400" />
           <span>Hold your Student ID next to your face — both must be clearly visible.</span>
@@ -90,7 +90,7 @@ export function StudentVerifyPanel() {
         )}
 
         {error && (
-          <p className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{error}</p>
+          <p className="text-xs text-[#FF526B] bg-[#FF526B]/10 border border-[#FF526B]/20 rounded-lg px-3 py-2">{error}</p>
         )}
 
         <button

@@ -44,7 +44,7 @@ export function HistoryPanel() {
       </div>
 
       {entries.length === 0 ? (
-        <div className="bg-zinc-900/50 border border-white/10 rounded-2xl p-10 text-center text-gray-500">
+        <div className="bg-[#0A0A12]/50 border border-white/10 rounded-2xl p-10 text-center text-gray-500">
           <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-40" />
           <p>No messages in this session yet.</p>
         </div>
@@ -57,7 +57,7 @@ export function HistoryPanel() {
                 key={id}
                 type="button"
                 onClick={() => setWorkspace(id)}
-                className="w-full text-left bg-zinc-900/80 border border-white/10 rounded-2xl p-5 hover:border-emerald-500/30 transition"
+                className="w-full text-left bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-5 hover:border-emerald-500/30 transition"
               >
                 <h3 className="font-semibold text-emerald-400">{label}</h3>
                 <p className="text-sm text-gray-400 mt-1 line-clamp-2">{last.content}</p>

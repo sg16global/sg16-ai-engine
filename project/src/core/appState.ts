@@ -52,8 +52,11 @@ interface AppState {
   checkoutEnabled: boolean;
   launchMessage: string;
   launchNoticeOpen: boolean;
+  stagingOpen: boolean;
 
   setWorkspace: (workspace: WorkspaceType) => void;
+  openStaging: () => void;
+  closeStaging: () => void;
   openHelp: (section?: HelpSection) => void;
   openPricing: () => void;
   openStudentVerify: () => void;
@@ -155,6 +158,10 @@ export const useAppStore = create<AppState>((set, getState) => ({
   launchMessage:
     'Launch period — all features are free unlimited. We will notify you in the app before paid plans begin.',
   launchNoticeOpen: false,
+  stagingOpen: false,
+
+  openStaging: () => set({ stagingOpen: true }),
+  closeStaging: () => set({ stagingOpen: false }),
 
   openLoginModal: (action) =>
     set({
@@ -198,8 +205,8 @@ export const useAppStore = create<AppState>((set, getState) => ({
     queueMicrotask(() => {
       if (pending) {
         pending();
-      } else {
-        getState().goToHome();
+      } else if (getState().currentWorkspace === 'home') {
+        getState().setWorkspace('general');
       }
       void getState().syncSubscriptionFromServer();
       void syncUserHistoryOnLogin(enriched.id, loadChatHistory, saveChatHistory).then((merged) => {
@@ -211,8 +218,13 @@ export const useAppStore = create<AppState>((set, getState) => ({
   enterLocalPreview: async () => {
     const { loginPreview } = await import('../lib/authApi');
     const result = await loginPreview();
+    const pending = getState().pendingAuthAction;
     getState().setAuthSession(result.token, result.user);
-    getState().setWorkspace('home');
+    if (pending) {
+      pending();
+    } else if (getState().currentWorkspace === 'home') {
+      getState().setWorkspace('general');
+    }
   },
 
   enterGuestTour: () => {

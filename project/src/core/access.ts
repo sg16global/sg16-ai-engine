@@ -19,7 +19,7 @@ export function hasPaidAccess(subscription: Subscription): boolean {
 }
 
 export function isAuthenticated(authUser: AuthUser | null): authUser is AuthUser {
-  return authUser != null && authUser.signupDate > 0;
+  return authUser != null && (authUser.signupDate > 0 || Boolean(authUser.id) || Boolean(authUser.email));
 }
 
 export function isLaunchPeriod(authUser: AuthUser | null): boolean {

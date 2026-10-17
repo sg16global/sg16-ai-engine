@@ -77,16 +77,6 @@ export function GoogleSignInButton({
         <p className="text-xs text-gray-400 animate-pulse">Loading Google sign-in…</p>
       )}
       <div ref={containerRef} className={status === 'ready' ? '' : 'sr-only'} aria-hidden={status !== 'ready'} />
-      {!silent && import.meta.env.DEV && status === 'ready' && (
-        <p className="text-[10px] text-gray-600 text-center max-w-xs">
-          Origin: {getPageOrigin()}
-        </p>
-      )}
-      {!silent && status === 'error' && import.meta.env.DEV && (
-        <pre className="text-[9px] text-gray-500 whitespace-pre-wrap text-left max-w-xs bg-black/30 p-2 rounded-lg">
-          {getGoogleOriginSetupHint()}
-        </pre>
-      )}
     </div>
   );
 }
