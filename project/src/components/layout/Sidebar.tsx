@@ -1,9 +1,8 @@
-import { useEffect, useState } from 'react';
 import { Lock } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { canAccessWorkspace } from '../../core/access';
 import { mainNavItems, utilityNavItems } from '../../config/navConfig';
-import { checkEngineHealth } from '../../lib/apiStatus';
+import { useEngineStatus } from '../../lib/apiStatus';
 import { Sg16Logo } from '../ui/Sg16Logo';
 import type { WorkspaceType } from '../../core/types';
 
@@ -16,14 +15,8 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
   const openStaging = useAppStore((s) => s.openStaging);
-  const [online, setOnline] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const check = () => checkEngineHealth().then(setOnline);
-    check();
-    const id = setInterval(check, 30000);
-    return () => clearInterval(id);
-  }, []);
+  const engineStatus = useEngineStatus();
+  const online = engineStatus === 'checking' ? null : engineStatus === 'online';
 
   const openBottom = (id: WorkspaceType) => {
     if (id === 'help') openHelp('overview');

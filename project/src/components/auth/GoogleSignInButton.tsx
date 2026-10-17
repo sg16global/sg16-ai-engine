@@ -1,13 +1,11 @@
 import { useEffect, useRef, useState } from 'react';
 import {
-  getGoogleOriginSetupHint,
   initGoogleIdentity,
   loadGsiScript,
   renderGoogleSignInButton,
   resolveGoogleClientId,
   validateGoogleAuthEnvironment,
 } from '../../lib/googleIdentity';
-import { getPageOrigin } from '../../config/googleAuth';
 
 interface GoogleSignInButtonProps {
   onCredential: (credential: string) => void;

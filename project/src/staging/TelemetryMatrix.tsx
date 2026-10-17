@@ -5,8 +5,6 @@ import {
   Cpu,
   Globe2,
   HardDrive,
-  RefreshCw,
-  ShieldAlert,
   ShieldCheck,
   Zap,
 } from 'lucide-react';
@@ -21,9 +19,9 @@ const ECOSYSTEM_SERVICES = [
 ];
 
 export function TelemetryMatrix() {
-  const [pulse, setPulse] = useState(0);
+  const [, setPulse] = useState(0);
   const [activeTab, setActiveTab] = useState<'vitals' | 'ecosystem' | 'healer'>('vitals');
-  const [autoHealedCount, setAutoHealedCount] = useState(14);
+  const [autoHealedCount] = useState(14);
   const [lastSelfCheck, setLastSelfCheck] = useState('Just now');
 
   useEffect(() => {

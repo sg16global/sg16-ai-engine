@@ -6,25 +6,18 @@ import {
   Cpu,
   Layers,
   ArrowRight,
-  Shield,
   ShieldCheck,
-  CheckCircle2,
   X,
-  ExternalLink,
   Code2,
   TrendingUp,
   GraduationCap,
   HeartPulse,
   MessageSquare,
-  Building2,
-  Lock,
   Zap,
   Maximize2,
   Minimize2,
-  RotateCcw,
   Volume2,
   VolumeX,
-  FileCheck2,
   Award,
   Globe2,
   Radio,
@@ -35,7 +28,6 @@ import { TelemetryMatrix } from './TelemetryMatrix';
 import { IncidentSimulator } from './IncidentSimulator';
 import { EcosystemTopologyCanvas } from './EcosystemTopologyCanvas';
 import { SovereignLicenseVault } from './SovereignLicenseVault';
-import { SG16_BRAND } from '../core/branding';
 import { cyberAudio } from './cyberSound';
 
 interface StagingWindowProps {

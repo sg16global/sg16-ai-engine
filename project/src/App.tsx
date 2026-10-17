@@ -5,6 +5,8 @@ import { GoogleLoginModal } from './components/auth/GoogleLoginModal';
 import { TopBar } from './components/layout/TopBar';
 
 import { LaunchBanner } from './components/layout/LaunchBanner';
+import { EngineOfflineBanner } from './components/layout/EngineOfflineBanner';
+import { useEngineConnectionMonitor } from './lib/apiStatus';
 import { WorkspaceChrome } from './components/layout/WorkspaceChrome';
 
 import { LaunchSubscriptionModal } from './components/layout/LaunchSubscriptionModal';
@@ -278,6 +280,7 @@ function AppShell() {
         <GoogleLoginModal />
         <LaunchSubscriptionModal />
         <InstallPrompt />
+        <EngineOfflineBanner />
       </div>
     );
   }
@@ -343,6 +346,8 @@ function AppShell() {
 
       <LaunchSubscriptionModal />
 
+      <EngineOfflineBanner />
+
     </div>
 
   );
@@ -358,6 +363,8 @@ function App() {
   const restoreAuthSession = useAppStore((state) => state.restoreAuthSession);
 
   const [authHydrated, setAuthHydrated] = useState(false);
+
+  useEngineConnectionMonitor();
 
   const [pathname, setPathname] = useState(() =>
 

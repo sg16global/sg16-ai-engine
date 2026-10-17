@@ -1,0 +1,15 @@
+{
+  "name": "sg16-engine-web",
+  "private": true,
+  "version": "1.0.0",
+  "description": "SG16 AI Engine website on Cloudflare Workers: serves the React app and forwards /api to the backend.",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "node --test"
+  },
+  "devDependencies": {
+    "wrangler": "4.151.1"
+  }
+}

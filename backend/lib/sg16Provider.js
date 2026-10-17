@@ -219,7 +219,35 @@ function getCustomProvider() {
   };
 }
 
+/**
+ * Any OpenAI-compatible API, set with three variables:
+ *   AI_API_URL  base URL, e.g. https://api.openai.com/v1 or http://your-vps:11434/v1 (Ollama)
+ *   AI_API_KEY  optional — servers like a private Ollama need none
+ *   AI_MODEL    model name; AI_VISION_MODEL optional for image questions
+ * When AI_API_URL is set it is the primary brain for every feature.
+ */
+export function getApiProvider() {
+  const url = process.env.AI_API_URL?.trim();
+  if (!url) return null;
+  const base = url.replace(/\/+$/, '');
+  const model = process.env.AI_MODEL?.trim() || 'gpt-4o-mini';
+  return {
+    id: 'api',
+    apiUrl: base.endsWith('/chat/completions') ? base : `${base}/chat/completions`,
+    apiKey: cleanKey(process.env.AI_API_KEY) || '',
+    models: {
+      text: model,
+      reasoning: model,
+      coding: model,
+      vision: process.env.AI_VISION_MODEL?.trim() || null,
+    },
+  };
+}
+
 export function getPrimaryProvider() {
+  const api = getApiProvider();
+  if (api) return api;
+
   const mistralBrain = getMistralBrainProvider();
   if (mistralBrain) return mistralBrain;
 
@@ -329,7 +357,7 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
     ].filter(Boolean))];
   }
 
-  if (provider.id === 'ollama') {
+  if (provider.id === 'ollama' || provider.id === 'api') {
     return [provider.models.text].filter(Boolean);
   }
 
@@ -347,6 +375,7 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
 
 export function getVisionModelChain(provider = getPrimaryProvider()) {
   if (!provider) return [];
+  if (provider.id === 'api') return provider.models.vision ? [provider.models.vision] : [];
 
   const visionModels = [];
   if (provider.models?.vision) visionModels.push(provider.models.vision);
@@ -394,6 +423,8 @@ function appendApiProviders(chain) {
 }
 
 export function getChildrenWorldProviderChain() {
+  const api = getApiProvider();
+  if (api) return [api];
   const mistralBrain = getMistralBrainProvider();
   if (mistralBrain) return [mistralBrain];
   const ollama = getOllamaProvider();
@@ -402,6 +433,12 @@ export function getChildrenWorldProviderChain() {
 }
 
 export function getProviderChain() {
+  const api = getApiProvider();
+  if (api) {
+    const backup = getBackupProvider();
+    return backup ? [api, backup] : [api];
+  }
+
   const chain = [];
   const mistralBrain = getMistralBrainProvider();
   if (mistralBrain) {
@@ -417,6 +454,30 @@ export function getProviderChain() {
   return appendApiProviders(chain);
 }
 
+/** Quick chat probe for /health/deep when AI_API_URL is set. */
+export async function probeApiChat() {
+  const api = getApiProvider();
+  const started = Date.now();
+  try {
+    const reply = await callChatCompletion({
+      messages: [{ role: 'user', content: 'Reply with exactly: ok' }],
+      model: api.models.text,
+      temperature: 0,
+      maxTokens: 8,
+      timeoutMs: 60000,
+      provider: api,
+    });
+    return { ok: true, latencyMs: Date.now() - started, model: api.models.text, sample: reply.slice(0, 40) };
+  } catch (err) {
+    return {
+      ok: false,
+      latencyMs: Date.now() - started,
+      model: api?.models.text,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+}
+
 export async function callChatCompletion({
   messages,
   model,
@@ -426,7 +487,7 @@ export async function callChatCompletion({
   provider = null,
 }) {
   const activeProvider = provider || getPrimaryProvider();
-  if (!activeProvider?.apiUrl || !activeProvider?.apiKey) {
+  if (!activeProvider?.apiUrl || (!activeProvider.apiKey && activeProvider.id !== 'api')) {
     throw new Error('SG16 AI is not configured');
   }
 
@@ -444,10 +505,8 @@ export async function callChatCompletion({
     });
   }
 
-  const headers = {
-    Authorization: `Bearer ${activeProvider.apiKey}`,
-    'Content-Type': 'application/json',
-  };
+  const headers = { 'Content-Type': 'application/json' };
+  if (activeProvider.apiKey) headers.Authorization = `Bearer ${activeProvider.apiKey}`;
   if (activeProvider.id === 'groq') {
     headers['Groq-Model-Version'] = 'latest';
   }
@@ -535,6 +594,7 @@ export async function callWithModelFallback({
           continue;
         }
         if (
+          provider.id === 'api' ||
           provider.id === 'ollama' ||
           provider.id === 'groq' ||
           provider.id === 'custom' ||
@@ -558,7 +618,7 @@ export async function callWithVisionFallback({
   temperature = 0.1,
   maxTokens = 2048,
 }) {
-  if (isMistralBrainConfigured()) {
+  if (!getApiProvider() && isMistralBrainConfigured()) {
     const content = await callMistralBrainVision({
       messages,
       timeoutMs: Number(process.env.MISTRAL_BRAIN_VISION_TIMEOUT_MS || 120000),
@@ -623,9 +683,11 @@ export function todayLabel() {
 export function getProviderStatus() {
   const primary = getPrimaryProvider();
   const backup = getBackupProvider();
+  const api = getApiProvider();
   return {
-    brain: isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'sovereign' : 'api',
+    brain: api ? 'api' : isCloudMistralBrain() ? 'mistralbrain-cloud' : isSovereignBrain() ? 'sovereign' : 'api',
     primary: primary ? primary.id : null,
+    apiUrl: api ? api.apiUrl.replace(/\/chat\/completions$/, '') : null,
     backup: isSovereignBrain() || isCloudMistralBrain() ? null : backup ? backup.id : null,
     mistralBrainUrl: isCloudMistralBrain() ? (process.env.MISTRAL_BRAIN_URL || 'https://api.mistralbrain.com') : null,
     ollamaUrl: isSovereignBrain() ? getOllamaBaseUrl() : null,

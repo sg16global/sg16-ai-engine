@@ -5,6 +5,7 @@ desktop/release/
 backend/.env
 project/.env
 backend/data/signup-ledger.json
+backend/data/user-rooms.json
 *.log
 
 # Vite dev PWA artifacts

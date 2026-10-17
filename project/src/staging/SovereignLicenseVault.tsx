@@ -1,9 +1,7 @@
 import { useState } from 'react';
 import {
   ShieldCheck,
-  Lock,
   Building2,
-  FileCheck2,
   Award,
   AlertTriangle,
   QrCode,
@@ -196,15 +194,6 @@ export function SovereignLicenseVault() {
                 </span>
                 <span className="font-semibold text-emerald-400">
                   {SG16_BRAND.effectiveDate} (Perpetual Duration)
-                </span>
-              </div>
-
-              <div className="space-y-1">
-                <span className="text-white/40 text-[11px] font-mono uppercase tracking-wider block">
-                  Principal Executive Organizer:
-                </span>
-                <span className="font-semibold text-white">
-                  {SG16_BRAND.organizer}
                 </span>
               </div>
 

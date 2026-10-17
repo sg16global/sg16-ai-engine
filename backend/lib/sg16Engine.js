@@ -74,6 +74,7 @@ function getApiUrl() {
 }
 
 function hasApiKey() {
+  if (getPrimaryProvider()?.id === 'api') return true;
   if (isCloudMistralBrain() && isMistralBrainConfigured()) return true;
   if (isSovereignBrain() && getPrimaryProvider()) return true;
   const key = getApiKey();

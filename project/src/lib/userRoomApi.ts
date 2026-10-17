@@ -1,4 +1,5 @@
 import type { Message, WorkspaceId } from '../core/types';
+import { API_V1, apiRequest } from './apiClient';
 import { authHeaders } from './authApi';
 import { emptyChatHistory } from './utils';
 
@@ -33,99 +34,27 @@ export interface UserRoomResponse {
   };
 }
 
-const ROOM_STORAGE_KEY = 'sg16_user_room_state';
-const HISTORY_STORAGE_KEY = 'sg16_user_history_state';
-
 export async function fetchUserRoom(): Promise<UserRoomResponse> {
-  try {
-    const res = await fetch('/api/v1/user/room', { headers: authHeaders() });
-    const data = await res.json();
-    if (res.ok && data.user) return data as UserRoomResponse;
-  } catch {
-    // Fallback to local
-  }
-
-  const stored = localStorage.getItem(ROOM_STORAGE_KEY);
-  if (stored) {
-    try {
-      return JSON.parse(stored);
-    } catch {
-      /* ignore */
-    }
-  }
-
-  const defaultRoom: UserRoomResponse = {
-    user: {
-      id: 'usr-commander',
-      signupDate: Date.now() - 86400000 * 7,
-      name: 'SG16 Commander',
-      email: 'commander@sg16engine.com',
-      picture: null,
-      launchFree: true,
-      trialActive: true,
-      trialDaysRemaining: 365,
-      subscription: {
-        plan: 'pro',
-        studentVerification: { status: 'verified' },
-      },
-    },
-    room: {
-      activity: {
-        totalMessages: 42,
-        lastActivityAt: Date.now(),
-        workspaces: [
-          { workspaceId: 'general', messageCount: 16, lastMessage: 'System status nominal', lastActivityAt: Date.now() - 3600000 },
-          { workspaceId: 'coding', messageCount: 12, lastMessage: 'Coding shield audit 100/100', lastActivityAt: Date.now() - 7200000 },
-          { workspaceId: 'health', messageCount: 5, lastMessage: 'Health assessment completed', lastActivityAt: Date.now() - 14400000 },
-          { workspaceId: 'student', messageCount: 9, lastMessage: 'Curriculum study complete', lastActivityAt: Date.now() - 28800000 },
-        ],
-      },
-      settings: { theme: 'dark', language: 'en', model: 'sg16-mistral-x' },
-      updatedAt: new Date().toISOString(),
-      hasHistory: true,
-    },
-  };
-  localStorage.setItem(ROOM_STORAGE_KEY, JSON.stringify(defaultRoom));
-  return defaultRoom;
+  return apiRequest(`${API_V1}/user/room`, { headers: authHeaders() });
 }
 
 export async function fetchUserHistory(): Promise<Record<WorkspaceId, Message[]>> {
-  try {
-    const res = await fetch('/api/v1/user/history', { headers: authHeaders() });
-    const data = await res.json();
-    if (res.ok && data.chatHistory) return { ...emptyChatHistory(), ...(data.chatHistory ?? {}) };
-  } catch {
-    // Fallback to local
-  }
-
-  const stored = localStorage.getItem(HISTORY_STORAGE_KEY);
-  if (stored) {
-    try {
-      return { ...emptyChatHistory(), ...JSON.parse(stored) };
-    } catch {
-      /* ignore */
-    }
-  }
-  return emptyChatHistory();
+  const data = await apiRequest<{ chatHistory?: Partial<Record<WorkspaceId, Message[]>> }>(`${API_V1}/user/history`, {
+    headers: authHeaders(),
+  });
+  return { ...emptyChatHistory(), ...(data.chatHistory ?? {}) };
 }
 
+/** Local copies are kept by appState (saveChatHistory); this only syncs to the server. */
 export async function saveUserHistory(
   chatHistory: Record<WorkspaceId, Message[]>,
   settings?: Record<string, unknown>,
 ): Promise<void> {
-  try {
-    localStorage.setItem(HISTORY_STORAGE_KEY, JSON.stringify(chatHistory));
-    if (settings) {
-      localStorage.setItem('sg16_user_settings', JSON.stringify(settings));
-    }
-    await fetch('/api/v1/user/history', {
-      method: 'PUT',
-      headers: authHeaders(),
-      body: JSON.stringify({ chatHistory, settings }),
-    });
-  } catch {
-    // Saved in local storage
-  }
+  await apiRequest(`${API_V1}/user/history`, {
+    method: 'PUT',
+    headers: authHeaders(),
+    body: { chatHistory, settings },
+  });
 }
 
 /** Merge local and server histories — keep all unique messages by id, sorted by time. */

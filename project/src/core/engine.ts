@@ -1,4 +1,5 @@
 import type { RouteResponse, WorkspaceId } from './types';
+import { API_V1, apiRequest } from '../lib/apiClient';
 import { authHeaders } from '../lib/authApi';
 
 const VALID: WorkspaceId[] = [
@@ -40,15 +41,13 @@ export function fallbackRoute(query: string): RouteResponse {
 
 export async function detectIntent(query: string): Promise<RouteResponse> {
   try {
-    const res = await fetch('/api/v1/route', {
+    const data = await apiRequest<Partial<RouteResponse>>(`${API_V1}/route`, {
       method: 'POST',
       headers: authHeaders(),
-      body: JSON.stringify({ query }),
+      body: { query },
     });
-    const data = await res.json();
-    if (!res.ok) throw new Error(data.error);
     return {
-      targetWorkspace: normalize(data.targetWorkspace),
+      targetWorkspace: normalize(data.targetWorkspace ?? 'general'),
       confidence: data.confidence ?? 0.7,
       cleanedPrompt: data.cleanedPrompt ?? query,
     };
