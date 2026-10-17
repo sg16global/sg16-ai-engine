@@ -4,8 +4,8 @@
 visitor ──► Cloudflare Worker (sg16engine.com)
               ├── pages, JS, images  → served by Cloudflare
               └── /api/*, /health    → Backend container (Node, on Cloudflare)
-                                         ├── AI → AI_API_URL (e.g. your VPS running Devstral)
-                                         └── data → Postgres (DATABASE_URL)
+                                         └── AI → AI_API_URL (e.g. your VPS running Devstral)
+users: no accounts, no Google sign-in — chat history stays on each user's device
 ```
 
 The browser only talks to `sg16engine.com`, so there's no CORS setup to do. Google sign-in headers, real 404 pages and the shield subdomain all work the same as on the old server.
@@ -17,7 +17,7 @@ The browser only talks to `sg16engine.com`, so there's no CORS setup to do. Goog
 | Website pages | Cloudflare Worker `sg16-engine-web` (static assets) |
 | Backend (`backend/server.js`) | Cloudflare Container `Backend`, built from the repo `Dockerfile`. It starts on the first request and sleeps after 15 minutes idle. |
 | AI | Whatever `AI_API_URL` points to, for example your VPS |
-| Users and chat history | Postgres at `DATABASE_URL`. **This is required**, because the container's disk is wiped on every restart. |
+| Users and chat history | **On each user's device.** No accounts, no Google sign-in; the server refuses to store history. |
 
 Every push to `main` builds and deploys both parts through GitHub Actions (`.github/workflows/deploy-cloudflare.yml`). You don't need Docker on your PC.
 
@@ -31,15 +31,13 @@ Every push to `main` builds and deploys both parts through GitHub Actions (`.git
 
    ```bash
    cd cloudflare
-   npx wrangler secret put JWT_SECRET          # any long random string
-   npx wrangler secret put GOOGLE_CLIENT_ID
-   npx wrangler secret put DATABASE_URL        # postgres://...  (e.g. a free Neon database)
+   npx wrangler secret put JWT_SECRET          # any long random string (already set)
    npx wrangler secret put AI_API_URL          # e.g. https://brain.sg16engine.com/v1
    npx wrangler secret put AI_MODEL            # e.g. devstral
    npx wrangler secret put AI_API_KEY          # if your AI needs one
    ```
 
-   Optional: `GOOGLE_CLIENT_SECRET`, `SG16_OWNER_EMAIL`, `AI_VISION_MODEL`.
+   Optional: `AI_VISION_MODEL`, and `DATABASE_URL` (Postgres) only if student verification results must survive container restarts.
 3. **Deploy.** Merge to `main`, or go to Actions → "Deploy to Cloudflare" → Run workflow.
    - The first container deploy takes several minutes.
    - Check it with `npm run api:check -- https://sg16-engine-web.sg16global.workers.dev`.

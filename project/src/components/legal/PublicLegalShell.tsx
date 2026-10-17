@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { LandingHeader } from '../landing/LandingHeader';
-import { GoogleLoginModal } from '../auth/GoogleLoginModal';
 import { LegalDocumentView } from './LegalDocumentView';
 import { legalSectionByPath, type LegalSection } from '../../content/legalContent';
 import { pushAppPath } from '../../core/routes';
@@ -40,7 +39,6 @@ export function PublicLegalShell() {
       <LandingHeader />
       <LegalDocumentView section={section} onSelectSection={selectSection} />
       <SiteFooter />
-      <GoogleLoginModal />
     </div>
   );
 }

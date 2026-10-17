@@ -35,7 +35,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const settings = useAppStore((s) => s.settings);
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
   const openStaging = useAppStore((s) => s.openStaging);
   const logout = useAppStore((s) => s.logout);
   const goToHome = useAppStore((s) => s.goToHome);
@@ -170,7 +170,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
             </div>
             <div className="text-xs text-[#FF5CB8] flex items-center gap-1 justify-end">
               <span className="w-2 h-2 bg-[#FF168D] rounded-full inline-block" />
-              {isAuthenticated(authUser) ? 'Signed in' : 'Guest'}
+              {isAuthenticated(authUser) ? 'This device' : 'Guest'}
             </div>
           </div>
           {isAuthenticated(authUser) ? (
@@ -178,8 +178,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
               type="button"
               onClick={logout}
               className="relative shrink-0 rounded-xl sm:rounded-2xl ring-2 ring-transparent hover:ring-[#FF168D]/40 transition focus:outline-none focus-visible:ring-[#FF168D]/60"
-              title="Sign out"
-              aria-label="Sign out"
+              title="Exit"
+              aria-label="Exit"
             >
               {authUser?.picture ? (
                 <img
@@ -196,9 +196,9 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
           ) : (
             <button
               type="button"
-              onClick={() => openLoginModal()}
+              onClick={() => startSession()}
               className="w-8 h-8 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF168D] to-[#B91669] rounded-xl sm:rounded-2xl flex items-center justify-center text-white font-bold text-xs"
-              title="Sign in"
+              title="Enter SG16"
             >
               {settings.displayName.slice(0, 2).toUpperCase()}
             </button>

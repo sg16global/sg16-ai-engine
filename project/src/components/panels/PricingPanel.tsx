@@ -106,7 +106,7 @@ export function PricingPanel({ compact = false }: PricingPanelProps) {
             {subscription.plan === 'student' && (
               <> · Verification: {verificationStatusLabel(subscription.studentVerification.status)}</>
             )}
-            {!authUser && <> · Sign in to subscribe</>}
+            {!authUser && <> · Enter SG16 to subscribe</>}
           </p>
         )}
         {error && (

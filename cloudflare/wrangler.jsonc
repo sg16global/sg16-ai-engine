@@ -37,9 +37,8 @@
   }
 
   // Backend secrets (set once with `npx wrangler secret put <NAME>`, passed into the container):
-  //   JWT_SECRET, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, SG16_OWNER_EMAIL,
-  //   DATABASE_URL (Postgres — required, the container disk is wiped on restart),
-  //   AI_API_URL, AI_API_KEY, AI_MODEL, AI_VISION_MODEL
+  //   JWT_SECRET (signs anonymous device sessions), AI_API_URL, AI_MODEL, AI_API_KEY (if needed),
+  //   optional AI_VISION_MODEL, DATABASE_URL (only to keep student verification across restarts)
 
   // When the site works on *.workers.dev, serve the real domains (delete their old DNS records
   // first), then deploy again:

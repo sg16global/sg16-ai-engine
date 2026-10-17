@@ -129,7 +129,7 @@ describe('backend container', () => {
   });
   it('passes only known, non-empty secrets to the backend process', async () => {
     const { backendEnv } = await import('../src/backendEnv.js');
-    const vars = backendEnv({ JWT_SECRET: ' s ', AI_MODEL: 'devstral', DATABASE_URL: '', UNRELATED: 'x' });
+    const vars = backendEnv({ JWT_SECRET: ' s ', AI_MODEL: 'devstral', DATABASE_URL: '', GOOGLE_CLIENT_ID: 'g', UNRELATED: 'x' });
     assert.deepEqual(vars, { NODE_ENV: 'production', HOST: '0.0.0.0', PORT: '8000', JWT_SECRET: 's', AI_MODEL: 'devstral' });
   });
 });

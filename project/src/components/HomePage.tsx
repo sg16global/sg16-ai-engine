@@ -87,7 +87,7 @@ export const HomePage = () => {
   const settings = useAppStore((s) => s.settings);
   const navigateToWorkspace = useAppStore((s) => s.navigateToWorkspace);
   const requireAuth = useAppStore((s) => s.requireAuth);
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
   const openHelp = useAppStore((s) => s.openHelp);
   const openUserRoom = useAppStore((s) => s.openUserRoom);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
@@ -122,13 +122,13 @@ export const HomePage = () => {
           onClick={() =>
             isAuthenticated(authUser)
               ? requireAuth(() => openUserRoom())
-              : openLoginModal()
+              : startSession()
           }
-          aria-label={isAuthenticated(authUser) ? 'Open your user room' : 'Sign in with Google'}
+          aria-label={isAuthenticated(authUser) ? 'Open your user room' : 'Enter SG16'}
         >
           <UserRound size={21} />
           <span>
-            {isAuthenticated(authUser) ? `WELCOME, ${displayName}` : 'SIGN IN WITH GOOGLE'}
+            {isAuthenticated(authUser) ? `WELCOME, ${displayName}` : 'ENTER SG16'}
           </span>
         </button>
 

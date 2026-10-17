@@ -1,9 +1,6 @@
 /** Worker secrets / vars handed to the backend process as environment variables. */
 export const BACKEND_ENV_KEYS = [
   'JWT_SECRET',
-  'GOOGLE_CLIENT_ID',
-  'GOOGLE_CLIENT_SECRET',
-  'SG16_OWNER_EMAIL',
   'DATABASE_URL',
   'AI_API_URL',
   'AI_API_KEY',

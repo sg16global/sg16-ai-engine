@@ -65,6 +65,7 @@ All frontend calls go through `project/src/lib/apiClient.ts` (`apiRequest`):
 - **Website**: Cloudflare Worker in `cloudflare/`. It serves the built React app and forwards `/api/*` and
   `/health` to the backend container. See `cloudflare/README.md`.
 - **Backend**: Node (`backend/server.js`) as a Cloudflare Container in the same Worker, built from the
-  `Dockerfile`. Data in Postgres (`DATABASE_URL`). Deployed by `.github/workflows/deploy-cloudflare.yml`
-  on every push to `main`.
+  `Dockerfile`. Deployed by `.github/workflows/deploy-cloudflare.yml` on every push to `main`.
+- **Users**: no accounts and no Google sign-in. Each browser gets an anonymous device session
+  (`POST /api/v1/auth/device`); chat history is stored only on the device, and the server refuses to store it.
 - **AI**: any OpenAI-compatible API via `AI_API_URL` / `AI_API_KEY` / `AI_MODEL` in `backend/.env`.

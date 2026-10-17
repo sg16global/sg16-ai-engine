@@ -14,7 +14,7 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
   const authUser = useAppStore((s) => s.authUser);
   const openPricing = useAppStore((s) => s.openPricing);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
 
   const launchFree = useAppStore((s) => s.launchFree);
   const message = accessDeniedMessage(workspaceId, subscription, authUser);
@@ -29,17 +29,17 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
           <Lock className="w-7 h-7 text-amber-400" />
         </div>
         <h2 className="text-xl font-bold mb-2">
-          {!isAuthenticated(authUser) ? 'Sign in required' : trialEnded ? 'Trial ended' : 'Premium workspace locked'}
+          {!isAuthenticated(authUser) ? 'Enter SG16' : trialEnded ? 'Trial ended' : 'Premium workspace locked'}
         </h2>
         <p className="text-sm text-gray-400 mb-6 leading-relaxed">{message}</p>
 
         {!isAuthenticated(authUser) ? (
           <button
             type="button"
-            onClick={() => openLoginModal()}
+            onClick={() => startSession()}
             className="w-full bg-emerald-600 hover:bg-emerald-500 px-5 py-2.5 rounded-xl text-sm font-medium"
           >
-            Login with Google
+            Enter SG16
           </button>
         ) : (
           <>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ArrowLeft,
   Bot,
@@ -19,8 +19,25 @@ import { useAppStore } from '../../core/appState';
 import { isAuthenticated, verificationStatusLabel } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
-import { fetchUserRoom, type UserRoomActivity } from '../../lib/userRoomApi';
-import type { WorkspaceId } from '../../core/types';
+import type { Message, WorkspaceId } from '../../core/types';
+
+interface UserRoomActivity {
+  workspaceId: string;
+  messageCount: number;
+  lastMessage: string;
+  lastActivityAt: number;
+}
+
+/** Activity per workspace, from the chat history saved on this device. */
+function localActivity(messages: Record<string, Message[]>): UserRoomActivity[] {
+  return Object.entries(messages)
+    .filter(([, list]) => list.length > 0)
+    .map(([workspaceId, list]) => {
+      const last = list[list.length - 1];
+      return { workspaceId, messageCount: list.length, lastMessage: last.content.slice(0, 140), lastActivityAt: last.timestamp };
+    })
+    .sort((a, b) => b.lastActivityAt - a.lastActivityAt);
+}
 
 const workspaceLabels: Record<string, string> = {
   general: SG16_BRAND.chatName,
@@ -91,35 +108,15 @@ export function UserRoomPanel() {
   const subscription = useAppStore((s) => s.subscription);
   const launchFree = useAppStore((s) => s.launchFree);
   const launchMessage = useAppStore((s) => s.launchMessage);
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
   const goToHome = useAppStore((s) => s.goToHome);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const logout = useAppStore((s) => s.logout);
   const openPricing = useAppStore((s) => s.openPricing);
 
-  const [loading, setLoading] = useState(true);
-  const [activity, setActivity] = useState<UserRoomActivity[]>([]);
-  const [totalMessages, setTotalMessages] = useState(0);
-  const [email, setEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!isAuthenticated(authUser)) {
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
-    fetchUserRoom()
-      .then((data) => {
-        setActivity(data.room.activity.workspaces);
-        setTotalMessages(data.room.activity.totalMessages);
-        setEmail(data.user.email ?? null);
-      })
-      .catch(() => {
-        setActivity([]);
-        setTotalMessages(0);
-      })
-      .finally(() => setLoading(false));
-  }, [authUser]);
+  const messages = useAppStore((s) => s.messages);
+  const activity = useMemo(() => localActivity(messages), [messages]);
+  const totalMessages = activity.reduce((sum, a) => sum + a.messageCount, 0);
 
   if (!isAuthenticated(authUser)) {
     return (
@@ -127,14 +124,14 @@ export function UserRoomPanel() {
         <Shield className="w-12 h-12 mx-auto text-[#FF5CB8]/60" />
         <h1 className="text-2xl font-bold">Your User Room</h1>
         <p className="text-sm text-gray-400">
-          Sign in with Google to open your personal room. Your history and account restore every time you return.
+          Enter SG16 to open your room. No account needed — your history is saved on this device only.
         </p>
         <button
           type="button"
-          onClick={() => openLoginModal()}
+          onClick={() => startSession()}
           className="bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] font-semibold hover:shadow-[0_0_18px_rgba(255,22,141,0.4)] px-5 py-2.5 rounded-xl text-sm transition"
         >
-          Sign in with Google
+          Enter SG16
         </button>
       </div>
     );
@@ -173,7 +170,6 @@ export function UserRoomPanel() {
           <div className="flex-1 min-w-0">
             <p className="text-xs uppercase tracking-wider text-[#FF5CB8]/80">Your User Room</p>
             <h1 className="text-2xl font-bold truncate">{authUser.name}</h1>
-            {email && <p className="text-sm text-gray-400 truncate">{email}</p>}
             <div className="flex flex-wrap gap-3 mt-2 text-xs text-gray-500">
               <span className="inline-flex items-center gap-1">
                 <Calendar className="w-3.5 h-3.5" />
@@ -204,22 +200,18 @@ export function UserRoomPanel() {
       <section className="space-y-3">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Your history</h2>
-          <span className="text-xs text-gray-500">{totalMessages} messages saved to your room</span>
+          <span className="text-xs text-gray-500">{totalMessages} messages on this device</span>
         </div>
         <p className="text-xs text-gray-500">
-          Saved to your SG16 account — restores when you sign in on any device.
+          Saved on this device only — SG16 never stores your chats on its servers.
         </p>
 
-        {loading ? (
-          <div className="rounded-2xl border border-white/10 p-8 text-center text-gray-500 text-sm animate-pulse">
-            Loading your room…
-          </div>
-        ) : activity.length === 0 ? (
+        {activity.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-white/15 p-10 text-center">
             <MessageSquare className="w-10 h-10 mx-auto mb-3 text-gray-600" />
             <p className="text-gray-400 font-medium">No history yet</p>
             <p className="text-xs text-gray-600 mt-2 max-w-sm mx-auto">
-              Pick any Shield from Home and start chatting. Your messages will appear here and come back next time you log in.
+              Pick any Shield from Home and start chatting. Your messages will appear here and stay on this device.
             </p>
             <button
               type="button"
@@ -272,7 +264,7 @@ export function UserRoomPanel() {
           className="text-xs border border-white/10 hover:border-[#FF526B]/40 px-3 py-2 rounded-lg text-gray-400 hover:text-[#FF526B] inline-flex items-center gap-1.5"
         >
           <LogOut className="w-3.5 h-3.5" />
-          Sign out
+          Exit
         </button>
       </section>
     </div>

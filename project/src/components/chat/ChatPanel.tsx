@@ -63,7 +63,7 @@ export function ChatPanel({
   const settings = useAppStore((s) => s.settings);
   const subscription = useAppStore((s) => s.subscription);
   const requireAuth = useAppStore((s) => s.requireAuth);
-  const openLoginModal = useAppStore((s) => s.openLoginModal);
+  const startSession = useAppStore((s) => s.startSession);
 
   const [input, setInput] = useState('');
   const [imageUrl, setImageUrl] = useState<string | undefined>();
@@ -154,7 +154,7 @@ export function ChatPanel({
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Something went wrong';
         if (msg === 'AUTH_REQUIRED') {
-          openLoginModal();
+          startSession();
           setLoading(false);
           return;
         }

@@ -25,7 +25,7 @@ const BASIC_REPLIES: { test: RegExp; answer: string }[] = [
   },
   {
     test: /login|google|sign ?in|account/,
-    answer: 'Use Sign in with Google. We never ask for your Google password on this site.',
+    answer: 'No account or Google sign-in is needed — just press Enter. Your chats are saved on your own device only.',
   },
   {
     test: /hello|hi\b|help|how (do|to)|what is sg16/,
