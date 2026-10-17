@@ -8,7 +8,8 @@ pdfjs.GlobalWorkerOptions.workerSrc = new URL(
   import.meta.url,
 ).toString();
 
-const CHAT_TIMEOUT_MS = 95_000;
+// Self-hosted brains can take ~45 s to wake before answering.
+const CHAT_TIMEOUT_MS = 180_000;
 
 /** Keeps the AUTH_REQUIRED signal that ChatPanel listens for to open the sign-in modal. */
 function rethrowApiError(err: unknown): never {

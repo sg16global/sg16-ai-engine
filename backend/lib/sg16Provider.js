@@ -220,20 +220,23 @@ function getCustomProvider() {
 }
 
 /**
- * Any OpenAI-compatible API, set with three variables:
- *   AI_API_URL  base URL, e.g. https://api.openai.com/v1 or http://your-vps:11434/v1 (Ollama)
- *   AI_API_KEY  optional — servers like a private Ollama need none
- *   AI_MODEL    model name; AI_VISION_MODEL optional for image questions
+ * Any AI API, set with three variables:
+ *   AI_API_URL  OpenAI-compatible base URL (e.g. https://api.openai.com/v1, http://your-vps:11434/v1),
+ *               or an SG16 Brain endpoint ending in /api/brain (e.g. https://mistralbrain.com/api/brain)
+ *   AI_API_KEY  optional — sent as Bearer (an SG16 Brain project key lifts its rate limits)
+ *   AI_MODEL    model name for OpenAI-compatible APIs; AI_VISION_MODEL optional for image questions
  * When AI_API_URL is set it is the primary brain for every feature.
  */
 export function getApiProvider() {
   const url = process.env.AI_API_URL?.trim();
   if (!url) return null;
   const base = url.replace(/\/+$/, '');
-  const model = process.env.AI_MODEL?.trim() || 'gpt-4o-mini';
+  const format = /\/api\/brain$/.test(base) ? 'sg16-brain' : 'openai';
+  const model = process.env.AI_MODEL?.trim() || (format === 'sg16-brain' ? 'sg16-brain' : 'gpt-4o-mini');
   return {
     id: 'api',
-    apiUrl: base.endsWith('/chat/completions') ? base : `${base}/chat/completions`,
+    format,
+    apiUrl: format === 'sg16-brain' || base.endsWith('/chat/completions') ? base : `${base}/chat/completions`,
     apiKey: cleanKey(process.env.AI_API_KEY) || '',
     models: {
       text: model,
@@ -375,7 +378,9 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
 
 export function getVisionModelChain(provider = getPrimaryProvider()) {
   if (!provider) return [];
-  if (provider.id === 'api') return provider.models.vision ? [provider.models.vision] : [];
+  if (provider.id === 'api') {
+    return provider.format === 'openai' && provider.models.vision ? [provider.models.vision] : [];
+  }
 
   const visionModels = [];
   if (provider.models?.vision) visionModels.push(provider.models.vision);
@@ -454,6 +459,51 @@ export function getProviderChain() {
   return appendApiProviders(chain);
 }
 
+function textOf(content) {
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) return content.filter((p) => p?.type === 'text').map((p) => p.text).join('\n');
+  return '';
+}
+
+const SG16_BRAIN_HISTORY_TURNS = 12;
+
+/**
+ * SG16 Brain format (POST /api/brain): { message, history, stream } → { assistantMessage: { content } }.
+ * The brain ignores system roles in history, so system instructions travel inside the message.
+ */
+async function callSg16Brain({ provider, messages, timeoutMs }) {
+  const system = messages.filter((m) => m.role === 'system').map((m) => textOf(m.content)).join('\n\n').trim();
+  const turns = messages
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .map((m) => ({ role: m.role, content: textOf(m.content) }))
+    .filter((m) => m.content);
+  const last = turns.pop();
+  if (!last || last.role !== 'user') throw new Error('SG16 Brain needs a user message');
+
+  const message = system
+    ? `[Instructions for this conversation]\n${system}\n\n[User message]\n${last.content}`
+    : last.content;
+  const headers = { 'Content-Type': 'application/json' };
+  if (provider.apiKey) headers.Authorization = `Bearer ${provider.apiKey}`;
+
+  const res = await fetch(provider.apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ message, history: turns.slice(-SG16_BRAIN_HISTORY_TURNS), stream: false }),
+    signal: AbortSignal.timeout(timeoutMs),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(data.error || data.code || `SG16 Brain returned ${res.status}`);
+    err.status = res.status;
+    err.provider = 'api';
+    throw err;
+  }
+  const content = textOf(data.assistantMessage?.content).trim();
+  if (!content) throw new Error('SG16 Brain returned an empty response');
+  return content;
+}
+
 /** Quick chat probe for /health/deep when AI_API_URL is set. */
 export async function probeApiChat() {
   const api = getApiProvider();
@@ -489,6 +539,11 @@ export async function callChatCompletion({
   const activeProvider = provider || getPrimaryProvider();
   if (!activeProvider?.apiUrl || (!activeProvider.apiKey && activeProvider.id !== 'api')) {
     throw new Error('SG16 AI is not configured');
+  }
+
+  if (activeProvider.id === 'api' && activeProvider.format === 'sg16-brain') {
+    // A self-hosted brain can take ~45 s to wake its model; allow time for a full answer.
+    return callSg16Brain({ provider: activeProvider, messages, timeoutMs: Math.max(timeoutMs, 180000) });
   }
 
   if (activeProvider.id === 'ollama') {

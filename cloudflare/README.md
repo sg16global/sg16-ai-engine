@@ -32,9 +32,9 @@ Every push to `main` builds and deploys both parts through GitHub Actions (`.git
    ```bash
    cd cloudflare
    npx wrangler secret put JWT_SECRET          # any long random string (already set)
-   npx wrangler secret put AI_API_URL          # e.g. https://brain.sg16engine.com/v1
-   npx wrangler secret put AI_MODEL            # e.g. devstral
-   npx wrangler secret put AI_API_KEY          # if your AI needs one
+   npx wrangler secret put AI_API_URL          # SG16 Brain: https://mistralbrain.com/api/brain
+   npx wrangler secret put AI_API_KEY          # SG16 Brain project key (sg16p_...)
+   npx wrangler secret put AI_MODEL            # only for OpenAI-compatible APIs, e.g. devstral
    ```
 
    Optional: `AI_VISION_MODEL`, and `DATABASE_URL` (Postgres) only if student verification results must survive container restarts.
