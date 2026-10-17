@@ -38,6 +38,11 @@ jobs:
           npm ci --prefix project
           npm run build --prefix project
 
+      # Wrangler needs Node 22+; the site itself still builds on the project's Node version above.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
       - name: Deploy website + backend container
         working-directory: cloudflare
         run: |
