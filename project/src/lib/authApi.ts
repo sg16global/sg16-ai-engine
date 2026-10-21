@@ -31,6 +31,26 @@ export function hasDeviceId(): boolean {
   return Boolean(readDeviceId());
 }
 
+/** Set by Logout: the device stays signed out (no silent resume) until the user presses Enter again. */
+const SIGNED_OUT_KEY = 'sg16_signed_out';
+
+export function isSignedOut(): boolean {
+  try {
+    return localStorage.getItem(SIGNED_OUT_KEY) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setSignedOut(signedOut: boolean) {
+  try {
+    if (signedOut) localStorage.setItem(SIGNED_OUT_KEY, '1');
+    else localStorage.removeItem(SIGNED_OUT_KEY);
+  } catch {
+    /* private mode */
+  }
+}
+
 /** Random id kept on this device. It names the local chat history; it is not linked to any person. */
 function getOrCreateDeviceId(): string {
   const existing = readDeviceId();
