@@ -8,9 +8,15 @@ function isLegacyPreviewToken(token: string) {
   return token === 'local-preview-token' || token.startsWith('local-preview');
 }
 
+/**
+ * The sign-in lasts while this app/tab is open (sessionStorage). Closing the app signs out, so a fresh
+ * launch always starts on the public homepage until the user presses Enter.
+ */
 function readStoredToken(): string | null {
   try {
-    return localStorage.getItem(AUTH_TOKEN_KEY) ?? sessionStorage.getItem(AUTH_TOKEN_KEY);
+    // Older builds kept the token in localStorage, which signed people in on every launch.
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    return sessionStorage.getItem(AUTH_TOKEN_KEY);
   } catch {
     return null;
   }
@@ -23,31 +29,6 @@ function readDeviceId(): string | null {
     return localStorage.getItem(DEVICE_ID_KEY);
   } catch {
     return null;
-  }
-}
-
-/** True once this browser has entered SG16 before (it has a device id). */
-export function hasDeviceId(): boolean {
-  return Boolean(readDeviceId());
-}
-
-/** Set by Logout: the device stays signed out (no silent resume) until the user presses Enter again. */
-const SIGNED_OUT_KEY = 'sg16_signed_out';
-
-export function isSignedOut(): boolean {
-  try {
-    return localStorage.getItem(SIGNED_OUT_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-export function setSignedOut(signedOut: boolean) {
-  try {
-    if (signedOut) localStorage.setItem(SIGNED_OUT_KEY, '1');
-    else localStorage.removeItem(SIGNED_OUT_KEY);
-  } catch {
-    /* private mode */
   }
 }
 
@@ -89,29 +70,24 @@ export function loadAuthToken(): string | null {
     clearAuthToken();
     return null;
   }
-  if (token) {
-    try {
-      localStorage.setItem(AUTH_TOKEN_KEY, token);
-      sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    } catch {
-      /* ignore storage errors */
-    }
-  }
   return token;
 }
 
 export function saveAuthToken(token: string) {
-  localStorage.setItem(AUTH_TOKEN_KEY, token);
   try {
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
   } catch {
-    /* ignore */
+    /* private mode — signed in for this page only */
   }
 }
 
 export function clearAuthToken() {
-  localStorage.removeItem(AUTH_TOKEN_KEY);
-  sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  try {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    sessionStorage.removeItem(AUTH_TOKEN_KEY);
+  } catch {
+    /* ignore */
+  }
 }
 
 export function authHeaders(): HeadersInit {

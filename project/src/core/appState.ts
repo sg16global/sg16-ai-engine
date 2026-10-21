@@ -32,12 +32,9 @@ import { ApiError } from '../lib/apiClient';
 import {
   clearAuthToken,
   fetchAuthMe,
-  hasDeviceId,
-  isSignedOut,
   loadAuthToken,
   loginDevice,
   saveAuthToken as persistToken,
-  setSignedOut,
 } from '../lib/authApi';
 import {
   fetchBillingConfig,
@@ -225,7 +222,6 @@ export const useAppStore = create<AppState>((set, getState) => ({
 
   startSession: async (action) => {
     try {
-      setSignedOut(false);
       const result = await loginDevice();
       getState().setAuthSession(result.token, result.user);
     } catch (err) {
@@ -329,23 +325,12 @@ export const useAppStore = create<AppState>((set, getState) => ({
   },
 
   restoreAuthSession: async () => {
-    // A returning device renews its anonymous session silently; new visitors see the landing page.
-    const resumeDevice = async () => {
-      if (!hasDeviceId() || isSignedOut()) return;
-      try {
-        const result = await loginDevice();
-        getState().setAuthSession(result.token, result.user);
-      } catch {
-        /* engine offline — the landing page and offline banner explain it */
-      }
-    };
-
+    // Only a sign-in from this app session is restored (e.g. a page refresh). Nobody is signed in
+    // automatically: a fresh launch shows the public homepage until the user presses Enter.
     const token = loadAuthToken();
-    if (token && isSignedOut()) clearAuthToken();
-    if (!token || isSignedOut() || token.startsWith('local-preview') || !token.includes('.')) {
+    if (!token || token.startsWith('local-preview') || !token.includes('.')) {
       if (token) clearAuthToken();
       set({ authToken: null, authUser: null, ...freshChatState() });
-      await resumeDevice();
       return;
     }
     set({ authToken: token });
@@ -368,7 +353,6 @@ export const useAppStore = create<AppState>((set, getState) => ({
       const offline = err instanceof ApiError && err.offline;
       if (!offline) clearAuthToken();
       set({ authToken: null, authUser: null, ...freshChatState() });
-      if (!offline) await resumeDevice();
     }
   },
 
@@ -376,7 +360,6 @@ export const useAppStore = create<AppState>((set, getState) => ({
     const userId = getState().authUser?.id;
     persistThreads(getState().threads, userId);
     clearAuthToken();
-    setSignedOut(true);
     clearAllMemories();
     clearSessionSettings();
     pushAppPath('/', true);
