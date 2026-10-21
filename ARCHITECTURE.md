@@ -60,6 +60,16 @@ All frontend calls go through `project/src/lib/apiClient.ts` (`apiRequest`):
   `EngineOfflineBanner` read it, and the monitor re-checks `/health` every 15s while offline.
 - A saved session is only cleared when the server rejects it (401), not when the engine is unreachable.
 
+## Admin panel
+
+- `/admin` (separate page, not indexed): owner login with `ADMIN_EMAIL` (default sg16global@gmail.com) and a
+  password checked against `ADMIN_PASSWORD_HASH` (scrypt — `npm run admin:hash --prefix backend`).
+- Live status boxes (AI brain answer test, connection, engine, live search, database) and an AI connection form
+  (URL, key, model) with Test and Save. Saved settings apply at once to every shield.
+- Code: `backend/lib/admin.js`, `project/src/components/admin/AdminApp.tsx`. Saved settings go to
+  `backend/data/admin-config.json`; on Cloudflare the Worker also stores them in the Backend Durable Object
+  (`cloudflare/src/backend.js`) so they survive container restarts.
+
 ## Hosting without Railway
 
 - **Website**: Cloudflare Worker in `cloudflare/`. It serves the built React app and forwards `/api/*` and

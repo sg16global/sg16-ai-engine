@@ -38,6 +38,18 @@ Every push to `main` builds and deploys both parts through GitHub Actions (`.git
    ```
 
    Optional: `AI_VISION_MODEL`, and `DATABASE_URL` (Postgres) only if student verification results must survive container restarts.
+
+   **Admin panel** (`https://sg16engine.com/admin`): set the owner password hash once —
+
+   ```bash
+   npm run admin:hash --prefix ../backend     # type the password; prints ADMIN_PASSWORD_HASH=scrypt$...
+   npx wrangler secret put ADMIN_PASSWORD_HASH # paste only the scrypt$... part
+   ```
+
+   The owner email is `sg16global@gmail.com` (override with an `ADMIN_EMAIL` secret). After that, the AI
+   connection (URL, key, model) and the admin password can be changed in the panel. Those settings are
+   kept in the Backend Durable Object, so they survive container restarts, and they win over the
+   `AI_*` secrets above.
 3. **Deploy.** Merge to `main`, or go to Actions → "Deploy to Cloudflare" → Run workflow.
    - The first container deploy takes several minutes.
    - Check it with `npm run api:check -- https://sg16-engine-web.sg16global.workers.dev`.
