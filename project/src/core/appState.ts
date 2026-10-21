@@ -76,7 +76,7 @@ interface AppState {
   requireAuth: (action: () => void) => void;
   /**
    * Enter SG16 without any account: starts an anonymous device session (no Google, no email),
-   * then runs `action` or opens the AI chat. Chat history stays on this device.
+   * then runs `action` or opens Shield Home. Chat history stays on this device.
    */
   startSession: (action?: () => void) => Promise<void>;
   setAuthSession: (token: string, user: AuthUser) => void;
@@ -178,7 +178,8 @@ export const useAppStore = create<AppState>((set, getState) => ({
     if (action) {
       action();
     } else if (getState().currentWorkspace === 'home') {
-      getState().setWorkspace('general');
+      // Shield Home is the work homepage — land there, the user picks a shield.
+      getState().setWorkspace('home');
     }
   },
 

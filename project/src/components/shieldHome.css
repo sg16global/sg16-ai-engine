@@ -67,12 +67,14 @@
   width: min(1500px, 100vw);
   margin: auto;
   transform-origin: center center;
+  /* Nodes size against the stage height (cqh) so both rows fit on short screens. */
+  container-type: size;
 }
 
 .shield-node {
   position: absolute;
-  width: 218px;
-  height: 268px;
+  width: min(218px, 30.9cqh);
+  height: min(268px, 38cqh);
   padding: 0;
   border: 0;
   background: transparent;
@@ -89,7 +91,7 @@
 .shield-node--coding { left: 26%; top: 68%; }
 .shield-node--market { left: 74%; top: 68%; }
 
-.shield-node--featured { width: 246px; height: 302px; z-index: 7; }
+.shield-node--featured { width: min(246px, 34.2cqh); height: min(302px, 42cqh); z-index: 7; }
 
 .shield-node__logo {
   display: block;
@@ -154,6 +156,12 @@
 }
 
 
+
+/* Desktop / tablet: the art ends ~14% of the node height above the box, so tuck the tag
+   just under it. At -22px it hung into the row below (top-row tags covered Coding Hub / Market). */
+@media (min-width: 761px) {
+  .shield-node__neon-tag { bottom: calc(14% - 22px); }
+}
 
 @keyframes shieldNeonPulse {
   0% {
@@ -311,18 +319,15 @@
   .hud-icon, .hud-logout { height: 48px; min-height: 44px; }
   .hud-icon { width: 48px; min-width: 44px; }
   .hud-logout { width: 120px; }
-  .shield-node { width: 198px; height: 244px; }
-  .shield-node--featured { width: 224px; height: 276px; }
-  .shield-node__logo { max-height: 100%; }
+  .shield-node { width: min(198px, 30.9cqh); height: min(244px, 38cqh); }
+  .shield-node--featured { width: min(224px, 34.2cqh); height: min(276px, 42cqh); }
   .shield-node__icon { width: 58px; height: 58px; margin-bottom: 10px; }
   .shield-node--featured .shield-node__icon { width: 68px; height: 68px; }
-  .shield-node__logo { width: 100%; height: auto; max-height: 118px; }
-  .shield-node--featured .shield-node__logo { max-height: 132px; }
   .shield-node strong { font-size: 20px; }
   .shield-node--featured strong { font-size: 28px; }
   .shield-node small { font-size: 12px; margin-top: 8px; }
-  .shield-clock { width: 340px; height: 112px; }
-  .shield-clock__time { font-size: 42px; }
+  .shield-clock { width: min(340px, 28vw); height: 112px; }
+  .shield-clock__time { font-size: min(42px, 4.2vw); }
   .shield-clock__date { font-size: 15px; margin-top: 8px; }
   .circuit { width: 200px; }
   .shield-status {
@@ -332,8 +337,8 @@
   }
 }
 
-/* Phone — real grid layout (no transform:scale) */
-@media (max-width: 760px) {
+/* Phone (portrait, or landscape with a short screen) — real grid layout (no transform:scale) */
+@media (max-width: 760px), (max-width: 932px) and (orientation: landscape) and (max-height: 500px) {
   .shield-home {
     overflow-x: hidden;
     overflow-y: auto;
@@ -387,6 +392,7 @@
     max-width: 480px;
     margin: 0 auto;
     transform: none;
+    container-type: normal;
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 16px 14px;
@@ -503,7 +509,7 @@
 }
 
 /* Phone landscape — fit all five shields in one view */
-@media (max-width: 932px) and (orientation: landscape) {
+@media (max-width: 932px) and (orientation: landscape) and (max-height: 500px) {
   .shield-home {
     overflow-y: auto;
   }
@@ -520,6 +526,7 @@
   }
 
   .shield-home__stage {
+    container-type: normal;
     display: grid;
     grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 8px;

@@ -931,3 +931,58 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── INSTALLED DESKTOP APP (window-controls-overlay) ──
+   The app paints its own title strip (AppTitleBar), so the top bar stays SG16-dark
+   instead of Chrome's light frame. Everything else shifts down by the strip height. */
+.sg16-titlebar {
+  display: none;
+}
+
+@media (display-mode: window-controls-overlay) {
+  :root {
+    --sg16-titlebar-h: env(titlebar-area-height, 33px);
+  }
+
+  body {
+    box-sizing: border-box;
+    padding-top: var(--sg16-titlebar-h);
+  }
+
+  .sg16-titlebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 2147483000;
+    height: var(--sg16-titlebar-h);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding-left: calc(env(titlebar-area-x, 0px) + 12px);
+    box-sizing: border-box;
+    background: #050509;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    color: rgba(247, 247, 252, 0.82);
+    font: 500 12px/1 'Inter', system-ui, sans-serif;
+    letter-spacing: 0.01em;
+    user-select: none;
+    app-region: drag;
+    -webkit-app-region: drag;
+  }
+
+  .sg16-titlebar img {
+    border-radius: 50%;
+  }
+
+  .sg16-app-shell {
+    min-height: calc(100dvh - var(--sg16-titlebar-h)) !important;
+  }
+
+  .sg16-app-shell.sg16-home-shell,
+  .sg16-app-shell.sg16-workspace-shell,
+  .shield-home {
+    height: calc(100dvh - var(--sg16-titlebar-h)) !important;
+    max-height: calc(100dvh - var(--sg16-titlebar-h)) !important;
+  }
+}
