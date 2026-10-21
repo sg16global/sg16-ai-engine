@@ -77,22 +77,7 @@ export interface Message {
   imageUrl?: string;
   generatedImageUrl?: string;
   liveSearch?: boolean;
-  /** Short text shown in the bubble when `content` is a long machine prompt (scan report, document). */
-  display?: string;
-  /** Error notice from the app — shown in the thread but never sent back to the AI as history. */
-  error?: boolean;
 }
-
-/** One conversation inside a shield. Each shield keeps its own list on this device. */
-export interface ChatThread {
-  id: string;
-  title: string;
-  createdAt: number;
-  updatedAt: number;
-  messages: Message[];
-}
-
-export type ChatThreads = Record<WorkspaceId, ChatThread[]>;
 
 export interface MemoryEntry {
   id: string;

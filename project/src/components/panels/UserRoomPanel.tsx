@@ -19,8 +19,7 @@ import { useAppStore } from '../../core/appState';
 import { isAuthenticated, verificationStatusLabel } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
-import { plainPreview } from '../../lib/utils';
-import type { ChatThreads, WorkspaceId } from '../../core/types';
+import type { Message, WorkspaceId } from '../../core/types';
 
 interface UserRoomActivity {
   workspaceId: string;
@@ -30,18 +29,12 @@ interface UserRoomActivity {
 }
 
 /** Activity per workspace, from the chat history saved on this device. */
-function localActivity(threads: ChatThreads): UserRoomActivity[] {
-  return Object.entries(threads)
+function localActivity(messages: Record<string, Message[]>): UserRoomActivity[] {
+  return Object.entries(messages)
     .filter(([, list]) => list.length > 0)
     .map(([workspaceId, list]) => {
-      const latest = list.reduce((a, b) => (b.updatedAt > a.updatedAt ? b : a));
-      const last = latest.messages[latest.messages.length - 1];
-      return {
-        workspaceId,
-        messageCount: list.reduce((sum, t) => sum + t.messages.length, 0),
-        lastMessage: plainPreview(last?.display ?? last?.content ?? latest.title).slice(0, 140),
-        lastActivityAt: latest.updatedAt,
-      };
+      const last = list[list.length - 1];
+      return { workspaceId, messageCount: list.length, lastMessage: last.content.slice(0, 140), lastActivityAt: last.timestamp };
     })
     .sort((a, b) => b.lastActivityAt - a.lastActivityAt);
 }
@@ -121,8 +114,8 @@ export function UserRoomPanel() {
   const logout = useAppStore((s) => s.logout);
   const openPricing = useAppStore((s) => s.openPricing);
 
-  const threads = useAppStore((s) => s.threads);
-  const activity = useMemo(() => localActivity(threads), [threads]);
+  const messages = useAppStore((s) => s.messages);
+  const activity = useMemo(() => localActivity(messages), [messages]);
   const totalMessages = activity.reduce((sum, a) => sum + a.messageCount, 0);
 
   if (!isAuthenticated(authUser)) {

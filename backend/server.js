@@ -68,19 +68,6 @@ import {
 } from './lib/childrenWorld/handlers.js';
 import { isChildrenWorldEnabled, requireChildrenClient } from './lib/childrenWorld/clientAuth.js';
 import { isSpaPath } from './lib/spaRoutes.js';
-import {
-  applySavedAdminConfig,
-  handleAdminChangePassword,
-  handleAdminLogin,
-  handleAdminQuickConnect,
-  handleAdminSaveConnection,
-  handleAdminStatus,
-  handleAdminTest,
-  requireAdmin,
-} from './lib/admin.js';
-
-// Settings saved from the admin panel (AI connection, admin password) override the environment.
-applySavedAdminConfig();
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -269,22 +256,6 @@ app.get('/health/deep', async (_req, res) => {
     modelFallbacks: getTextModelChain(),
   });
 });
-
-const adminLoginLimit = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 8,
-  skipSuccessfulRequests: true,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: { error: 'Too many login attempts. Try again in 15 minutes.' },
-});
-
-app.post('/api/v1/admin/login', adminLoginLimit, handleAdminLogin);
-app.get('/api/v1/admin/status', requireAdmin, handleAdminStatus);
-app.post('/api/v1/admin/test', requireAdmin, handleAdminTest);
-app.put('/api/v1/admin/connection', requireAdmin, handleAdminSaveConnection);
-app.post('/api/v1/admin/connect', requireAdmin, handleAdminQuickConnect);
-app.post('/api/v1/admin/password', requireAdmin, adminLoginLimit, handleAdminChangePassword);
 
 app.get('/api/v1/auth/config', getGoogleClientIdForFrontend);
 app.post('/api/v1/auth/google', handleGoogleAuth);

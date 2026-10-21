@@ -228,31 +228,21 @@ function getCustomProvider() {
  * When AI_API_URL is set it is the primary brain for every feature.
  */
 export function getApiProvider() {
-  return buildApiProvider({
-    url: process.env.AI_API_URL,
-    key: process.env.AI_API_KEY,
-    model: process.env.AI_MODEL,
-    visionModel: process.env.AI_VISION_MODEL,
-  });
-}
-
-/** Provider for an AI_API_URL-style connection; also used by the admin panel to test before saving. */
-export function buildApiProvider({ url, key, model, visionModel } = {}) {
-  const trimmed = url?.trim();
-  if (!trimmed) return null;
-  const base = trimmed.replace(/\/+$/, '');
+  const url = process.env.AI_API_URL?.trim();
+  if (!url) return null;
+  const base = url.replace(/\/+$/, '');
   const format = /\/api\/brain$/.test(base) ? 'sg16-brain' : 'openai';
-  const chatModel = model?.trim() || (format === 'sg16-brain' ? 'sg16-brain' : 'gpt-4o-mini');
+  const model = process.env.AI_MODEL?.trim() || (format === 'sg16-brain' ? 'sg16-brain' : 'gpt-4o-mini');
   return {
     id: 'api',
     format,
     apiUrl: format === 'sg16-brain' || base.endsWith('/chat/completions') ? base : `${base}/chat/completions`,
-    apiKey: cleanKey(key) || '',
+    apiKey: cleanKey(process.env.AI_API_KEY) || '',
     models: {
-      text: chatModel,
-      reasoning: chatModel,
-      coding: chatModel,
-      vision: visionModel?.trim() || null,
+      text: model,
+      reasoning: model,
+      coding: model,
+      vision: process.env.AI_VISION_MODEL?.trim() || null,
     },
   };
 }
@@ -514,8 +504,9 @@ async function callSg16Brain({ provider, messages, timeoutMs }) {
   return content;
 }
 
-/** Quick chat probe for /health/deep when AI_API_URL is set (or for a provider being tested). */
-export async function probeApiChat(api = getApiProvider(), timeoutMs = 60000) {
+/** Quick chat probe for /health/deep when AI_API_URL is set. */
+export async function probeApiChat() {
+  const api = getApiProvider();
   const started = Date.now();
   try {
     const reply = await callChatCompletion({
@@ -523,7 +514,7 @@ export async function probeApiChat(api = getApiProvider(), timeoutMs = 60000) {
       model: api.models.text,
       temperature: 0,
       maxTokens: 8,
-      timeoutMs,
+      timeoutMs: 60000,
       provider: api,
     });
     return { ok: true, latencyMs: Date.now() - started, model: api.models.text, sample: reply.slice(0, 40) };

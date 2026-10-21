@@ -12,23 +12,6 @@ import { isSpaPath } from '../../backend/lib/spaRoutes.js';
 
 const NO_CACHE_FILES = new Set(['/sw.js', '/manifest.json', '/sitemap.xml', '/robots.txt']);
 
-/** Admin settings travel backend → Worker in this header (see backend/lib/admin.js); never to the browser. */
-const PERSIST_HEADER = 'X-SG16-Persist-Env';
-const PERSIST_REQUEST_HEADER = 'x-sg16-persist';
-
-function decodeBase64Url(value) {
-  const b64 = value.replace(/-/g, '+').replace(/_/g, '/');
-  const bytes = Uint8Array.from(atob(b64 + '='.repeat((4 - (b64.length % 4)) % 4)), (c) => c.charCodeAt(0));
-  return new TextDecoder().decode(bytes);
-}
-
-function withoutPersistHeader(response) {
-  if (!response.headers.has(PERSIST_HEADER)) return response;
-  const res = new Response(response.body, response);
-  res.headers.delete(PERSIST_HEADER);
-  return res;
-}
-
 function isBackendPath(path) {
   return path.startsWith('/api/') || path === '/health' || path.startsWith('/health/');
 }
@@ -56,10 +39,6 @@ async function proxyToBackend(request, env, url) {
   headers.set('X-Forwarded-Proto', url.protocol.replace(':', ''));
   const clientIp = request.headers.get('CF-Connecting-IP');
   if (clientIp) headers.set('X-Forwarded-For', clientIp);
-  // Only the Worker may ask the backend to hand back admin settings for safe-keeping.
-  headers.delete(PERSIST_REQUEST_HEADER);
-  const persistAdmin = !external && url.pathname.startsWith('/api/v1/admin/');
-  if (persistAdmin) headers.set(PERSIST_REQUEST_HEADER, '1');
 
   const init = {
     method: request.method,
@@ -69,18 +48,8 @@ async function proxyToBackend(request, env, url) {
     redirect: 'manual',
   };
   try {
-    if (external) return withoutPersistHeader(await fetch(target, init));
-    const container = backendContainer(env);
-    const response = await container.fetch(new Request(target, init));
-    const persisted = response.headers.get(PERSIST_HEADER);
-    if (persistAdmin && persisted && response.ok) {
-      try {
-        await container.saveAdminEnv(JSON.parse(decodeBase64Url(persisted)));
-      } catch (err) {
-        console.error('[sg16-web] could not store admin settings:', err?.message || err);
-      }
-    }
-    return withoutPersistHeader(response);
+    if (external) return await fetch(target, init);
+    return await backendContainer(env).fetch(new Request(target, init));
   } catch (err) {
     console.error('[sg16-web] backend unreachable:', err?.message || err);
     return backendUnavailable('SG16 backend is starting or unreachable');

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useState } from 'react';
 import {
   LayoutDashboard,
   User,
@@ -21,8 +21,6 @@ import { ChatPanel } from '../../components/chat/ChatPanel';
 import { useAppStore } from '../../core/appState';
 import { SG16_ACCENT } from '../../core/pilot';
 import { useAutoHideChrome } from '../../hooks/useAutoHideChrome';
-import { useShieldChat } from '../../hooks/useShieldChat';
-import { shieldActivity } from '../../lib/shieldActivity';
 
 type StudentView =
   | 'dashboard'
@@ -58,10 +56,7 @@ const dashCards: { id: StudentView; title: string; desc: string; icon: typeof Us
 ];
 
 export const StudentShieldWorkspace = () => {
-  const { inChat, openChat, backToHub } = useShieldChat('student-shield');
-  const view: StudentView = inChat ? 'chat' : 'dashboard';
-  const threads = useAppStore((s) => s.threads['student-shield']);
-  const activity = useMemo(() => shieldActivity(threads), [threads]);
+  const [view, setView] = useState<StudentView>('dashboard');
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const authUser = useAppStore((s) => s.authUser);
   const settings = useAppStore((s) => s.settings);
@@ -72,7 +67,7 @@ export const StudentShieldWorkspace = () => {
 
   const openTool = (id: StudentView, prompt?: string) => {
     if (id === 'dashboard') {
-      backToHub();
+      setView('dashboard');
       chrome.onNavSelect();
       return;
     }
@@ -81,7 +76,10 @@ export const StudentShieldWorkspace = () => {
       chrome.onNavSelect();
       return;
     }
-    openChat(prompt);
+    if (prompt) {
+      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
+    }
+    setView('chat');
     chrome.onNavSelect();
   };
 
@@ -273,24 +271,24 @@ export const StudentShieldWorkspace = () => {
                 </button>
 
                 <div className="sg16-neon-frame rounded-xl p-4">
-                  <div className="font-semibold text-sm mb-4">Study Activity</div>
+                  <div className="font-semibold text-sm mb-4">Academic Overview</div>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     {[
-                      { label: 'Study chats', value: String(activity.conversations) },
-                      { label: 'Questions asked', value: String(activity.questions) },
-                      { label: 'Last session', value: activity.lastActive },
-                      { label: 'Time', value: activity.conversations ? activity.lastActiveHint : '—' },
+                      { label: 'Current GPA', value: '3.85' },
+                      { label: 'Total Courses', value: '08' },
+                      { label: 'Completed', value: '05' },
+                      { label: 'Pending', value: '03' },
                     ].map((s) => (
                       <div key={s.label} className="text-center">
                         <div className="text-[10px] text-white/45 uppercase tracking-wide">{s.label}</div>
-                        <div className="text-xl font-bold mt-1 truncate" style={{ color: '#FF3DA5' }}>
+                        <div className="text-2xl font-bold mt-1" style={{ color: '#FF3DA5' }}>
                           {s.value}
                         </div>
                       </div>
                     ))}
                   </div>
                   <p className="text-[10px] text-white/35 mt-4">
-                    Counted from your Student Shield chats on this device. School records (GPA, courses) are not connected.
+                    Overview numbers are local placeholders until school data sync is connected.
                   </p>
                 </div>
               </div>
@@ -314,7 +312,7 @@ export const StudentShieldWorkspace = () => {
               <div className="px-4 pt-3">
                 <button
                   type="button"
-                  onClick={backToHub}
+                  onClick={() => setView('dashboard')}
                   className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white border border-white/15 rounded-xl px-3 py-2"
                 >
                   <ChevronLeft className="w-3.5 h-3.5" /> Back to Dashboard

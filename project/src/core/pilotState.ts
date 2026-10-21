@@ -126,18 +126,17 @@ export const usePilotStore = create<PilotState>((set, get) => ({
 
     // Hand finished work into the module chat
     if (doneJob.resultPrompt) {
-      useAppStore.getState().queuePrompt(
-        doneJob.workspaceId,
-        [
+      useAppStore.setState({
+        pendingPrompt: [
           `[AI Pilot complete — ${doneJob.title}]`,
           '',
           'Continue from the finished pilot plan. Summarize what was done and deliver the useful result for the user.',
           '',
           `Original task: ${doneJob.resultPrompt}`,
         ].join('\n'),
-        { display: `AI Pilot finished: ${doneJob.title}` },
-      );
-      useAppStore.setState({ currentWorkspace: doneJob.workspaceId });
+        pendingPromptToken: Date.now(),
+        currentWorkspace: doneJob.workspaceId,
+      });
     }
   },
 }));

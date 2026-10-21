@@ -27,61 +27,59 @@ export const MemoryVaultWorkspace = () => {
   return (
     <WorkspaceShell
       title="Memory Vault"
-      subtitle="Save notes, then ask SG16 AI to recall and connect them — notes stay on this device"
-      badge="On device"
+      subtitle="Store and recall your knowledge with SG16 AI"
+      badge="Persistent"
       badgeClass="text-[#FF5CB8]"
     >
-      <div className="h-full flex flex-col lg:flex-row sg16-work-field">
-        <aside className="sg16-sidebar lg:w-72 shrink-0 border-b lg:border-b-0 lg:border-r border-white/10 p-4 overflow-y-auto max-h-56 lg:max-h-none">
-          <p className="text-[11px] text-white/40 uppercase tracking-[0.16em] mb-3">Saved memories · {memories.length}</p>
+      <div className="h-full flex flex-col lg:flex-row">
+        <aside className="lg:w-72 border-b lg:border-b-0 lg:border-r border-white/10 p-4 overflow-y-auto max-h-48 lg:max-h-none">
+          <p className="text-xs text-gray-500 uppercase tracking-wider mb-3">Saved Memories</p>
 
           <div className="space-y-2 mb-4">
             <input
               value={saveTitle}
               onChange={(e) => setSaveTitle(e.target.value)}
               placeholder="Title (optional)"
-              className="w-full bg-black/40 border border-white/10 focus:border-[#FF168D]/45 rounded-lg px-3 py-2 text-xs text-white outline-none placeholder:text-white/35"
+              className="w-full bg-[#0A0A12] border border-white/10 rounded-lg px-3 py-2 text-xs outline-none"
             />
             <textarea
               value={saveContent}
               onChange={(e) => setSaveContent(e.target.value)}
               placeholder="Save a note to memory..."
               rows={2}
-              className="w-full bg-black/40 border border-white/10 focus:border-[#FF168D]/45 rounded-lg px-3 py-2 text-xs text-white outline-none resize-none placeholder:text-white/35"
+              className="w-full bg-[#0A0A12] border border-white/10 rounded-lg px-3 py-2 text-xs outline-none resize-none"
             />
             <button
               type="button"
               onClick={handleSave}
-              disabled={!saveContent.trim()}
-              className="w-full flex items-center justify-center gap-1.5 bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] py-2 rounded-lg text-xs font-semibold disabled:opacity-40 transition"
+              className="w-full flex items-center justify-center gap-1.5 bg-emerald-600 hover:bg-emerald-500 py-2 rounded-lg text-xs font-medium"
             >
               <Plus className="w-3.5 h-3.5" /> Save to Vault
             </button>
           </div>
 
           {memories.length === 0 ? (
-            <p className="text-xs text-white/40">No memories saved yet.</p>
+            <p className="text-xs text-gray-600">No memories saved yet.</p>
           ) : (
             memories.map((m) => (
-              <div key={m.id} className="bg-black/30 border border-white/10 hover:border-[#FF168D]/30 rounded-lg p-3 mb-2 group transition">
+              <div key={m.id} className="bg-[#0A0A12]/80 border border-white/10 rounded-lg p-3 mb-2 group">
                 <div className="flex justify-between items-start gap-2">
-                  <p className="text-xs font-semibold text-[#FF5CB8] truncate">{m.title}</p>
+                  <p className="text-xs font-semibold text-emerald-400 truncate">{m.title}</p>
                   <button
                     type="button"
                     onClick={() => { deleteMemory(m.id); refresh(); }}
-                    title="Delete memory"
-                    className="opacity-50 group-hover:opacity-100 text-white/40 hover:text-[#FF526B]"
+                    className="opacity-0 group-hover:opacity-100 text-gray-600 hover:text-[#FF526B]"
                   >
                     <Trash2 className="w-3 h-3" />
                   </button>
                 </div>
-                <p className="text-xs text-white/55 mt-1 line-clamp-2">{m.content}</p>
+                <p className="text-xs text-gray-500 mt-1 line-clamp-2">{m.content}</p>
               </div>
             ))
           )}
         </aside>
 
-        <div className="flex-1 min-h-0 min-w-0">
+        <div className="flex-1 min-h-0">
           <ChatPanel
             workspaceId="memory"
             placeholder="Ask SG16 AI to recall or connect your saved memories..."

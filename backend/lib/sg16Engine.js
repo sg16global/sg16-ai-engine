@@ -263,20 +263,6 @@ export async function handleUserMessage({
   return { reply };
 }
 
-/**
- * Prior turns only, as plain user/assistant text. Older app builds also put the new question at the
- * end of `history`, which made the AI see it twice — drop that copy.
- */
-export function cleanHistory(history, message) {
-  if (!Array.isArray(history)) return [];
-  const turns = history.filter(
-    (m) => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim(),
-  );
-  const last = turns[turns.length - 1];
-  if (last?.role === 'user' && last.content.trim() === message.trim()) turns.pop();
-  return turns.map((m) => ({ role: m.role, content: m.content }));
-}
-
 export async function handleChatRequest(req, res) {
   if (req.method && req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -317,7 +303,7 @@ export async function handleChatRequest(req, res) {
       message: message.trim(),
       workspaceId: ws,
       imageUrl,
-      history: cleanHistory(history, message),
+      history,
       targetLanguage,
       memoryContext,
     });

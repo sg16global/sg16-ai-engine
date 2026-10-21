@@ -6,7 +6,7 @@ export const VoiceWorkspace = () => (
     title="Voice AI"
     subtitle="Tap mic → speak → tap mic again. Works on iPhone via SG16 server."
     badge="Voice"
-    badgeClass="text-[#FF5CB8]"
+    badgeClass="text-pink-400"
   >
     <ChatPanel
       workspaceId="voice"

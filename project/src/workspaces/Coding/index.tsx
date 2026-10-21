@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   ArrowLeft,
   Code2,
@@ -9,49 +9,47 @@ import {
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
-import { ProjectCheckPanel, type ShieldScanSummary } from '../../components/coding/ProjectCheckPanel';
+import { ProjectCheckPanel } from '../../components/coding/ProjectCheckPanel';
 import { HeroCard, ToolCard, BarListCard, BarRow } from '../../components/ui/Sg16Cards';
-import { useShieldChat } from '../../hooks/useShieldChat';
-import { loadCodingReports, saveCodingReport } from '../../lib/codingReports';
+import { useAppStore } from '../../core/appState';
+import { loadCodingReports, saveCodingReport, guessLanguage } from '../../lib/codingReports';
+
+type View = 'hub' | 'check' | 'chat';
 
 export const CodingWorkspace = () => {
-  const { inChat, openChat, backToHub } = useShieldChat('coding');
-  const [checking, setChecking] = useState(false);
+  const [view, setView] = useState<View>('hub');
   const [reports, setReports] = useState(() => loadCodingReports());
-  const reportsRef = useRef<HTMLDivElement>(null);
 
-  const onAnalyze = (prompt: string, display: string, scan?: ShieldScanSummary) => {
-    // Only a real Coding Shield result becomes a report — never an estimated score.
-    if (scan) {
-      saveCodingReport({
-        title: 'Coding Shield scan',
-        language: scan.language,
-        errors: scan.issues,
-        score: scan.score,
-      });
-      setReports(loadCodingReports());
+  const onAnalyze = (prompt: string) => {
+    const codeMatch = prompt.match(/```([\s\S]*?)```/);
+    const code = codeMatch?.[1] || prompt;
+    const score = Number(prompt.match(/SCORE: (\d+)/)?.[1] || 75);
+    const issueMatches = prompt.match(/^- .+: .+$/gm) || [];
+    saveCodingReport({
+      title: prompt.includes('Coding Shield') ? 'Coding Shield' : 'Project check',
+      language: guessLanguage(code),
+      errors: issueMatches.filter((l) => !/0 error|no secret|valid|clean/i.test(l)).length,
+      score,
+    });
+    setReports(loadCodingReports());
+    useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
+    setView('chat');
+  };
+  const openChat = (prompt?: string) => {
+    if (prompt) {
+      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
     }
-    setChecking(false);
-    openChat(prompt, display);
-  };
-
-  const goHub = () => {
-    setChecking(false);
-    backToHub();
-  };
-
-  const showReports = () => {
-    reportsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setView('chat');
   };
 
   const table = useMemo(() => reports, [reports]);
 
-  if (checking || inChat) {
+  if (view === 'check' || view === 'chat') {
     return (
       <WorkspaceShell
-        title={checking ? 'Check Your Code' : 'Coding Hub'}
+        title={view === 'check' ? 'Check Your Code' : 'Coding Hub'}
         subtitle={
-          checking
+          view === 'check'
             ? 'Paste code → score free → repair on Premium'
             : 'AI coding help for your project'
         }
@@ -60,37 +58,28 @@ export const CodingWorkspace = () => {
         skin="coding"
       >
         <div className="h-full flex flex-col min-h-0">
-          <div className="px-4 sm:px-5 pt-3 shrink-0">
+          <div className="px-4 sm:px-5 pt-3">
             <button
               type="button"
-              onClick={goHub}
+              onClick={() => setView('hub')}
               className="sg16-bar-soft inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Coding
             </button>
           </div>
-          {checking ? (
-            <div className="flex-1 min-h-0 overflow-y-auto">
-              <ProjectCheckPanel onAnalyze={onAnalyze} />
-              <p className="sg16-chat-col px-4 sm:px-5 text-xs text-white/40 leading-relaxed">
-                The scan score and the AI review open in a Coding Hub chat. Past scans are listed under
-                Recent Reports, and past chats under History.
-              </p>
-            </div>
-          ) : (
-            <div className="flex-1 min-h-0">
-              <ChatPanel
-                workspaceId="coding"
-                monospace
-                placeholder="Describe what to build or fix..."
-                suggestions={[
-                  'Review this React component for bugs',
-                  'Write a secure Express API route',
-                  'Explain this TypeScript error',
-                ]}
-              />
-            </div>
-          )}
+          {view === 'check' && <ProjectCheckPanel onAnalyze={onAnalyze} />}
+          <div className="flex-1 min-h-0">
+            <ChatPanel
+              workspaceId="coding"
+              monospace
+              placeholder="Describe what to build or fix..."
+              suggestions={[
+                'Review this React component for bugs',
+                'Write a secure Express API route',
+                'Explain this TypeScript error',
+              ]}
+            />
+          </div>
         </div>
       </WorkspaceShell>
     );
@@ -110,7 +99,7 @@ export const CodingWorkspace = () => {
           icon={<Code2 className="w-7 h-7" />}
           iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           cta="+ New check"
-          onClick={() => setChecking(true)}
+          onClick={() => setView('check')}
         />
         <div className="grid sm:grid-cols-3 lg:grid-cols-1 gap-3">
           <ToolCard
@@ -118,26 +107,25 @@ export const CodingWorkspace = () => {
             desc="Recent scores & checks"
             icon={<ClipboardList className="w-5 h-5" />}
             iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
-            onClick={showReports}
+            onClick={() => setView('check')}
           />
           <ToolCard
             title="AI Solution"
             desc="Ask Coding Hub to fix or build"
             icon={<Lightbulb className="w-5 h-5" />}
             iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
-            onClick={() => openChat()}
+            onClick={() => openChat('Help me solve a coding problem step by step.')}
           />
           <ToolCard
             title="My Snippets"
             desc="Paste a snippet and improve it"
             icon={<FileCode2 className="w-5 h-5" />}
             iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
-            onClick={() => setChecking(true)}
+            onClick={() => openChat('Improve this code snippet for clarity and safety:')}
           />
         </div>
       </div>
 
-      <div ref={reportsRef} className="scroll-mt-4">
       <BarListCard
         title="Recent Reports"
         right={<span className="text-[11px] text-white/35">{table.length} saved</span>}
@@ -148,7 +136,7 @@ export const CodingWorkspace = () => {
             <button
               type="button"
               className="text-[#FF5CB8] hover:underline"
-              onClick={() => setChecking(true)}
+              onClick={() => setView('check')}
             >
               Check Your Code
             </button>{' '}
@@ -165,17 +153,14 @@ export const CodingWorkspace = () => {
                 </div>
               </div>
               <div className="flex items-center gap-4 shrink-0 text-xs">
-                <span className="text-[#FF5CB8]">{r.errors} issue{r.errors === 1 ? '' : 's'}</span>
-                <span className={`font-medium ${r.score >= 70 ? 'text-emerald-400' : r.score >= 50 ? 'text-amber-300' : 'text-[#FF526B]'}`}>
-                  {r.score}/100
-                </span>
+                <span className="text-[#FF5CB8]">{r.errors} err</span>
+                <span className="text-emerald-400 font-medium">{r.score}/100</span>
                 <span className="text-white/35 hidden sm:inline">{r.date}</span>
               </div>
             </BarRow>
           ))
         )}
       </BarListCard>
-      </div>
     </ModuleHub>
     </div>
   );

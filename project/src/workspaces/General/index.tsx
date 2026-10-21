@@ -3,37 +3,33 @@ import { MessageSquarePlus, Search, Trash2 } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { SG16_BRAND } from '../../core/branding';
-import { sortedThreads, useAppStore } from '../../core/appState';
-
-function threadDate(ts: number) {
-  const d = new Date(ts);
-  return d.toDateString() === new Date().toDateString()
-    ? d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : d.toLocaleDateString();
-}
+import { useAppStore } from '../../core/appState';
 
 export const GeneralWorkspace = () => {
-  const threads = useAppStore((s) => s.threads.general);
-  const activeId = useAppStore((s) => s.activeThreadId.general ?? null);
-  const newThread = useAppStore((s) => s.newThread);
-  const openThread = useAppStore((s) => s.openThread);
-  const deleteThread = useAppStore((s) => s.deleteThread);
+  const messages = useAppStore((s) => s.messages.general);
+  const clearMessages = useAppStore((s) => s.clearMessages);
   const [query, setQuery] = useState('');
 
-  const list = useMemo(() => {
-    const ordered = sortedThreads(threads);
-    const q = query.trim().toLowerCase();
-    if (!q) return ordered;
-    return ordered.filter(
-      (t) =>
-        t.title.toLowerCase().includes(q) ||
-        t.messages.some((m) => (m.display ?? m.content).toLowerCase().includes(q)),
-    );
-  }, [threads, query]);
-
-  const remove = (id: string, title: string) => {
-    if (window.confirm(`Delete "${title}"? This cannot be undone.`)) deleteThread('general', id);
-  };
+  const threads = useMemo(() => {
+    const users = messages.filter((m) => m.role === 'user');
+    const list = users.length
+      ? users
+          .slice()
+          .reverse()
+          .slice(0, 12)
+          .map((m) => ({
+            id: m.id,
+            title: m.content.slice(0, 48) + (m.content.length > 48 ? '…' : ''),
+            time: new Date(m.timestamp || Date.now()).toLocaleDateString(),
+          }))
+      : [
+          { id: 'hint-1', title: 'Ask anything worldwide', time: 'Start' },
+          { id: 'hint-2', title: 'News, facts, daily questions', time: 'Tip' },
+        ];
+    if (!query.trim()) return list;
+    const q = query.toLowerCase();
+    return list.filter((t) => t.title.toLowerCase().includes(q));
+  }, [messages, query]);
 
   return (
     <WorkspaceShell
@@ -43,13 +39,13 @@ export const GeneralWorkspace = () => {
       badgeClass="text-white"
       skin="shell"
     >
-      <div className="h-full min-h-0 grid lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] sg16-work-field">
-        {/* Chat history rail — every conversation on this device */}
-        <aside className="hidden lg:flex flex-col sg16-sidebar min-h-0 min-w-0 w-full p-2 gap-1.5 border-r border-white/10">
+      <div className="h-full min-h-0 grid lg:grid-cols-[minmax(0,10rem)_minmax(0,1fr)] sg16-work-field">
+        {/* Inner side panel — slim history rail */}
+        <aside className="hidden lg:flex flex-col sg16-sidebar min-h-0 min-w-0 w-full max-w-[10rem] p-2 gap-1.5 border-r border-white/10">
           <button
             type="button"
-            onClick={() => newThread('general')}
-            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#FF168D]/15 hover:bg-[#FF168D]/25 border border-[#FF168D]/30 text-white text-xs font-semibold py-2 transition"
+            onClick={() => clearMessages('general')}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-black/35 hover:bg-black/50 text-white text-[11px] font-semibold py-2 transition"
           >
             <MessageSquarePlus className="w-3.5 h-3.5" /> New chat
           </button>
@@ -65,50 +61,32 @@ export const GeneralWorkspace = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-0.5 pt-0.5">
-            {list.length === 0 && (
-              <p className="px-2 py-4 text-[11px] text-white/40 leading-relaxed">
-                {threads.length === 0
-                  ? 'Your chats appear here. They are saved on this device only.'
-                  : 'No chats match your search.'}
-              </p>
-            )}
-            {list.map((t) => (
+            {threads.map((t) => (
               <div
                 key={t.id}
-                className={`group flex items-start gap-1 rounded-lg px-2 py-2 border transition ${
-                  t.id === activeId
-                    ? 'bg-[#FF168D]/12 border-[#FF168D]/35'
-                    : 'bg-black/20 border-transparent hover:bg-black/35 hover:border-white/10'
-                }`}
+                className="rounded-lg px-2 py-2 bg-black/20 hover:bg-black/35 border border-transparent hover:border-white/10"
               >
-                <button
-                  type="button"
-                  onClick={() => openThread('general', t.id)}
-                  className="flex-1 min-w-0 text-left"
-                >
-                  <div className="text-[11px] text-white/90 line-clamp-2 leading-snug">{t.title}</div>
-                  <div className="text-[9px] text-white/45 mt-0.5">{threadDate(t.updatedAt)}</div>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => remove(t.id, t.title)}
-                  title="Delete chat"
-                  className="p-0.5 text-white/30 hover:text-[#FF526B] opacity-0 group-hover:opacity-100 focus:opacity-100"
-                >
-                  <Trash2 className="w-3 h-3" />
-                </button>
+                <div className="text-[11px] text-white/90 line-clamp-2 leading-snug">{t.title}</div>
+                <div className="text-[9px] text-white/45 mt-0.5">{t.time}</div>
               </div>
             ))}
           </div>
 
-          <p className="text-[9px] text-white/30 text-center pb-1">Saved on this device only</p>
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => clearMessages('general')}
+              className="inline-flex items-center justify-center gap-1.5 text-[11px] text-white/70 hover:text-white py-2"
+            >
+              <Trash2 className="w-3.5 h-3.5" /> Clear thread
+            </button>
+          )}
         </aside>
 
         <div className="min-h-0 min-w-0">
           <ChatPanel
             workspaceId="general"
             placeholder={`Message ${SG16_BRAND.chatName}...`}
-            hideHistoryOnDesktop
             suggestions={[
               'What is the news today?',
               'Latest tech headlines',

@@ -47,7 +47,5 @@
 
   // Backend secrets (set once with `npx wrangler secret put <NAME>`, passed into the container):
   //   JWT_SECRET (signs anonymous device sessions), AI_API_URL, AI_MODEL, AI_API_KEY (if needed),
-  //   optional AI_VISION_MODEL, DATABASE_URL (only to keep student verification across restarts),
-  //   ADMIN_PASSWORD_HASH (admin panel login; make it with `npm run admin:hash --prefix backend`),
-  //   optional ADMIN_EMAIL (default sg16global@gmail.com)
+  //   optional AI_VISION_MODEL, DATABASE_URL (only to keep student verification across restarts)
 }

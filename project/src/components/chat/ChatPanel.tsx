@@ -1,18 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image as ImageIcon, Download, Globe,
-  History, MessageSquarePlus, X, Paperclip,
-} from 'lucide-react';
-import { getActiveThread, selectActiveMessages, sortedThreads, useAppStore } from '../../core/appState';
+import { Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image as ImageIcon, Download, Globe } from 'lucide-react';
+import { useAppStore } from '../../core/appState';
 import { isStudentVerified } from '../../core/access';
 import { sendChat, readDocumentFile, readImageFile } from '../../lib/chatApi';
 import { uid } from '../../lib/utils';
 import { startVoiceCapture, speakText, voiceInputAvailable } from '../../lib/voiceInput';
 import { SG16_BRAND } from '../../core/branding';
-import { Markdown } from './Markdown';
 import type { Message, WorkspaceId } from '../../core/types';
 
-export const workspaceLabels: Record<WorkspaceId, string> = {
+const workspaceLabels: Record<WorkspaceId, string> = {
   general: SG16_BRAND.chatName,
   coding: 'Coding Hub',
   health: 'Health Shield',
@@ -25,26 +21,14 @@ export const workspaceLabels: Record<WorkspaceId, string> = {
   memory: 'Memory Vault',
 };
 
-/** Prior turns sent to the AI as context (the backend keeps the last few). */
-const HISTORY_TURNS = 12;
-
-const LIVE_HINT = /\b(news|today|latest|weather|headlines|breaking|current|happening|forecast)\b/i;
-
-function formatThreadDate(ts: number) {
-  const d = new Date(ts);
-  const today = new Date();
-  if (d.toDateString() === today.toDateString()) {
-    return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }
-  return d.toLocaleDateString();
+function workspaceLabel(id: WorkspaceId) {
+  return workspaceLabels[id];
 }
 
 interface ChatPanelProps {
   workspaceId: WorkspaceId;
   placeholder?: string;
   suggestions?: string[];
-  /** Shown in an empty chat when there are no suggestions. */
-  emptyHint?: string;
   allowImage?: boolean;
   allowDocument?: boolean;
   allowVoice?: boolean;
@@ -52,15 +36,12 @@ interface ChatPanelProps {
   loadingLabel?: string;
   extraControls?: React.ReactNode;
   getExtraPayload?: () => Record<string, string | undefined>;
-  /** Hide the History button on wide screens when the shield has its own history rail. */
-  hideHistoryOnDesktop?: boolean;
 }
 
 export function ChatPanel({
   workspaceId,
   placeholder = 'Ask SG16 AI...',
   suggestions = [],
-  emptyHint,
   allowImage = false,
   allowDocument = false,
   allowVoice = false,
@@ -68,21 +49,17 @@ export function ChatPanel({
   loadingLabel = 'SG16 AI is thinking...',
   extraControls,
   getExtraPayload,
-  hideHistoryOnDesktop = false,
 }: ChatPanelProps) {
-  const messages = useAppStore((s) => selectActiveMessages(s, workspaceId));
-  const activeThread = useAppStore((s) => getActiveThread(s, workspaceId));
-  const threads = useAppStore((s) => s.threads[workspaceId]);
-  const busy = useAppStore((s) => !!s.busy[workspaceId]);
+  const messages = useAppStore((s) => s.messages[workspaceId]);
+  const loading = useAppStore((s) => s.loading);
   const error = useAppStore((s) => s.error);
   const addMessage = useAppStore((s) => s.addMessage);
-  const newThread = useAppStore((s) => s.newThread);
-  const openThread = useAppStore((s) => s.openThread);
-  const deleteThread = useAppStore((s) => s.deleteThread);
-  const setBusy = useAppStore((s) => s.setBusy);
+  const clearMessages = useAppStore((s) => s.clearMessages);
+  const setLoading = useAppStore((s) => s.setLoading);
   const setError = useAppStore((s) => s.setError);
   const consumePendingPrompt = useAppStore((s) => s.consumePendingPrompt);
   const pendingPromptToken = useAppStore((s) => s.pendingPromptToken);
+  const consumePendingImage = useAppStore((s) => s.consumePendingImage);
   const settings = useAppStore((s) => s.settings);
   const subscription = useAppStore((s) => s.subscription);
   const requireAuth = useAppStore((s) => s.requireAuth);
@@ -93,52 +70,35 @@ export function ChatPanel({
   const [pendingDoc, setPendingDoc] = useState<{ name: string; text: string } | null>(null);
   const [listening, setListening] = useState(false);
   const [activeLoadingLabel, setActiveLoadingLabel] = useState(loadingLabel);
-  const [historyOpen, setHistoryOpen] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLInputElement>(null);
   const docRef = useRef<HTMLInputElement>(null);
-  const historyRef = useRef<HTMLDivElement>(null);
   const voiceSessionRef = useRef<ReturnType<typeof startVoiceCapture> | null>(null);
-
-  const activeThreadId = activeThread?.id ?? null;
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = 0;
-    setHistoryOpen(false);
-  }, [workspaceId, activeThreadId]);
+  }, [workspaceId]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
-  }, [messages, busy]);
-
-  useEffect(() => {
-    if (!historyOpen) return;
-    const close = (e: MouseEvent) => {
-      if (historyRef.current && !historyRef.current.contains(e.target as Node)) setHistoryOpen(false);
-    };
-    document.addEventListener('mousedown', close);
-    return () => document.removeEventListener('mousedown', close);
-  }, [historyOpen]);
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, loading, workspaceId]);
 
   const sendMessage = useCallback(
-    async (text?: string, image?: string, display?: string) => {
+    async (text?: string, image?: string) => {
       const raw = (text ?? input).trim();
       const img = image ?? imageUrl;
-      const doc = pendingDoc;
-      const docBlock = doc ? `Document (${doc.name}):\n\n${doc.text}` : '';
-      if (busy || (!raw && !img && !docBlock)) return;
+      const docBlock = pendingDoc
+        ? `Document (${pendingDoc.name}):\n\n${pendingDoc.text}`
+        : '';
+      const content = raw || (img ? 'Analyze this image' : '') || (docBlock ? 'Analyze this document' : '');
+      if (loading || (!content && !docBlock)) return;
 
-      const ask = raw || (img ? 'Analyze this image' : 'Analyze this document');
-      const messageText = docBlock ? `${ask}\n\n---\n\n${docBlock}` : ask;
-      const bubbleText =
-        display ?? (doc ? `${ask}\n\n📎 ${doc.name} · ${Math.max(1, Math.round(doc.text.length / 1000))}K chars` : undefined);
-
-      // Context = earlier turns of this thread only; the new message travels as `message`.
-      const history = selectActiveMessages(useAppStore.getState(), workspaceId)
-        .filter((m) => !m.error)
-        .slice(-HISTORY_TURNS)
-        .map((m) => ({ role: m.role, content: m.content }));
+      const messageText = docBlock
+        ? raw
+          ? `${raw}\n\n---\n\n${docBlock}`
+          : `Analyze this document (${pendingDoc!.name}):\n\n${pendingDoc!.text}`
+        : content;
 
       const userMsg: Message = {
         id: uid(),
@@ -146,19 +106,28 @@ export function ChatPanel({
         content: messageText,
         timestamp: Date.now(),
         imageUrl: img,
-        ...(bubbleText ? { display: bubbleText } : {}),
       };
 
-      const threadId = addMessage(workspaceId, userMsg);
+      addMessage(workspaceId, userMsg);
       setInput('');
       setImageUrl(undefined);
       setPendingDoc(null);
-      setActiveLoadingLabel(LIVE_HINT.test(ask) ? 'SG16 AI is searching the web...' : loadingLabel);
-      setBusy(workspaceId, true);
+      setActiveLoadingLabel(
+        /\b(news|today|latest|weather|headlines|breaking|current|happening|forecast)\b/i.test(messageText)
+          ? 'SG16 AI is searching the web...'
+          : loadingLabel,
+      );
+      setLoading(true);
       setError(null);
 
       try {
+        const history = [...messages, userMsg].map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+
         const extra = getExtraPayload?.() ?? {};
+
         const result = await sendChat({
           message: messageText,
           workspaceId,
@@ -170,46 +139,48 @@ export function ChatPanel({
           studentVerified: isStudentVerified(subscription),
         });
 
-        addMessage(
-          workspaceId,
-          {
-            id: uid(),
-            role: 'assistant',
-            content: result.reply,
-            timestamp: Date.now(),
-            generatedImageUrl: result.generatedImageUrl,
-            liveSearch: result.liveSearch,
-          },
-          threadId,
-        );
+        addMessage(workspaceId, {
+          id: uid(),
+          role: 'assistant',
+          content: result.reply,
+          timestamp: Date.now(),
+          generatedImageUrl: result.generatedImageUrl,
+          liveSearch: result.liveSearch,
+        });
 
-        if (allowVoice && result.reply) speakText(result.reply);
+        if (allowVoice && result.reply) {
+          speakText(result.reply);
+        }
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Something went wrong';
         if (msg === 'AUTH_REQUIRED') {
-          void startSession();
+          startSession();
+          setLoading(false);
           return;
         }
-        addMessage(
-          workspaceId,
-          { id: uid(), role: 'assistant', content: `Sorry — ${msg}`, timestamp: Date.now(), error: true },
-          threadId,
-        );
+        setError(msg);
+        addMessage(workspaceId, {
+          id: uid(),
+          role: 'assistant',
+          content: `Sorry — ${msg}`,
+          timestamp: Date.now(),
+        });
       } finally {
-        setBusy(workspaceId, false);
+        setLoading(false);
       }
     },
     [
-      input, imageUrl, pendingDoc, busy, workspaceId, loadingLabel,
-      addMessage, setBusy, setError, getExtraPayload, allowVoice, subscription, startSession,
+      input, imageUrl, pendingDoc, loading, messages, workspaceId,
+      addMessage, setLoading, setError, getExtraPayload, allowVoice, settings.autoSendVoice, subscription,
     ],
   );
 
   useEffect(() => {
-    const pending = consumePendingPrompt(workspaceId);
-    if (!pending) return;
-    if (pending.draft) setInput(pending.content);
-    else void sendMessage(pending.content, pending.imageUrl, pending.display);
+    const pending = consumePendingPrompt();
+    const pendingImg = consumePendingImage();
+    if (pendingImg) setImageUrl(pendingImg);
+    if (pending) sendMessage(pending, pendingImg ?? undefined);
+    else if (pendingImg) sendMessage('Analyze this image', pendingImg);
   }, [workspaceId, pendingPromptToken]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -280,105 +251,21 @@ export function ChatPanel({
     e.target.value = '';
   };
 
-  const removeThread = (id: string, title: string) => {
-    if (window.confirm(`Delete "${title}"? This cannot be undone.`)) deleteThread(workspaceId, id);
-  };
-
-  const ordered = sortedThreads(threads);
-
   return (
     <div key={workspaceId} className="h-full flex flex-col">
       <div className="px-4 sm:px-5 pt-3 shrink-0">
-        <div className="sg16-chat-col relative" ref={historyRef}>
-          <div className="flex items-center justify-between gap-2 sg16-bar-soft !py-1.5 !pr-1.5">
-            <span className="text-[11px] text-white/45 truncate tracking-wide min-w-0">
-              {workspaceLabels[workspaceId]} ·{' '}
-              <span className="text-white/75">{activeThread?.title ?? 'New chat'}</span>
-            </span>
-            <div className="flex items-center gap-0.5 shrink-0">
-              <button
-                type="button"
-                onClick={() => setHistoryOpen((o) => !o)}
-                aria-expanded={historyOpen}
-                className={`flex items-center gap-1.5 text-xs px-2 py-1.5 rounded-lg transition ${
-                  historyOpen ? 'bg-[#FF168D]/15 text-[#FF5CB8]' : 'text-white/50 hover:text-[#FF5CB8]'
-                } ${hideHistoryOnDesktop ? 'lg:hidden' : ''}`}
-              >
-                <History className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">History</span>
-                {threads.length > 0 && <span className="text-[10px] text-white/35">{threads.length}</span>}
-              </button>
-              {messages.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => newThread(workspaceId)}
-                  className="flex items-center gap-1.5 text-xs text-white/50 hover:text-[#FF5CB8] transition px-2 py-1.5 rounded-lg"
-                >
-                  <MessageSquarePlus className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline">New chat</span>
-                </button>
-              )}
-              {activeThread && (
-                <button
-                  type="button"
-                  onClick={() => removeThread(activeThread.id, activeThread.title)}
-                  title="Delete this chat"
-                  className="flex items-center gap-1.5 text-xs text-white/40 hover:text-[#FF526B] transition px-2 py-1.5 rounded-lg"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {historyOpen && (
-            <div
-              className="absolute z-30 left-0 right-0 mt-1.5 rounded-xl border border-[#FF168D]/25 p-2 max-h-80 overflow-y-auto shadow-[0_18px_50px_rgba(0,0,0,0.7)]"
-              style={{ background: '#0E0B14' }}
+        <div className="sg16-chat-col flex items-center justify-between gap-2 sg16-bar-soft !py-2">
+          <span className="text-[11px] text-white/40 truncate tracking-wide">
+            {workspaceLabel(workspaceId)} · private thread
+          </span>
+          {messages.length > 0 && (
+            <button
+              type="button"
+              onClick={() => clearMessages(workspaceId)}
+              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-[#FF5CB8] transition px-2 py-1"
             >
-              <div className="flex items-center justify-between px-2 pb-1.5">
-                <span className="text-[10px] uppercase tracking-[0.16em] text-white/35">
-                  {workspaceLabels[workspaceId]} chats · on this device
-                </span>
-                <button type="button" onClick={() => setHistoryOpen(false)} className="text-white/40 hover:text-white p-1">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-              {ordered.length === 0 ? (
-                <p className="px-2 py-4 text-xs text-white/40 text-center">No saved chats yet.</p>
-              ) : (
-                ordered.map((t) => (
-                  <div
-                    key={t.id}
-                    className={`group flex items-center gap-2 rounded-lg px-2 py-2 ${
-                      t.id === activeThreadId ? 'bg-[#FF168D]/12 border border-[#FF168D]/30' : 'hover:bg-white/[0.05] border border-transparent'
-                    }`}
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        openThread(workspaceId, t.id);
-                        setHistoryOpen(false);
-                      }}
-                      className="flex-1 min-w-0 text-left"
-                    >
-                      <div className="text-xs text-white/90 truncate">{t.title}</div>
-                      <div className="text-[10px] text-white/40 mt-0.5">
-                        {formatThreadDate(t.updatedAt)} · {t.messages.length} message{t.messages.length === 1 ? '' : 's'}
-                      </div>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeThread(t.id, t.title)}
-                      title="Delete chat"
-                      className="p-1 text-white/30 hover:text-[#FF526B] opacity-60 group-hover:opacity-100"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))
-              )}
-            </div>
+              <Trash2 className="w-3.5 h-3.5" /> Clear
+            </button>
           )}
         </div>
       </div>
@@ -388,18 +275,18 @@ export function ChatPanel({
         className="sg16-write-zone overflow-y-auto overscroll-contain px-4 sm:px-5 py-4 mobile-scroll-main"
       >
         <div className="sg16-chat-col space-y-3">
-          {messages.length === 0 && !busy && suggestions.length > 0 && (
+          {messages.length === 0 && suggestions.length > 0 && (
             <div className="sg16-card p-5 sm:p-6">
               <p className="text-[11px] uppercase tracking-[0.18em] text-white/30 mb-1">Start here</p>
               <p className="text-sm text-white/55 mb-4 leading-relaxed">
-                Pick a prompt — or type below.
+                Pick a prompt bar — or type below.
               </p>
               <div className="space-y-2">
                 {suggestions.map((s) => (
                   <button
                     key={s}
                     type="button"
-                    onClick={() => requireAuth(() => void sendMessage(s))}
+                    onClick={() => sendMessage(s)}
                     className="sg16-bar-row sg16-bar-row--prompt w-full text-left text-sm text-white/85"
                   >
                     {s}
@@ -409,18 +296,14 @@ export function ChatPanel({
             </div>
           )}
 
-          {messages.length === 0 && !busy && suggestions.length === 0 && emptyHint && (
-            <p className="text-center text-sm text-white/40 py-8">{emptyHint}</p>
-          )}
-
           {messages.map((msg) => (
             <div
               key={msg.id}
               className={`text-sm leading-relaxed ${
-                msg.role === 'user' ? 'sg16-bar-accent' : msg.error ? 'sg16-bar-error' : 'sg16-bar'
+                msg.role === 'user' ? 'sg16-bar-accent' : 'sg16-bar'
               }`}
             >
-              {msg.role === 'assistant' && !msg.error && (
+              {msg.role === 'assistant' && (
                 <div className="text-[10px] text-[#FF5CB8] mb-1.5 font-semibold tracking-[0.12em] uppercase">
                   {workspaceId === 'general' ? SG16_BRAND.chatName : 'SG16 AI'}
                 </div>
@@ -449,17 +332,13 @@ export function ChatPanel({
                   <Globe className="w-3 h-3" /> Live web answer · SG16 AI
                 </div>
               )}
-              {msg.role === 'assistant' && !msg.error ? (
-                <Markdown text={msg.content} mono={monospace} />
-              ) : (
-                <p className={`whitespace-pre-wrap break-words ${monospace && !msg.display ? 'font-mono text-xs' : ''}`}>
-                  {msg.display ?? msg.content}
-                </p>
-              )}
+              <p className={`whitespace-pre-wrap ${monospace ? 'font-mono text-xs' : ''}`}>
+                {msg.content}
+              </p>
             </div>
           ))}
 
-          {busy && (
+          {loading && (
             <div className="sg16-bar-soft flex items-center gap-2 text-[#FF5CB8] text-sm">
               <Loader2 className="w-4 h-4 animate-spin" /> {activeLoadingLabel}
             </div>
@@ -489,9 +368,9 @@ export function ChatPanel({
 
           {pendingDoc && (
             <div className="sg16-bar-soft flex items-center gap-2 text-xs">
-              <Paperclip className="w-4 h-4 text-[#FF5CB8] shrink-0" />
+              <Upload className="w-4 h-4 text-[#FF5CB8] shrink-0" />
               <span className="text-white/80 truncate flex-1">
-                {pendingDoc.name} · {Math.max(1, Math.round(pendingDoc.text.length / 1000))}K chars — type your
+                {pendingDoc.name} · {Math.round(pendingDoc.text.length / 1000)}K chars — type your
                 question, then send
               </span>
               <button
@@ -565,7 +444,7 @@ export function ChatPanel({
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  requireAuth(() => void sendMessage());
+                  requireAuth(() => sendMessage());
                 }
               }}
               placeholder={placeholder}
@@ -575,8 +454,8 @@ export function ChatPanel({
 
             <button
               type="button"
-              onClick={() => requireAuth(() => void sendMessage())}
-              disabled={busy || (!input.trim() && !imageUrl && !pendingDoc)}
+              onClick={() => requireAuth(() => sendMessage())}
+              disabled={loading || (!input.trim() && !imageUrl && !pendingDoc)}
               className="sg16-send p-3 shrink-0 disabled:opacity-40"
             >
               <Send className="w-5 h-5" />
@@ -587,7 +466,7 @@ export function ChatPanel({
             <button
               type="button"
               onClick={() => {
-                const last = [...messages].reverse().find((m) => m.role === 'assistant' && !m.error);
+                const last = [...messages].reverse().find((m) => m.role === 'assistant');
                 if (last) speakText(last.content);
               }}
               className="flex items-center gap-1.5 text-xs text-white/35 hover:text-[#FF5CB8]"

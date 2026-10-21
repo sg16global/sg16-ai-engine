@@ -14,7 +14,6 @@ export const SPA_PATHS = new Set([
   '/room',
   '/settings',
   '/help',
-  '/admin',
 ]);
 
 export function normaliseSpaPath(pathname) {

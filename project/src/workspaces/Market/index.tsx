@@ -1,16 +1,26 @@
+import { useState } from 'react';
 import { ArrowLeft, TrendingUp, Newspaper, Bitcoin, Bell } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { ToolCard } from '../../components/ui/Sg16Cards';
+import { useAppStore } from '../../core/appState';
 import { usePilotStore } from '../../core/pilotState';
-import { useShieldChat } from '../../hooks/useShieldChat';
+
+type View = 'hub' | 'chat';
 
 export const MarketWorkspace = () => {
-  const { inChat, openChat, backToHub } = useShieldChat('market');
+  const [view, setView] = useState<View>('hub');
   const startPilot = usePilotStore((s) => s.startPilot);
 
-  if (inChat) {
+  const openChat = (prompt?: string) => {
+    if (prompt) {
+      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
+    }
+    setView('chat');
+  };
+
+  if (view === 'chat') {
     return (
       <WorkspaceShell
         title="Market Shield"
@@ -23,8 +33,8 @@ export const MarketWorkspace = () => {
           <div className="px-4 sm:px-5 pt-3">
             <button
               type="button"
-              onClick={backToHub}
-              className="sg16-bar-soft inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white"
+              onClick={() => setView('hub')}
+              className="inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white border border-white/15 rounded-xl px-3 py-2"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Market
             </button>
@@ -48,7 +58,7 @@ export const MarketWorkspace = () => {
   }
 
   return (
-    <div className="sg16-work-field h-full">
+    <div className="sg16-work-field min-h-full">
       <ModuleHub
         title="Market Shield"
         subtitle="Global market intelligence — analyze, monitor, notify. No auto buy/sell."

@@ -53,88 +53,31 @@ function isWeatherQuery(query) {
   return /\b(weather|forecast|temperature|rain|sunny)\b/i.test(query);
 }
 
-const NOT_A_PLACE = /\b(weather|forecast|temperature|today|tonight|tomorrow|now|right|currently|this|next|week|weekend|morning|afternoon|evening|report|update|like|outside|please|the|my|me|here)\b/gi;
-
-export function extractLocation(query) {
-  const clean = (text) =>
-    text
-      .replace(/\?.*$/, '')
-      .replace(NOT_A_PLACE, ' ')
-      .replace(/[\s,.-]+$/, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+function extractLocation(query) {
   const m = query.match(/\b(?:in|for|at)\s+([A-Za-z][A-Za-z\s,.-]{2,40})/i);
-  const fromPreposition = m ? clean(m[1]) : '';
-  if (fromPreposition.length >= 2) return fromPreposition;
-  const m2 = query.match(/\bweather\s+(?:(?:in|for|at)\s+)?([A-Za-z][A-Za-z\s,.-]{2,40})/i);
-  const afterWeather = m2 ? clean(m2[1]) : '';
-  return afterWeather.length >= 2 ? afterWeather : '';
-}
-
-/** Words that only say "give me news" — searching for them returns pages titled "Today's news". */
-const NEWS_FILLER = new Set([
-  'what', 'whats', "what's", 'is', 'are', 'was', 'the', 'a', 'an', 'any', 'some', 'me', 'my', 'i',
-  'tell', 'give', 'show', 'get', 'find', 'please', 'can', 'you', 'could', 'would', 'about', 'on', 'of',
-  'for', 'from', 'in', 'to', 'and', 'news', 'headlines', 'headline', 'breaking', 'top', 'stories',
-  'story', 'latest', 'today', "today's", 'todays', 'tonight', 'now', 'right', 'current', 'currently',
-  'recent', 'happening', 'going', 'new', 'update', 'updates', 'brief', 'briefing', 'daily', 'this',
-  'morning', 'evening', 'week', 'main', 'big', 'biggest', 'major', 'important', 'key', 'world',
-  'global', 'international', 'worldwide', 'summary', 'summarize', 'there',
-]);
-
-/** Topic words of a news question ("news about Tesla today" → "Tesla"); '' means general headlines. */
-export function newsTopic(query) {
-  return query
-    .toLowerCase()
-    .replace(/[‘’]/g, "'")
-    .replace(/[^\p{L}\p{N}\s'-]/gu, ' ')
-    .split(/\s+/)
-    .map((w) => w.replace(/'s$/, '').replace(/^'+|'+$/g, ''))
-    .filter((w) => w.length > 1 && !NEWS_FILLER.has(w))
-    .join(' ')
-    .trim();
-}
-
-const TOP_STORY_FEEDS = [
-  'https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en',
-  'https://feeds.bbci.co.uk/news/world/rss.xml',
-  'https://feeds.bbci.co.uk/news/rss.xml',
-];
-
-/** Category words map to Google News sections — a search for "tech" finds Texas Tech sports. */
-const NEWS_SECTIONS = {
-  TECHNOLOGY: ['tech', 'technology', 'technologies', 'gadgets'],
-  BUSINESS: ['business', 'economy', 'economic', 'finance', 'financial', 'markets', 'market'],
-  SCIENCE: ['science', 'scientific', 'space'],
-  SPORTS: ['sport', 'sports'],
-  HEALTH: ['health', 'medical'],
-  ENTERTAINMENT: ['entertainment', 'celebrity', 'celebrities', 'movies', 'movie', 'music', 'film'],
-};
-
-function newsSection(topic) {
-  if (!topic || topic.includes(' ')) return null;
-  return Object.keys(NEWS_SECTIONS).find((section) => NEWS_SECTIONS[section].includes(topic)) ?? null;
+  if (m) return m[1].replace(/\?.*$/, '').trim();
+  const m2 = query.match(/\bweather\s+(?:in\s+)?([A-Za-z][A-Za-z\s,.-]{2,40})/i);
+  if (m2) return m2[1].replace(/\?.*$/, '').trim();
+  return '';
 }
 
 export async function fetchNewsResults(query) {
-  const topic = newsTopic(query);
-  const section = newsSection(topic);
-  const params = 'hl=en-US&gl=US&ceid=US:en';
-  // General questions get today's top stories; topical ones search the last two days only.
-  let feeds = TOP_STORY_FEEDS;
-  if (section) {
-    feeds = [`https://news.google.com/rss/headlines/section/topic/${section}?${params}`];
-  } else if (topic) {
-    feeds = [
-      `https://news.google.com/rss/search?q=${encodeURIComponent(`${topic} when:2d`)}&${params}`,
-      ...TOP_STORY_FEEDS.slice(1),
-    ];
-  }
+  const encoded = encodeURIComponent(query.replace(/\?/g, '').trim() || 'world news today');
+  const feeds = [
+    `https://news.google.com/rss/search?q=${encoded}&hl=en-US&gl=US&ceid=US:en`,
+    'https://feeds.bbci.co.uk/news/world/rss.xml',
+    'https://feeds.bbci.co.uk/news/rss.xml',
+  ];
 
-  const batches = await Promise.allSettled(feeds.map((url) => fetchText(url)));
   const all = [];
-  for (const batch of batches) {
-    if (batch.status === 'fulfilled') all.push(...parseRssItems(batch.value, topic ? 8 : 6));
+  for (const url of feeds) {
+    try {
+      const xml = await fetchText(url);
+      all.push(...parseRssItems(xml, 6));
+      if (all.length >= 10) break;
+    } catch {
+      /* try next feed */
+    }
   }
 
   const seen = new Set();
@@ -147,15 +90,7 @@ export async function fetchNewsResults(query) {
 }
 
 export async function fetchWeatherResult(query) {
-  const location = extractLocation(query);
-  if (!location) {
-    // The server's own location means nothing to the user — ask instead of guessing a city.
-    return [{
-      title: 'Weather: city not given',
-      snippet: 'The user did not say which city or town. Ask them which place they want the weather for. Do not guess a location.',
-      source: 'weather',
-    }];
-  }
+  const location = extractLocation(query) || 'Albuquerque';
   const loc = encodeURIComponent(location);
   try {
     const oneLine = await fetchText(`https://wttr.in/${loc}?format=3`, 12000);
@@ -211,19 +146,14 @@ export async function fetchDuckDuckGoResults(query, limit = 8) {
 
 export async function fetchWebContext(query) {
   const tasks = [];
-  const weather = isWeatherQuery(query);
-  const news = isNewsQuery(query) || (/\btoday\b/i.test(query) && !weather);
 
-  if (news) {
+  if (isNewsQuery(query) || /\btoday\b/i.test(query)) {
     tasks.push(fetchNewsResults(query));
   }
-  if (weather) {
+  if (isWeatherQuery(query)) {
     tasks.push(fetchWeatherResult(query));
   }
-  // A plain "what's the news" web search only finds pages named "Today's news"; weather has its own source.
-  if (!weather && !(news && !newsTopic(query))) {
-    tasks.push(fetchDuckDuckGoResults(query));
-  }
+  tasks.push(fetchDuckDuckGoResults(query));
 
   const batches = await Promise.allSettled(tasks);
   const merged = [];
