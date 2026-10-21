@@ -72,6 +72,7 @@ import {
   applySavedAdminConfig,
   handleAdminChangePassword,
   handleAdminLogin,
+  handleAdminQuickConnect,
   handleAdminSaveConnection,
   handleAdminStatus,
   handleAdminTest,
@@ -282,6 +283,7 @@ app.post('/api/v1/admin/login', adminLoginLimit, handleAdminLogin);
 app.get('/api/v1/admin/status', requireAdmin, handleAdminStatus);
 app.post('/api/v1/admin/test', requireAdmin, handleAdminTest);
 app.put('/api/v1/admin/connection', requireAdmin, handleAdminSaveConnection);
+app.post('/api/v1/admin/connect', requireAdmin, handleAdminQuickConnect);
 app.post('/api/v1/admin/password', requireAdmin, adminLoginLimit, handleAdminChangePassword);
 
 app.get('/api/v1/auth/config', getGoogleClientIdForFrontend);

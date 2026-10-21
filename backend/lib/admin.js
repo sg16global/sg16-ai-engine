@@ -188,9 +188,9 @@ function connectionInfo() {
   };
 }
 
-async function runProbe(provider) {
+async function runProbe(provider, timeoutMs = 30000) {
   if (!provider) return { ok: false, error: 'No AI API connected yet.', checkedAt: Date.now() };
-  const result = await probeApiChat(provider, 30000);
+  const result = await probeApiChat(provider, timeoutMs);
   return { ...result, checkedAt: Date.now() };
 }
 
@@ -269,6 +269,109 @@ export async function handleAdminSaveConnection(req, res) {
   sendPersisted(req, res, changes);
   lastProbe = req.body?.test === false ? null : await runProbe(getApiProvider());
   res.json({ ai: connectionInfo(), brain: lastProbe });
+}
+
+// ── One-box connect: paste a key (or a server address) and the rest is worked out ──
+
+const SG16_BRAIN_URL = process.env.SG16_BRAIN_API_URL || 'https://mistralbrain.com/api/brain';
+
+/** Known key formats → where the key works and a sensible default model. Order matters (most specific first). */
+const KEY_PROVIDERS = [
+  { test: /^sg16p_/i, name: 'SG16 Brain', url: SG16_BRAIN_URL, model: '' },
+  { test: /^gsk_/, name: 'Groq', url: 'https://api.groq.com/openai/v1', model: 'llama-3.3-70b-versatile' },
+  { test: /^sk-or-/, name: 'OpenRouter', url: 'https://openrouter.ai/api/v1', model: 'openrouter/auto' },
+  { test: /^xai-/, name: 'xAI', url: 'https://api.x.ai/v1', model: '' },
+  { test: /^sk-ant-/, name: 'Anthropic', url: 'https://api.anthropic.com/v1', model: 'claude-sonnet-5-5' },
+  { test: /^sk-/, name: 'OpenAI', url: 'https://api.openai.com/v1', model: 'gpt-4o-mini' },
+];
+
+/** Keys with no prefix: try these in order. */
+const UNKNOWN_KEY_PROVIDERS = [
+  { name: 'SG16 Brain', url: SG16_BRAIN_URL, model: '' },
+  { name: 'Mistral', url: 'https://api.mistral.ai/v1', model: 'mistral-small-latest' },
+];
+
+const NON_CHAT_MODEL = /embed|whisper|tts|dall-e|image|moderation|rerank|audio|transcri|vision-preview|guard/i;
+
+/** A pasted address: "1.2.3.4", "1.2.3.4:11434", "http://host:11434", "https://x.com/api/brain"… */
+export function addressToUrl(input) {
+  const raw = input.trim();
+  const looksLikeAddress = /^https?:\/\//i.test(raw) || /^[\w.-]+\.[\w.-]+(:\d+)?(\/.*)?$/.test(raw) || /^[\w-]+:\d+$/.test(raw);
+  if (!looksLikeAddress || /\s/.test(raw)) return null;
+  let url;
+  try {
+    url = new URL(/^https?:\/\//i.test(raw) ? raw : `http://${raw}`);
+  } catch {
+    return null;
+  }
+  const isIp = /^\d{1,3}(\.\d{1,3}){3}$/.test(url.hostname);
+  // A bare VPS IP almost always means Ollama on its default port.
+  if (isIp && !url.port && !/^https?:\/\//i.test(raw)) url.port = '11434';
+  let path = url.pathname.replace(/\/+$/, '');
+  if (!path && (url.port === '11434' || isIp)) path = '/v1';
+  url.pathname = path || '/';
+  return url.toString().replace(/\/$/, '');
+}
+
+export function detectConnection(input) {
+  const value = typeof input === 'string' ? input.trim() : '';
+  if (!value) return { error: 'Paste your API key or server address.' };
+  if (value.length > 1000) return { error: 'That is too long to be a key or address.' };
+
+  const url = addressToUrl(value);
+  if (url) return { candidates: [{ name: /\/api\/brain$/.test(url) ? 'SG16 Brain' : 'Your server', url, key: '', model: '' }] };
+
+  if (/\s/.test(value)) return { error: 'An API key has no spaces. Paste only the key.' };
+  const known = KEY_PROVIDERS.find((p) => p.test.test(value));
+  const list = known ? [known] : UNKNOWN_KEY_PROVIDERS;
+  return { candidates: list.map((p) => ({ name: p.name, url: p.url, key: value, model: p.model })) };
+}
+
+/** Asks an OpenAI-style API which models it has, and picks one for chat. */
+async function pickModel(candidate) {
+  if (/\/api\/brain$/.test(candidate.url)) return candidate.model;
+  const base = candidate.url.replace(/\/chat\/completions$/, '').replace(/\/+$/, '');
+  try {
+    const headers = candidate.key ? { Authorization: `Bearer ${candidate.key}`, 'x-api-key': candidate.key, 'anthropic-version': '2023-06-01' } : {};
+    const res = await fetch(`${base}/models`, { headers, signal: AbortSignal.timeout(10000) });
+    if (!res.ok) return candidate.model;
+    const data = await res.json();
+    const ids = (Array.isArray(data?.data) ? data.data : Array.isArray(data?.models) ? data.models : [])
+      .map((m) => (typeof m === 'string' ? m : m?.id || m?.name))
+      .filter((id) => typeof id === 'string' && !NON_CHAT_MODEL.test(id));
+    if (!ids.length) return candidate.model;
+    if (candidate.model && ids.includes(candidate.model)) return candidate.model;
+    return ids.find((id) => /instruct|chat|mistral|llama|qwen|gemma|gpt|grok|claude/i.test(id)) || ids[0];
+  } catch {
+    return candidate.model;
+  }
+}
+
+export async function handleAdminQuickConnect(req, res) {
+  const detected = detectConnection(req.body?.input);
+  if (detected.error) return res.status(400).json({ error: detected.error });
+
+  const tried = [];
+  for (const candidate of detected.candidates) {
+    const model = await pickModel(candidate);
+    const provider = buildApiProvider({ url: candidate.url, key: candidate.key, model });
+    // A model on a self-hosted server may need a minute to load on first use.
+    const probe = await runProbe(provider, candidate.key ? 30000 : 90000);
+    tried.push({ name: candidate.name, error: probe.ok ? null : probe.error });
+    if (!probe.ok) continue;
+
+    const changes = saveAdminConfig({ AI_API_URL: candidate.url, AI_API_KEY: candidate.key, AI_MODEL: model || '', AI_VISION_MODEL: '' });
+    sendPersisted(req, res, changes);
+    lastProbe = probe;
+    return res.json({ connected: true, provider: candidate.name, ai: connectionInfo(), brain: probe });
+  }
+
+  const reason = tried.map((t) => `${t.name}: ${t.error}`).join(' · ');
+  res.status(422).json({
+    connected: false,
+    error: `Could not connect. ${reason}. Nothing was changed — the current AI keeps working.`,
+    tried,
+  });
 }
 
 export function handleAdminChangePassword(req, res) {

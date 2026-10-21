@@ -119,3 +119,42 @@ describe('admin settings', () => {
     assert.equal(process.env.AI_API_URL, 'http://10.0.0.6:11434/v1');
   });
 });
+
+describe('one-box connect', () => {
+  it('turns a pasted server address into an API URL', () => {
+    assert.equal(admin.addressToUrl('203.0.113.7'), 'http://203.0.113.7:11434/v1');
+    assert.equal(admin.addressToUrl('203.0.113.7:11434'), 'http://203.0.113.7:11434/v1');
+    assert.equal(admin.addressToUrl('http://203.0.113.7:11434'), 'http://203.0.113.7:11434/v1');
+    assert.equal(admin.addressToUrl('https://brain.example.com/api/brain'), 'https://brain.example.com/api/brain');
+    assert.equal(admin.addressToUrl('https://ai.example.com/v1/'), 'https://ai.example.com/v1');
+    assert.equal(admin.addressToUrl('gsk_abc123'), null);
+    assert.equal(admin.addressToUrl('sg16p_abcdef'), null);
+  });
+
+  it('recognises keys by their prefix', () => {
+    const first = (input) => admin.detectConnection(input).candidates[0];
+    assert.equal(first('sg16p_abcdef123').name, 'SG16 Brain');
+    assert.equal(first('gsk_abc').url, 'https://api.groq.com/openai/v1');
+    assert.equal(first('sk-or-v1-abc').name, 'OpenRouter');
+    assert.equal(first('sk-proj-abc').name, 'OpenAI');
+    assert.equal(first('xai-abc').name, 'xAI');
+    assert.equal(first('sg16p_abcdef123').key, 'sg16p_abcdef123');
+  });
+
+  it('tries the SG16 Brain first for a key with no known prefix', () => {
+    const { candidates } = admin.detectConnection('AbCdEf0123456789AbCdEf0123456789');
+    assert.deepEqual(candidates.map((c) => c.name), ['SG16 Brain', 'Mistral']);
+  });
+
+  it('explains empty or broken input', () => {
+    assert.match(admin.detectConnection('').error, /Paste/);
+    assert.match(admin.detectConnection('my key is abc').error, /no spaces/);
+  });
+
+  it('does not change the saved connection when nothing answers', async () => {
+    const before = process.env.AI_API_URL;
+    const res = await call(admin.handleAdminQuickConnect, { body: { input: 'http://127.0.0.1:9/v1' } });
+    assert.equal(res.status, 422);
+    assert.equal(process.env.AI_API_URL, before);
+  });
+});

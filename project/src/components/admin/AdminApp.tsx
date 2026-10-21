@@ -7,21 +7,15 @@ import { useAutoHideChrome } from '../../hooks/useAutoHideChrome';
 import { ApiError } from '../../lib/apiClient';
 import {
   adminLogin, changeAdminPassword, fetchAdminStatus, loadAdminToken, saveAdminToken, saveConnection, testConnection,
-  type AdminStatus, type BrainProbe, type ConnectionInput,
+  quickConnect, type AdminStatus, type BrainProbe, type ConnectionInput,
 } from '../../lib/adminApi';
 
 type Section = 'status' | 'connect' | 'security';
 
 const SECTIONS: { id: Section; label: string; icon: typeof Activity; hint: string }[] = [
   { id: 'status', label: 'Live status', icon: Activity, hint: 'Engine, AI brain, search, database' },
-  { id: 'connect', label: 'Connect AI API', icon: Plug, hint: 'VPS, SG16 Brain or any OpenAI-style API' },
+  { id: 'connect', label: 'Connect AI API', icon: Plug, hint: 'Paste your API key — that’s it' },
   { id: 'security', label: 'Security', icon: ShieldCheck, hint: 'Change admin password' },
-];
-
-const PRESETS: { label: string; url: string; model: string; note: string }[] = [
-  { label: 'VPS (Ollama)', url: 'http://YOUR-VPS-IP:11434/v1', model: 'mistral:7b-instruct', note: 'No key needed. Model = a name from `ollama list`.' },
-  { label: 'SG16 Brain', url: 'https://mistralbrain.com/api/brain', model: '', note: 'Paste your sg16p_ project key.' },
-  { label: 'OpenAI-style API', url: 'https://api.openai.com/v1', model: 'gpt-4o-mini', note: 'Groq, OpenRouter, Mistral… use their base URL and key.' },
 ];
 
 const STATUS_REFRESH_MS = 30_000;
@@ -195,7 +189,7 @@ function StatusSection({ status, refreshing, onRefresh }: { status: AdminStatus 
                 {brain?.checkedAt ? ` · checked ${ago(brain.checkedAt)}` : ''}
               </>
             ) : (
-              'Open "Connect AI API" to connect your VPS or brain.'
+              'Open "Connect AI API" and paste your key.'
             )
           }
         />
@@ -250,7 +244,7 @@ function StatusSection({ status, refreshing, onRefresh }: { status: AdminStatus 
   );
 }
 
-function ConnectSection({ token, status, onSaved }: { token: string; status: AdminStatus | null; onSaved: () => void }) {
+function AdvancedConnect({ token, status, onSaved }: { token: string; status: AdminStatus | null; onSaved: () => void }) {
   const ai = status?.ai;
   const [form, setForm] = useState<ConnectionInput>({ url: '', key: '', model: '', visionModel: '', keepKey: true });
   const [touched, setTouched] = useState(false);
@@ -295,27 +289,7 @@ function ConnectSection({ token, status, onSaved }: { token: string; status: Adm
   };
 
   return (
-    <div className="space-y-5 max-w-2xl">
-      <div className="sg16-card p-4 sm:p-5 space-y-3">
-        <p className="text-xs uppercase tracking-[0.16em] text-white/40">Quick fill</p>
-        <div className="flex flex-wrap gap-2">
-          {PRESETS.map((p) => (
-            <button
-              key={p.label}
-              type="button"
-              onClick={() => update({ url: p.url, model: p.model })}
-              title={p.note}
-              className="px-3 py-1.5 rounded-full text-xs border border-[#FF168D]/30 bg-[#FF168D]/10 text-[#FFD0E8] hover:bg-[#FF168D]/20"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-        <p className="text-[11px] text-white/40">
-          {PRESETS.find((p) => p.url === form.url)?.note ?? 'Pick one, then replace the parts in CAPITALS.'}
-        </p>
-      </div>
-
+    <div className="space-y-5">
       <form
         className="sg16-card p-4 sm:p-5 space-y-4"
         onSubmit={(e) => {
@@ -381,6 +355,95 @@ function ConnectSection({ token, status, onSaved }: { token: string; status: Adm
           A slow or sleeping AI can take up to a minute to answer the first test.
         </p>
       </form>
+    </div>
+  );
+}
+
+function ConnectSection({ token, status, onSaved }: { token: string; status: AdminStatus | null; onSaved: () => void }) {
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
+  const ai = status?.ai;
+
+  const connect = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!input.trim() || busy) return;
+    setBusy(true);
+    setResult(null);
+    try {
+      const res = await quickConnect(token, input);
+      setInput('');
+      setResult({
+        ok: true,
+        text: `Connected to ${res.provider}${res.ai.model ? ` · model ${res.ai.model}` : ''} · answered in ${((res.brain.latencyMs ?? 0) / 1000).toFixed(1)}s. Every shield uses it now.`,
+      });
+      onSaved();
+    } catch (err) {
+      setResult({ ok: false, text: errorText(err) });
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="space-y-5 max-w-2xl">
+      <form onSubmit={connect} className="sg16-card p-5 sm:p-6 space-y-4">
+        <div>
+          <h2 className="text-lg font-semibold text-white">Paste your API key</h2>
+          <p className="text-sm text-white/50 mt-1">
+            SG16 Brain key, OpenAI, Groq, OpenRouter… or your server address. SG16 finds the rest, tests it, and connects.
+          </p>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input
+            type="password"
+            autoComplete="off"
+            spellCheck={false}
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+              setResult(null);
+            }}
+            placeholder="sg16p_…  or  sk-…  or  your server IP"
+            className={`${inputClass} font-mono !py-3 text-base flex-1`}
+            aria-label="API key or server address"
+          />
+          <button
+            type="submit"
+            disabled={busy || !input.trim()}
+            className="sg16-send rounded-xl px-6 py-3 text-sm font-semibold inline-flex items-center justify-center gap-2 disabled:opacity-40"
+          >
+            {busy ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plug className="w-4 h-4" />}
+            {busy ? 'Connecting…' : 'Connect'}
+          </button>
+        </div>
+        {busy && <p className="text-xs text-white/45">Finding the provider and asking the AI a test question… this can take up to a minute.</p>}
+        {result &&
+          (result.ok ? (
+            <div className="flex items-start gap-2 rounded-xl border border-emerald-400/30 bg-emerald-400/[0.07] p-3 text-sm text-emerald-200">
+              <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" /> {result.text}
+            </div>
+          ) : (
+            <div className="flex items-start gap-2 rounded-xl border border-[#FF526B]/40 bg-[#FF526B]/[0.08] p-3 text-sm text-[#FFB3BF]">
+              <XCircle className="w-4 h-4 mt-0.5 shrink-0" /> {result.text}
+            </div>
+          ))}
+        {ai?.connected && !result && (
+          <p className="text-xs text-white/45">
+            Now connected: <span className="text-white/70">{ai.format === 'sg16-brain' ? 'SG16 Brain' : ai.url}</span>
+            {ai.model ? ` · ${ai.model}` : ''} · key {ai.keySet ? ai.keyHint : 'none'}. Paste a new key to switch.
+          </p>
+        )}
+      </form>
+
+      <details className="group">
+        <summary className="cursor-pointer select-none text-xs text-white/45 hover:text-white/70 list-none">
+          <span className="group-open:hidden">▸</span><span className="hidden group-open:inline">▾</span> Advanced — set the URL and model by hand
+        </summary>
+        <div className="mt-3">
+          <AdvancedConnect token={token} status={status} onSaved={onSaved} />
+        </div>
+      </details>
     </div>
   );
 }

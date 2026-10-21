@@ -93,6 +93,14 @@ export function saveConnection(token: string, input: ConnectionInput) {
   });
 }
 
+/** One box: paste a key or server address; the server finds the provider and model, tests, and saves. */
+export function quickConnect(token: string, input: string) {
+  return apiRequest<{ connected: boolean; provider: string; ai: AiConnection; brain: BrainProbe }>(
+    `${API_V1}/admin/connect`,
+    { method: 'POST', headers: auth(token), body: { input }, timeoutMs: 300_000 },
+  );
+}
+
 export function changeAdminPassword(token: string, current: string, next: string) {
   return apiRequest<{ ok: boolean; token: string }>(`${API_V1}/admin/password`, {
     method: 'POST',
