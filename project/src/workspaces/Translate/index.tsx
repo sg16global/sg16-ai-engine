@@ -37,7 +37,7 @@ export const TranslateWorkspace = () => {
       title="Translate"
       subtitle={`${allLanguages.length}+ languages — search or pick a target language, then enter text to translate`}
       badge="Multilingual"
-      badgeClass="text-sky-400"
+      badgeClass="text-[#FF5CB8]"
     >
       <ChatPanel
         workspaceId="translate"
@@ -50,17 +50,17 @@ export const TranslateWorkspace = () => {
         extraControls={
           <div className="space-y-2">
             <div className="flex items-center gap-3 flex-wrap">
-              <label htmlFor="translate-target-lang" className="text-xs text-gray-400 shrink-0">
+              <label htmlFor="translate-target-lang" className="text-xs text-white/55 shrink-0">
                 Translate to:
               </label>
               <div className="relative flex-1 min-w-[180px] max-w-xs">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500 pointer-events-none" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/40 pointer-events-none" />
                 <input
                   type="search"
                   value={languageSearch}
                   onChange={(e) => setLanguageSearch(e.target.value)}
                   placeholder="Search languages…"
-                  className="w-full bg-[#0A0A12] border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-sm outline-none focus:border-emerald-500/40"
+                  className="w-full bg-black/40 border border-white/10 rounded-lg pl-8 pr-3 py-1.5 text-sm text-white outline-none focus:border-[#FF168D]/45 placeholder:text-white/35"
                   aria-label="Search languages"
                 />
               </div>
@@ -68,7 +68,7 @@ export const TranslateWorkspace = () => {
                 id="translate-target-lang"
                 value={targetLanguage}
                 onChange={(e) => setTargetLanguage(e.target.value)}
-                className="bg-[#0A0A12] border border-white/10 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-emerald-500/40 min-w-[160px] max-w-full"
+                className="bg-black/40 border border-white/10 rounded-lg px-3 py-1.5 text-sm text-white outline-none focus:border-[#FF168D]/45 min-w-[160px] max-w-full"
               >
                 {!languageSearch && visibleLanguages.popular.length > 0 && (
                   <optgroup label="Popular">
@@ -88,7 +88,7 @@ export const TranslateWorkspace = () => {
                 </optgroup>
               </select>
             </div>
-            <p className="text-[10px] text-gray-500">
+            <p className="text-[10px] text-white/40">
               {allLanguages.length} languages available
               {languageSearch ? ` matching "${languageSearch}"` : ''}
               · Default: Malay

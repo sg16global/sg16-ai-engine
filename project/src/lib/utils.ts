@@ -1,7 +1,9 @@
-import type { MemoryEntry, Message, Subscription, WorkspaceId } from '../core/types';
+import type { ChatThread, ChatThreads, MemoryEntry, Message, Subscription, WorkspaceId } from '../core/types';
 import { defaultSubscription } from '../core/access';
 
-const MEMORY_KEY = 'sg16_memory_session';
+/** Memory Vault notes live on this device (like chats) so they survive closing the tab. */
+const MEMORY_KEY = 'sg16_memory_device';
+const LEGACY_MEMORY_KEY = 'sg16_memory_session';
 const SETTINGS_KEY = 'sg16_settings_session';
 const SUBSCRIPTION_KEY = 'sg16_subscription';
 
@@ -15,7 +17,6 @@ const defaultSettings: AppSettings = {
   autoSendVoice: true,
 };
 
-/** In-memory only — never persisted to disk (privacy protocol). */
 export function emptyChatHistory(): Record<WorkspaceId, Message[]> {
   return {
     general: [],
@@ -61,34 +62,99 @@ export function saveSubscription(subscription: Subscription) {
   localStorage.setItem(SUBSCRIPTION_KEY, JSON.stringify(subscription));
 }
 
-const CHAT_KEY_PREFIX = 'sg16_chat_device';
+/** v1 stored one flat message list per shield; v2 stores separate threads. */
+const LEGACY_CHAT_KEY_PREFIX = 'sg16_chat_device';
+const THREADS_KEY_PREFIX = 'sg16_threads_device';
+const MAX_THREADS_PER_SHIELD = 50;
 
-function chatStorageKey(userId?: string | null) {
-  return userId ? `${CHAT_KEY_PREFIX}_${userId}` : `${CHAT_KEY_PREFIX}_guest`;
+function storageSuffix(userId?: string | null) {
+  return userId ? `_${userId}` : '_guest';
 }
 
-/** Device cache + synced to user room on the server when signed in. */
-export function saveChatHistory(messages: Record<WorkspaceId, Message[]>, userId?: string | null) {
+export function emptyChatThreads(): ChatThreads {
+  const empty = emptyChatHistory();
+  return Object.fromEntries(Object.keys(empty).map((id) => [id, []])) as unknown as ChatThreads;
+}
+
+/** One-line plain text for previews — drops Markdown marks, keeps link labels. */
+export function plainPreview(text: string): string {
+  return text
+    .replace(/```[\s\S]*?```/g, ' [code] ')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/[*_`#>]+/g, '')
+    .replace(/^\s*[-•]\s+/gm, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function threadTitle(message: Pick<Message, 'content' | 'display'>): string {
+  const source = (message.display ?? message.content).trim();
+  const text = (source.split('\n')[0] || source).replace(/\s+/g, ' ').trim();
+  if (!text) return 'New chat';
+  return text.length > 60 ? `${text.slice(0, 60)}…` : text;
+}
+
+function threadFromLegacy(messages: Message[]): ChatThread | null {
+  if (!messages.length) return null;
+  const firstUser = messages.find((m) => m.role === 'user') ?? messages[0];
+  return {
+    id: crypto.randomUUID(),
+    title: threadTitle(firstUser),
+    createdAt: messages[0].timestamp || Date.now(),
+    updatedAt: messages[messages.length - 1].timestamp || Date.now(),
+    messages,
+  };
+}
+
+/** Chat history lives on this device only — the server never stores it. */
+export function saveChatThreads(threads: ChatThreads, userId?: string | null) {
   try {
-    localStorage.setItem(chatStorageKey(userId), JSON.stringify(messages));
+    const trimmed = Object.fromEntries(
+      Object.entries(threads).map(([id, list]) => [
+        id,
+        [...list].sort((a, b) => b.updatedAt - a.updatedAt).slice(0, MAX_THREADS_PER_SHIELD),
+      ]),
+    );
+    localStorage.setItem(`${THREADS_KEY_PREFIX}${storageSuffix(userId)}`, JSON.stringify(trimmed));
   } catch {
     /* storage full — keep in-memory session */
   }
 }
 
-export function loadChatHistory(userId?: string | null): Record<WorkspaceId, Message[]> {
+export function loadChatThreads(userId?: string | null): ChatThreads {
+  const threads = emptyChatThreads();
   try {
-    const raw = localStorage.getItem(chatStorageKey(userId));
-    if (!raw) return emptyChatHistory();
-    const parsed = JSON.parse(raw) as Partial<Record<WorkspaceId, Message[]>>;
-    return { ...emptyChatHistory(), ...parsed };
+    const raw = localStorage.getItem(`${THREADS_KEY_PREFIX}${storageSuffix(userId)}`);
+    if (raw) {
+      const parsed = JSON.parse(raw) as Partial<ChatThreads>;
+      for (const id of Object.keys(threads) as WorkspaceId[]) {
+        const list = parsed[id];
+        if (Array.isArray(list)) threads[id] = list.filter((t) => t && Array.isArray(t.messages));
+      }
+      return threads;
+    }
+
+    // One-time move from the v1 flat history: each shield's old messages become one thread.
+    const legacyKey = `${LEGACY_CHAT_KEY_PREFIX}${storageSuffix(userId)}`;
+    const legacyRaw = localStorage.getItem(legacyKey);
+    if (legacyRaw) {
+      const legacy = JSON.parse(legacyRaw) as Partial<Record<WorkspaceId, Message[]>>;
+      for (const id of Object.keys(threads) as WorkspaceId[]) {
+        const thread = threadFromLegacy(Array.isArray(legacy[id]) ? legacy[id]! : []);
+        if (thread) threads[id] = [thread];
+      }
+      saveChatThreads(threads, userId);
+      localStorage.removeItem(legacyKey);
+    }
   } catch {
-    return emptyChatHistory();
+    return emptyChatThreads();
   }
+  return threads;
 }
 
 export function clearChatHistoryForUser(userId?: string | null) {
-  localStorage.removeItem(chatStorageKey(userId));
+  localStorage.removeItem(`${THREADS_KEY_PREFIX}${storageSuffix(userId)}`);
+  localStorage.removeItem(`${LEGACY_CHAT_KEY_PREFIX}${storageSuffix(userId)}`);
 }
 
 export function clearAllChatHistory(userId?: string | null) {
@@ -96,13 +162,28 @@ export function clearAllChatHistory(userId?: string | null) {
 }
 
 export function clearAllMemories() {
-  sessionStorage.removeItem(MEMORY_KEY);
+  localStorage.removeItem(MEMORY_KEY);
+  sessionStorage.removeItem(LEGACY_MEMORY_KEY);
+}
+
+function writeMemories(entries: MemoryEntry[]) {
+  try {
+    localStorage.setItem(MEMORY_KEY, JSON.stringify(entries.slice(0, 100)));
+  } catch {
+    /* storage full */
+  }
 }
 
 export function loadMemories(): MemoryEntry[] {
   try {
-    const raw = sessionStorage.getItem(MEMORY_KEY);
-    return raw ? JSON.parse(raw) : [];
+    const raw = localStorage.getItem(MEMORY_KEY);
+    if (raw) return JSON.parse(raw);
+    const legacy = sessionStorage.getItem(LEGACY_MEMORY_KEY);
+    if (!legacy) return [];
+    const entries = JSON.parse(legacy) as MemoryEntry[];
+    writeMemories(entries);
+    sessionStorage.removeItem(LEGACY_MEMORY_KEY);
+    return entries;
   } catch {
     return [];
   }
@@ -117,13 +198,12 @@ export function saveMemory(title: string, content: string): MemoryEntry {
     createdAt: Date.now(),
   };
   entries.unshift(entry);
-  sessionStorage.setItem(MEMORY_KEY, JSON.stringify(entries.slice(0, 100)));
+  writeMemories(entries);
   return entry;
 }
 
 export function deleteMemory(id: string) {
-  const entries = loadMemories().filter((e) => e.id !== id);
-  sessionStorage.setItem(MEMORY_KEY, JSON.stringify(entries));
+  writeMemories(loadMemories().filter((e) => e.id !== id));
 }
 
 export function formatMemoryContext(): string {

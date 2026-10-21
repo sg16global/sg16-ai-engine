@@ -6,7 +6,7 @@ export const ImageWorkspace = () => (
     title="Image Studio"
     subtitle="Create images from prompts, or upload a photo to analyze or edit — say 'remove X' to edit, or ask 'what is this?' to analyze"
     badge="Create & Analyze"
-    badgeClass="text-emerald-400"
+    badgeClass="text-[#FF5CB8]"
   >
     <ChatPanel
       workspaceId="image"

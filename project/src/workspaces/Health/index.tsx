@@ -1,31 +1,26 @@
-import { useState } from 'react';
+import { useMemo } from 'react';
 import { ArrowLeft, Stethoscope, FileHeart, CalendarDays, Pill } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { ToolCard } from '../../components/ui/Sg16Cards';
 import { useAppStore } from '../../core/appState';
-
-type View = 'hub' | 'chat';
-
-const summary = [
-  { label: 'Upcoming', value: '2', hint: 'reminders' },
-  { label: 'Reports', value: '5', hint: 'explained' },
-  { label: 'Prescriptions', value: '3', hint: 'tracked' },
-  { label: 'Health Score', value: '92', hint: 'Excellent' },
-];
+import { useShieldChat } from '../../hooks/useShieldChat';
+import { shieldActivity } from '../../lib/shieldActivity';
 
 export const HealthWorkspace = () => {
-  const [view, setView] = useState<View>('hub');
+  const { inChat, openChat, openDraft, backToHub } = useShieldChat('health');
+  const threads = useAppStore((s) => s.threads.health);
+  const activity = useMemo(() => shieldActivity(threads), [threads]);
 
-  const openChat = (prompt?: string) => {
-    if (prompt) {
-      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
-    }
-    setView('chat');
-  };
+  const summary = [
+    { label: 'Conversations', value: String(activity.conversations), hint: 'saved on this device' },
+    { label: 'Questions asked', value: String(activity.questions), hint: 'in Health Shield' },
+    { label: 'Last activity', value: activity.lastActive, hint: activity.lastActiveHint },
+    { label: 'Reminder', value: 'Not a diagnosis', hint: 'See a licensed clinician', small: true },
+  ];
 
-  if (view === 'chat') {
+  if (inChat) {
     return (
       <WorkspaceShell
         title="Health Guide"
@@ -38,7 +33,7 @@ export const HealthWorkspace = () => {
           <div className="px-4 sm:px-5 pt-3">
             <button
               type="button"
-              onClick={() => setView('hub')}
+              onClick={backToHub}
               className="sg16-bar-soft inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white"
             >
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Health
@@ -82,7 +77,7 @@ export const HealthWorkspace = () => {
           desc="Paste a summary for plain-language explain"
           icon={<FileHeart className="w-5 h-5" />}
           iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
-          onClick={() => openChat('Explain this health report summary in simple words:')}
+          onClick={() => openDraft('Explain this health report summary in simple words:\n\n')}
         />
         <ToolCard
           title="Appointments"
@@ -108,19 +103,14 @@ export const HealthWorkspace = () => {
           {summary.map((s) => (
             <div key={s.label} className="sg16-card p-4 min-h-[7.5rem] flex flex-col">
               <div className="text-[11px] uppercase tracking-wider text-white/35">{s.label}</div>
-              <div className="text-2xl font-semibold text-white mt-2">{s.value}</div>
-              <div
-                className={`text-xs mt-auto pt-2 ${
-                  s.label === 'Health Score' ? 'text-emerald-400' : 'text-white/40'
-                }`}
-              >
-                {s.hint}
-              </div>
+              <div className={`font-semibold text-white mt-2 ${s.small ? 'text-base' : 'text-2xl'}`}>{s.value}</div>
+              <div className="text-xs mt-auto pt-2 text-white/40">{s.hint}</div>
             </div>
           ))}
         </div>
         <p className="text-[11px] text-white/30 mt-3">
-          Summary cards are local placeholders — always seek a licensed clinician for diagnosis.
+          Counts come from your Health Shield chats on this device. SG16 Health gives general wellness
+          information only — always seek a licensed clinician for diagnosis.
         </p>
       </div>
     </ModuleHub>

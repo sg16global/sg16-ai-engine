@@ -6,7 +6,7 @@ export const DocumentWorkspace = () => (
     title="Document Lab"
     subtitle="Upload PDF or text files, type your question, then send — SG16 AI uses advanced document analysis for large files"
     badge="Analysis"
-    badgeClass="text-purple-400"
+    badgeClass="text-[#FF5CB8]"
   >
     <ChatPanel
       workspaceId="document"

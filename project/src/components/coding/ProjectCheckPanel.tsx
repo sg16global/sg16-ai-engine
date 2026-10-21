@@ -5,8 +5,17 @@ import { hasPaidAccess, isLaunchPeriod } from '../../core/access';
 import { scanWithCodingShield } from '../../lib/codingShieldApi';
 import { guessLanguage } from '../../lib/codingReports';
 
+export interface ShieldScanSummary {
+  score: number;
+  grade: string;
+  language: string;
+  /** Tools that reported problems. */
+  issues: number;
+}
+
 interface ProjectCheckPanelProps {
-  onAnalyze: (prompt: string) => void;
+  /** `display` is the short chat bubble text; `scan` is set only for a real Coding Shield result. */
+  onAnalyze: (prompt: string, display: string, scan?: ShieldScanSummary) => void;
 }
 
 /** Free: real Coding Shield score. Repair / deep scan → Premium. */
@@ -25,19 +34,20 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
     const body = code.trim();
     if (!body || scanning) return;
     setScanning(true);
+    const language = guessLanguage(body);
+    const lines = body.split('\n').length;
     try {
       const report = await scanWithCodingShield({
         code: body,
-        language: guessLanguage(body),
+        language,
         mode: 'fast',
       });
       setLastScore(report.score);
       setLastGrade(report.grade);
 
-      const toolLines = report.tools
-        .filter((t) => !t.skipped)
-        .map((t) => `- ${t.tool}: ${t.summary}`)
-        .join('\n');
+      const ran = report.tools.filter((t) => !t.skipped);
+      const toolLines = ran.map((t) => `- ${t.tool}: ${t.summary}`).join('\n');
+      const issues = ran.filter((t) => !t.ok).length;
 
       onAnalyze(
         [
@@ -57,10 +67,16 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
           body.slice(0, 12000),
           '```',
         ].join('\n'),
+        `Shield scan · ${language} · ${lines} line${lines === 1 ? '' : 's'}\nScore ${report.score}/100 (${report.grade}) · ${issues} tool${issues === 1 ? '' : 's'} flagged issues`,
+        { score: report.score, grade: report.grade, language, issues },
       );
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Scan failed';
-      onAnalyze(`Coding Shield could not run: ${message}. Review this code manually:\n\`\`\`\n${body.slice(0, 8000)}\n\`\`\``);
+      // No score is recorded — the AI reviews the code instead of the scanner.
+      onAnalyze(
+        `Coding Shield could not run: ${message}. Review this code manually:\n\`\`\`\n${body.slice(0, 8000)}\n\`\`\``,
+        `Review my code (${language} · ${lines} lines) — Coding Shield scanner was unavailable`,
+      );
     } finally {
       setScanning(false);
     }
@@ -73,6 +89,7 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
     }
     const body = code.trim();
     if (!body) return;
+    const lines = body.split('\n').length;
     onAnalyze(
       [
         'Repair and rewrite this code to production quality. Keep behavior, fix bugs, improve structure.',
@@ -82,11 +99,12 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
         body.slice(0, 12000),
         '```',
       ].join('\n'),
+      `Repair / rewrite my code (${guessLanguage(body)} · ${lines} line${lines === 1 ? '' : 's'})`,
     );
   };
 
   return (
-    <div className="shrink-0 px-4 sm:px-5 pt-3 pb-2">
+    <div className="shrink-0 px-4 sm:px-5 pt-3 pb-3">
       <div className="sg16-chat-col">
         <div className="sg16-card p-4">
           <div className="flex items-center gap-2 mb-2.5">
@@ -111,9 +129,9 @@ export function ProjectCheckPanel({ onAnalyze }: ProjectCheckPanelProps) {
           <textarea
             value={code}
             onChange={(e) => setCode(e.target.value)}
-            rows={3}
+            rows={10}
             placeholder="Paste code — ESLint, Sonar rules, Acorn, Gitleaks patterns run for real..."
-            className="w-full rounded-[var(--sg16-r-bar)] bg-black/45 border border-white/[0.08] focus:border-[#FF168D]/40 outline-none text-sm text-white/90 p-3 resize-y min-h-[72px] max-h-40 font-mono placeholder:text-white/25"
+            className="w-full rounded-[var(--sg16-r-bar)] bg-black/45 border border-white/[0.08] focus:border-[#FF168D]/40 outline-none text-sm text-white/90 p-3 resize-y min-h-[160px] max-h-[55vh] font-mono placeholder:text-white/25"
           />
           <div className="flex flex-wrap gap-2 mt-2.5">
             <button
