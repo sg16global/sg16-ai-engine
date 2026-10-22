@@ -84,6 +84,23 @@ ${escapeScript(js)}
 </script></body></html>`;
 }
 
+/**
+ * Pasted code has no language tag: run it if it looks like a web page / HTML fragment or
+ * browser JavaScript. Anything else (Python, Java…) is not run in the browser.
+ */
+export function previewForPasted(code: string) {
+  const t = code.trim();
+  if (!t) return null;
+  // A page or fragment starts with a tag (<!doctype, <html, <div, <style…); JS that only builds HTML strings does not.
+  if (/^<(!doctype html|html|body|head|div|span|button|canvas|section|main|h[1-6]|p|ul|table|form|style|script|svg|link|meta|!--)[\s>/]?/i.test(t)) {
+    return { kind: 'web' as const, doc: buildWebDocument(t, { css: [], js: [] }) };
+  }
+  const looksPython = /^\s*(def |class \w+.*:\s*$|import \w+\s*$|from \w+ import |print\()/m.test(t) && !/[;{}]/.test(t);
+  const looksJs = /(const|let|var|function)|=>|console\.|document\.|window\./.test(t);
+  if (looksJs && !looksPython && !NODE_ONLY.test(t)) return { kind: 'console' as const, doc: buildConsoleDocument(t) };
+  return null;
+}
+
 export function previewFor(lang: string, code: string, parts: PreviewParts): { kind: 'web' | 'console'; doc: string } | null {
   const l = guessLang(lang, code);
   if (WEB_LANGS.has(l)) return { kind: 'web', doc: buildWebDocument(code, parts) };
@@ -91,7 +108,7 @@ export function previewFor(lang: string, code: string, parts: PreviewParts): { k
   return null;
 }
 
-function PreviewFrame({ doc, className }: { doc: string; className: string }) {
+export function PreviewFrame({ doc, className }: { doc: string; className: string }) {
   return (
     <iframe
       title="Code preview"
@@ -104,7 +121,7 @@ function PreviewFrame({ doc, className }: { doc: string; className: string }) {
   );
 }
 
-function FullScreen({ doc, onClose }: { doc: string; onClose: () => void }) {
+export function FullScreen({ doc, onClose }: { doc: string; onClose: () => void }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', onKey);

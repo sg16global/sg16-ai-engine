@@ -10,7 +10,11 @@ import {
   Wand2,
   Package,
   MessageSquare,
+  Play,
+  Maximize2,
+  X,
 } from 'lucide-react';
+import { FullScreen, PreviewFrame, previewForPasted } from '../chat/CodeBlock';
 import { useAppStore } from '../../core/appState';
 import { hasPaidAccess, isLaunchPeriod } from '../../core/access';
 import { scanWithCodingShield, type ShieldScanResponse } from '../../lib/codingShieldApi';
@@ -66,6 +70,9 @@ function explainPrompt(report: ShieldScanResponse, code: string) {
 /** Free: real Coding Shield score + problem list + safe auto-fixes. Repair / rewrite → Premium. */
 export function ProjectCheckPanel({ onAnalyze, onScanned, initialCode = '' }: ProjectCheckPanelProps) {
   const [code, setCode] = useState(initialCode);
+  const [run, setRun] = useState<{ kind: 'web' | 'console' | 'none'; doc: string } | null>(null);
+  const [runKey, setRunKey] = useState(0);
+  const [fullRun, setFullRun] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [report, setReport] = useState<ShieldScanResponse | null>(null);
   const [scannedCode, setScannedCode] = useState('');
@@ -143,6 +150,19 @@ export function ProjectCheckPanel({ onAnalyze, onScanned, initialCode = '' }: Pr
           <div className="flex flex-wrap gap-2 mt-2.5">
             <button
               type="button"
+              onClick={() => {
+                const p = previewForPasted(code);
+                setRun(p ?? { kind: 'none', doc: '' });
+                setRunKey((k) => k + 1);
+              }}
+              disabled={!code.trim()}
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-200 border border-emerald-400/25 hover:bg-emerald-500/20 disabled:opacity-40 transition"
+            >
+              <Play className="w-3.5 h-3.5" />
+              Preview / Run
+            </button>
+            <button
+              type="button"
               onClick={analyze}
               disabled={!code.trim() || scanning}
               className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-full text-xs font-semibold bg-[#FF168D]/15 text-[#FFE0F0] border border-[#FF168D]/25 hover:bg-[#FF168D]/25 disabled:opacity-40 transition"
@@ -160,6 +180,34 @@ export function ProjectCheckPanel({ onAnalyze, onScanned, initialCode = '' }: Pr
               Repair / rewrite
             </button>
           </div>
+
+          {run && (
+            <div className="mt-3 rounded-xl border border-white/10 bg-black/40 overflow-hidden">
+              <div className="flex items-center gap-3 px-3 py-1.5 border-b border-white/[0.08] text-[11px] text-white/55">
+                <span className="flex-1">
+                  {run.kind === 'web' ? 'Preview' : run.kind === 'console' ? 'Run — console output' : 'Preview / Run'}
+                  {run.kind !== 'none' && ' · runs sealed off from SG16'}
+                </span>
+                {run.kind !== 'none' && (
+                  <button type="button" onClick={() => setFullRun(true)} className="inline-flex items-center gap-1 hover:text-white">
+                    <Maximize2 className="w-3 h-3" /> Full screen
+                  </button>
+                )}
+                <button type="button" onClick={() => setRun(null)} className="inline-flex items-center gap-1 hover:text-white" aria-label="Close preview">
+                  <X className="w-3 h-3" /> Close
+                </button>
+              </div>
+              {run.kind === 'none' ? (
+                <p className="px-3 py-3 text-xs text-white/60">
+                  Preview / Run works for HTML, CSS and browser JavaScript. Python, Java and other languages can be scanned
+                  here but cannot run inside the browser.
+                </p>
+              ) : (
+                <PreviewFrame key={runKey} doc={run.doc} className={run.kind === 'web' ? 'h-80 resize-y' : 'h-48 resize-y'} />
+              )}
+            </div>
+          )}
+          {fullRun && run && run.kind !== 'none' && <FullScreen doc={run.doc} onClose={() => setFullRun(false)} />}
 
           {error && (
             <div className="mt-3 rounded-xl border border-[#FF5C7A]/30 bg-[#FF5C7A]/10 px-3 py-2 text-xs text-[#FFB3C0]">
