@@ -1,4 +1,4 @@
-import { Lock } from 'lucide-react';
+import { ArrowLeft, Globe, Lock } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { canAccessWorkspace } from '../../core/access';
 import { mainNavItems, utilityNavItems } from '../../config/navConfig';
@@ -15,6 +15,8 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
   const openStaging = useAppStore((s) => s.openStaging);
+  const goBack = useAppStore((s) => s.goBack);
+  const goToPublicHome = useAppStore((s) => s.goToPublicHome);
   const engineStatus = useEngineStatus();
   const online = engineStatus === 'checking' ? null : engineStatus === 'online';
 
@@ -47,6 +49,32 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
             <div className="text-[10px] text-white/70 mt-0.5">5 shields</div>
           </div>
         </div>
+      </div>
+
+      <div className="px-2.5 pt-2.5 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            goBack();
+            onNavSelect?.();
+          }}
+          className="sg16-nav-pill"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+          <span>Back</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            goToPublicHome();
+            onNavSelect?.();
+          }}
+          className="sg16-nav-pill"
+          title="Public homepage"
+        >
+          <Globe className="w-3.5 h-3.5 shrink-0" />
+          <span>Homepage</span>
+        </button>
       </div>
 
       <div className="flex-1 p-2.5 space-y-1 overflow-auto">

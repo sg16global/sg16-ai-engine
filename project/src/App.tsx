@@ -47,7 +47,7 @@ import { useAppStore } from './core/appState';
 
 import { isAuthenticated } from './core/access';
 
-import { APP_PATHS, normalizePath, pathToRoute, pushAppPath } from './core/routes';
+import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
 import { loadAuthToken } from './lib/authApi';
 
 import { useTrialSync } from './hooks/useTrialSync';
@@ -422,20 +422,12 @@ function App() {
 
 
 
-  const showLanding = !isAuthenticated(authUser) && (isLandingRoute(pathname) || isWelcomeRoute(pathname));
+  // The public homepage always stays the public homepage (also on refresh with a session);
+  // Enter / Start Tour moves on to Shield Home at /app.
+  const showLanding = isLandingRoute(pathname) || isWelcomeRoute(pathname);
   const showGuestApp = !isAuthenticated(authUser) && isGuestAppRoute(pathname);
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
-  const restoringSession =
-    !authHydrated &&
-    Boolean(loadAuthToken()) &&
-    (isGuestAppRoute(pathname) || isLandingRoute(pathname));
-
-  useEffect(() => {
-    if (!authHydrated) return;
-    if (isAuthenticated(authUser) && isLandingRoute(pathname)) {
-      pushAppPath(APP_PATHS.app, true);
-    }
-  }, [authHydrated, authUser, pathname]);
+  const restoringSession = !authHydrated && Boolean(loadAuthToken()) && isGuestAppRoute(pathname);
 
 
 

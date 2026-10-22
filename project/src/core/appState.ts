@@ -70,6 +70,10 @@ interface AppState {
   closeLaunchNotice: () => void;
   navigateToWorkspace: (workspace: WorkspaceId, prompt?: string, imageUrl?: string) => void;
   goToHome: () => void;
+  /** Back to the previous screen (Shield Home when there is none). */
+  goBack: () => void;
+  /** Public homepage (/). The session stays; Enter or Start Tour returns to Shield Home. */
+  goToPublicHome: () => void;
   consumePendingPrompt: () => string | null;
   consumePendingImage: () => string | null;
 
@@ -100,6 +104,10 @@ interface AppState {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
 }
+
+/** Screens visited in this tab, for the side panel's Back button. */
+const backStack: WorkspaceType[] = [];
+let goingBack = false;
 
 /** Chat history is stored on this device only — never sent to the server for storage. */
 function persistMessages(messages: AppState['messages'], userId?: string | null) {
@@ -372,6 +380,20 @@ export const useAppStore = create<AppState>((set, getState) => ({
     pushAppPath('/app');
   },
 
+  goBack: () => {
+    const target = backStack.pop() ?? 'home';
+    goingBack = true;
+    if (target === 'home') getState().goToHome();
+    else getState().setWorkspace(target);
+    goingBack = false;
+  },
+
+  goToPublicHome: () => {
+    backStack.length = 0;
+    set({ currentWorkspace: 'home', error: null });
+    pushAppPath('/');
+  },
+
   navigateToWorkspace: (workspace, prompt, imageUrl) => {
     const run = () => {
       const { subscription, authUser } = getState();
@@ -476,6 +498,12 @@ export const useAppStore = create<AppState>((set, getState) => ({
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
 }));
+
+useAppStore.subscribe((state, prev) => {
+  if (goingBack || state.currentWorkspace === prev.currentWorkspace) return;
+  backStack.push(prev.currentWorkspace);
+  if (backStack.length > 20) backStack.shift();
+});
 
 if (typeof window !== 'undefined') {
   queueMicrotask(() => {

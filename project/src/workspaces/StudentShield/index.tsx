@@ -15,7 +15,6 @@ import {
   ArrowRight,
   GraduationCap,
   PanelLeft,
-  ChevronUp,
 } from 'lucide-react';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { useAppStore } from '../../core/appState';
@@ -86,28 +85,18 @@ export const StudentShieldWorkspace = () => {
   return (
     <div className="sg16-student-chrome h-full flex overflow-hidden relative">
       {!chromeOpen && (
-        <>
-          <button
-            type="button"
-            className="sg16-chrome-tab sg16-chrome-tab--left hidden md:flex"
-            onMouseEnter={chrome.openChrome}
-            onClick={chrome.openChrome}
-            aria-label="Open student menu"
-          >
-            <PanelLeft className="h-3.5 w-3.5" />
-            <span>Menu</span>
-          </button>
-          <button
-            type="button"
-            className="sg16-chrome-tab sg16-chrome-tab--top hidden md:flex"
-            onMouseEnter={chrome.openChrome}
-            onClick={chrome.openChrome}
-            aria-label="Open student header"
-          >
-            <ChevronUp className="h-3.5 w-3.5" />
-            <span>Student Shield</span>
-          </button>
-        </>
+        <button
+          type="button"
+          className="sg16-chrome-tab sg16-chrome-tab--top hidden lg:flex"
+          onMouseEnter={chrome.openChrome}
+          onClick={chrome.openChrome}
+          aria-label="Open student menu"
+        >
+          <PanelLeft className="h-3.5 w-3.5" />
+          <span>Menu</span>
+          <i className="sg16-chrome-tab__sep" aria-hidden />
+          <span>Student Shield</span>
+        </button>
       )}
       <div
         className="sg16-chrome-edge sg16-chrome-edge--left hidden md:block"
@@ -174,7 +163,11 @@ export const StudentShieldWorkspace = () => {
 
       {/* Main field */}
       <div className="relative z-10 flex-1 min-w-0 flex flex-col min-h-0">
-        <div className="m-3 sm:m-4 flex-1 min-h-0 flex flex-col sg16-neon-frame rounded-2xl overflow-hidden">
+        <div
+          className={`m-3 sm:m-4 flex-1 min-h-0 flex flex-col sg16-neon-frame rounded-2xl overflow-hidden ${
+            !chromeOpen ? 'lg:mt-10' : ''
+          }`}
+        >
           <div
             className={`sg16-student-header-wrap ${chromeOpen ? 'sg16-student-header-wrap--open' : ''}`}
             onMouseEnter={chrome.onChromeEnter}
@@ -309,27 +302,18 @@ export const StudentShieldWorkspace = () => {
             </div>
           ) : (
             <div className="flex-1 min-h-0 flex flex-col sg16-work-field">
-              <div className="px-4 pt-3">
-                <button
-                  type="button"
-                  onClick={() => setView('dashboard')}
-                  className="inline-flex items-center gap-1.5 text-xs text-white/60 hover:text-white border border-white/15 rounded-xl px-3 py-2"
-                >
-                  <ChevronLeft className="w-3.5 h-3.5" /> Back to Dashboard
-                </button>
-              </div>
-              <div className="flex-1 min-h-0">
-                <ChatPanel
-                  workspaceId="student-shield"
-                  placeholder="Ask about homework, science, math, or career guidance..."
-                  suggestions={[
-                    'Explain photosynthesis for a 10-year-old',
-                    'Help me understand fractions',
-                    'How do I write a good essay introduction?',
-                    'What career paths exist in software engineering?',
-                  ]}
-                />
-              </div>
+              <ChatPanel
+                workspaceId="student-shield"
+                placeholder="Ask about homework, science, math, or career guidance..."
+                suggestions={[
+                  'Explain photosynthesis for a 10-year-old',
+                  'Help me understand fractions',
+                  'How do I write a good essay introduction?',
+                  'What career paths exist in software engineering?',
+                ]}
+                onBack={() => setView('dashboard')}
+                backLabel="Back to Dashboard"
+              />
             </div>
           )}
         </div>

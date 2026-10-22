@@ -2,7 +2,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { ErrorBoundary } from './components/ErrorBoundary';
-import { AppTitleBar } from './components/layout/AppTitleBar';
 import './index.css';
 
 if (import.meta.env.DEV && 'serviceWorker' in navigator) {
@@ -13,7 +12,6 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <AppTitleBar />
     <ErrorBoundary>
       <App />
     </ErrorBoundary>

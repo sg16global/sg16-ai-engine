@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { X, Lock } from 'lucide-react';
+import { ArrowLeft, Globe, X, Lock } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { canAccessWorkspace } from '../../core/access';
 import { mainNavItems, utilityNavItems } from '../../config/navConfig';
@@ -19,6 +19,8 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
   const openHelp = useAppStore((s) => s.openHelp);
   const openPricing = useAppStore((s) => s.openPricing);
   const openStaging = useAppStore((s) => s.openStaging);
+  const goBack = useAppStore((s) => s.goBack);
+  const goToPublicHome = useAppStore((s) => s.goToPublicHome);
 
   useEffect(() => {
     if (open) {
@@ -67,6 +69,32 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
             <X className="w-5 h-5" />
           </button>
         </div>
+
+      <div className="px-3 pt-3 grid grid-cols-2 gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            goBack();
+            onClose();
+          }}
+          className="sg16-nav-pill"
+        >
+          <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
+          <span>Back</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            goToPublicHome();
+            onClose();
+          }}
+          className="sg16-nav-pill"
+          title="Public homepage"
+        >
+          <Globe className="w-3.5 h-3.5 shrink-0" />
+          <span>Homepage</span>
+        </button>
+      </div>
 
         <div className="flex-1 overflow-y-auto p-3 space-y-1">
           {mainNavItems.map((item) => {

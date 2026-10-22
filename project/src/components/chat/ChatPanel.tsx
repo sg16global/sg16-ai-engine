@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image as ImageIcon, Download, Globe } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image as ImageIcon, Download, Globe } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { isStudentVerified } from '../../core/access';
 import { sendChat, readDocumentFile, readImageFile } from '../../lib/chatApi';
@@ -36,6 +36,9 @@ interface ChatPanelProps {
   loadingLabel?: string;
   extraControls?: React.ReactNode;
   getExtraPayload?: () => Record<string, string | undefined>;
+  /** Shows a back button at the start of the thread bar (e.g. "Back to Coding"). */
+  onBack?: () => void;
+  backLabel?: string;
 }
 
 export function ChatPanel({
@@ -49,6 +52,8 @@ export function ChatPanel({
   loadingLabel = 'SG16 AI is thinking...',
   extraControls,
   getExtraPayload,
+  onBack,
+  backLabel = 'Back',
 }: ChatPanelProps) {
   const messages = useAppStore((s) => s.messages[workspaceId]);
   const loading = useAppStore((s) => s.loading);
@@ -255,9 +260,21 @@ export function ChatPanel({
     <div key={workspaceId} className="h-full flex flex-col">
       <div className="px-4 sm:px-5 pt-3 shrink-0">
         <div className="sg16-chat-col flex items-center justify-between gap-2 sg16-bar-soft !py-2">
-          <span className="text-[11px] text-white/40 truncate tracking-wide">
-            {workspaceLabel(workspaceId)} · private thread
-          </span>
+          <div className="flex items-center gap-3 min-w-0">
+            {onBack && (
+              <button
+                type="button"
+                onClick={onBack}
+                className="inline-flex items-center gap-1.5 shrink-0 rounded-lg px-2 py-1 text-xs text-white/70 hover:text-white hover:bg-white/[0.06] transition"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> {backLabel}
+              </button>
+            )}
+            {onBack && <span className="h-4 w-px bg-white/10 shrink-0" aria-hidden />}
+            <span className="text-[11px] text-white/40 truncate tracking-wide">
+              {workspaceLabel(workspaceId)} · private thread
+            </span>
+          </div>
           {messages.length > 0 && (
             <button
               type="button"

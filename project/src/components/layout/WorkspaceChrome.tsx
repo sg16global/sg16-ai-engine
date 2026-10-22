@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { PanelLeft, ChevronUp } from 'lucide-react';
+import { PanelLeft } from 'lucide-react';
 import { useAutoHideChrome } from '../../hooks/useAutoHideChrome';
 
 interface WorkspaceChromeProps {
@@ -29,30 +29,19 @@ export function WorkspaceChrome({
       {enabled && (
         <>
           {!open && (
-            <>
-              <button
-                type="button"
-                className="sg16-chrome-tab sg16-chrome-tab--left hidden lg:flex"
-                onMouseEnter={chrome.openChrome}
-                onFocus={chrome.openChrome}
-                onClick={chrome.openChrome}
-                aria-label="Open menu"
-              >
-                <PanelLeft className="h-3.5 w-3.5" />
-                <span>Menu</span>
-              </button>
-              <button
-                type="button"
-                className="sg16-chrome-tab sg16-chrome-tab--top hidden lg:flex"
-                onMouseEnter={chrome.openChrome}
-                onFocus={chrome.openChrome}
-                onClick={chrome.openChrome}
-                aria-label="Open header"
-              >
-                <ChevronUp className="h-3.5 w-3.5" />
-                <span>{workspaceLabel}</span>
-              </button>
-            </>
+            <button
+              type="button"
+              className="sg16-chrome-tab sg16-chrome-tab--top hidden lg:flex"
+              onMouseEnter={chrome.openChrome}
+              onFocus={chrome.openChrome}
+              onClick={chrome.openChrome}
+              aria-label="Open menu"
+            >
+              <PanelLeft className="h-3.5 w-3.5" />
+              <span>Menu</span>
+              <i className="sg16-chrome-tab__sep" aria-hidden />
+              <span>{workspaceLabel}</span>
+            </button>
           )}
           <div
             className="sg16-chrome-edge sg16-chrome-edge--left hidden lg:block"
@@ -75,7 +64,11 @@ export function WorkspaceChrome({
         {sidebar({ onNavSelect: chrome.onNavSelect })}
       </div>
 
-      <div className="sg16-work-panel flex flex-1 flex-col min-w-0 sg16-work-field">
+      <div
+        className={`sg16-work-panel flex flex-1 flex-col min-w-0 sg16-work-field ${
+          enabled && !open ? 'sg16-work-panel--tabbed' : ''
+        }`}
+      >
         <div
           className={`sg16-header-wrap hidden lg:block ${open ? 'sg16-header-wrap--open' : ''}`}
           onMouseEnter={enabled ? chrome.onChromeEnter : undefined}

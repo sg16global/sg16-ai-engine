@@ -57,30 +57,34 @@ export const CodingWorkspace = () => {
         badgeClass="text-[#FF5CB8]"
         skin="coding"
       >
-        <div className="h-full flex flex-col min-h-0">
-          <div className="px-4 sm:px-5 pt-3">
-            <button
-              type="button"
-              onClick={() => setView('hub')}
-              className="sg16-bar-soft inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Coding
-            </button>
+        {view === 'check' ? (
+          // The scan gets the whole page (results can be long); "Explain with AI" opens the chat view.
+          <div className="h-full overflow-y-auto overscroll-contain mobile-scroll-main pb-4">
+            <div className="px-4 sm:px-5 pt-3">
+              <button
+                type="button"
+                onClick={() => setView('hub')}
+                className="sg16-bar-soft inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white"
+              >
+                <ArrowLeft className="w-3.5 h-3.5" /> Back to Coding
+              </button>
+            </div>
+            <ProjectCheckPanel onAnalyze={onAnalyze} />
           </div>
-          {view === 'check' && <ProjectCheckPanel onAnalyze={onAnalyze} />}
-          <div className="flex-1 min-h-0">
-            <ChatPanel
-              workspaceId="coding"
-              monospace
-              placeholder="Describe what to build or fix..."
-              suggestions={[
-                'Review this React component for bugs',
-                'Write a secure Express API route',
-                'Explain this TypeScript error',
-              ]}
-            />
-          </div>
-        </div>
+        ) : (
+          <ChatPanel
+            workspaceId="coding"
+            monospace
+            placeholder="Describe what to build or fix..."
+            suggestions={[
+              'Review this React component for bugs',
+              'Write a secure Express API route',
+              'Explain this TypeScript error',
+            ]}
+            onBack={() => setView('hub')}
+            backLabel="Back to Coding"
+          />
+        )}
       </WorkspaceShell>
     );
   }

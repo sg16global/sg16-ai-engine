@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, Stethoscope, FileHeart, CalendarDays, Pill } from 'lucide-react';
+import { Stethoscope, FileHeart, CalendarDays, Pill } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
@@ -34,30 +34,19 @@ export const HealthWorkspace = () => {
         badgeClass="text-[#FF5CB8]"
         skin="health"
       >
-        <div className="h-full flex flex-col min-h-0">
-          <div className="px-4 sm:px-5 pt-3">
-            <button
-              type="button"
-              onClick={() => setView('hub')}
-              className="sg16-bar-soft inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Health
-            </button>
-          </div>
-          <div className="flex-1 min-h-0">
-            <ChatPanel
-              workspaceId="health"
-              placeholder="Ask about symptoms info, habits, or paste a report summary..."
-              suggestions={[
-                'Explain this blood test summary in simple words',
-                'Healthy sleep routine suggestions',
-                'When should I see a doctor for a fever?',
-                'Diet tips for more energy',
-              ]}
-              loadingLabel="SG16 Health is reviewing..."
-            />
-          </div>
-        </div>
+        <ChatPanel
+          workspaceId="health"
+          placeholder="Ask about symptoms info, habits, or paste a report summary..."
+          suggestions={[
+            'Explain this blood test summary in simple words',
+            'Healthy sleep routine suggestions',
+            'When should I see a doctor for a fever?',
+            'Diet tips for more energy',
+          ]}
+          loadingLabel="SG16 Health is reviewing..."
+          onBack={() => setView('hub')}
+          backLabel="Back to Health"
+        />
       </WorkspaceShell>
     );
   }

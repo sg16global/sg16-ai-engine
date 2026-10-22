@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  Bell,
-  LogOut,
-  Settings,
-  UserRound,
-} from 'lucide-react';
+import { Bell, Globe, UserRound } from 'lucide-react';
 import { useAppStore } from '../core/appState';
 import { isAuthenticated } from '../core/access';
-import { pushAppPath } from '../core/routes';
 import { usePilotStore } from '../core/pilotState';
 import type { WorkspaceId } from '../core/types';
 import './shieldHome.css';
@@ -91,7 +85,7 @@ export const HomePage = () => {
   const openHelp = useAppStore((s) => s.openHelp);
   const openUserRoom = useAppStore((s) => s.openUserRoom);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
-  const logout = useAppStore((s) => s.logout);
+  const goToPublicHome = useAppStore((s) => s.goToPublicHome);
   const togglePilot = usePilotStore((s) => s.toggleOpen);
   const isGuest = !isAuthenticated(authUser);
 
@@ -141,21 +135,9 @@ export const HomePage = () => {
           >
             <Bell size={20} />
           </button>
-          <button
-            className="hud-icon"
-            type="button"
-            onClick={() => requireAuth(() => setWorkspace('settings'))}
-            aria-label="Settings"
-          >
-            <Settings size={20} />
-          </button>
-          <button
-            className="hud-logout"
-            type="button"
-            onClick={() => (isGuest ? pushAppPath('/', true) : logout())}
-          >
-            <LogOut size={19} />
-            <span>{isGuest ? 'EXIT TOUR' : 'LOGOUT'}</span>
+          <button className="hud-logout" type="button" onClick={goToPublicHome} aria-label="Public homepage">
+            <Globe size={19} />
+            <span>HOMEPAGE</span>
           </button>
         </div>
       </header>

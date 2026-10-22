@@ -441,6 +441,28 @@
   backdrop-filter: blur(12px);
 }
 
+/* Back / Homepage buttons at the top of the side panel */
+.sg16-nav-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: color var(--sg16-transition), border-color var(--sg16-transition), background var(--sg16-transition);
+}
+
+.sg16-nav-pill:hover {
+  color: #fff;
+  border-color: rgba(255, 22, 141, 0.6);
+  background: rgba(255, 22, 141, 0.1);
+}
+
 /* Chat column width standard */
 .sg16-chat-col {
   width: 100%;
@@ -585,13 +607,25 @@
     transform: translateX(-50%);
     border-radius: 0 0 10px 10px;
     padding: 0.38rem 0.75rem;
-    max-width: min(52vw, 280px);
+    max-width: min(60vw, 360px);
   }
 
   .sg16-chrome-tab--top span {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+  }
+
+  .sg16-chrome-tab__sep {
+    width: 1px;
+    height: 0.8rem;
+    margin: 0 0.2rem;
+    background: var(--sg16-border-hover);
+  }
+
+  /* Hidden header: keep a strip free for the tab so it never covers the page */
+  .sg16-work-panel--tabbed {
+    padding-top: 2.25rem;
   }
 
   .sg16-chrome-edge {
@@ -929,60 +963,5 @@
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-  }
-}
-
-/* ── INSTALLED DESKTOP APP (window-controls-overlay) ──
-   The app paints its own title strip (AppTitleBar), so the top bar stays SG16-dark
-   instead of Chrome's light frame. Everything else shifts down by the strip height. */
-.sg16-titlebar {
-  display: none;
-}
-
-@media (display-mode: window-controls-overlay) {
-  :root {
-    --sg16-titlebar-h: env(titlebar-area-height, 33px);
-  }
-
-  body {
-    box-sizing: border-box;
-    padding-top: var(--sg16-titlebar-h);
-  }
-
-  .sg16-titlebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index: 2147483000;
-    height: var(--sg16-titlebar-h);
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding-left: calc(env(titlebar-area-x, 0px) + 12px);
-    box-sizing: border-box;
-    background: #050509;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-    color: rgba(247, 247, 252, 0.82);
-    font: 500 12px/1 'Inter', system-ui, sans-serif;
-    letter-spacing: 0.01em;
-    user-select: none;
-    app-region: drag;
-    -webkit-app-region: drag;
-  }
-
-  .sg16-titlebar img {
-    border-radius: 50%;
-  }
-
-  .sg16-app-shell {
-    min-height: calc(100dvh - var(--sg16-titlebar-h)) !important;
-  }
-
-  .sg16-app-shell.sg16-home-shell,
-  .sg16-app-shell.sg16-workspace-shell,
-  .shield-home {
-    height: calc(100dvh - var(--sg16-titlebar-h)) !important;
-    max-height: calc(100dvh - var(--sg16-titlebar-h)) !important;
   }
 }

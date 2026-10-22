@@ -36,6 +36,7 @@ interface LandingHeaderProps {
 
 export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
   const startSession = useAppStore((s) => s.startSession);
+  const goToHome = useAppStore((s) => s.goToHome);
   const enterGuestTour = useAppStore((s) => s.enterGuestTour);
   const openStaging = useAppStore((s) => s.openStaging);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -101,7 +102,7 @@ export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
             <span>Staging Lab</span>
             <span className="lp-btn__tag">24/7 AI</span>
           </button>
-          <button type="button" onClick={() => startSession()} className="lp-btn lp-btn--sm lp-btn--ghost">
+          <button type="button" onClick={() => startSession(goToHome)} className="lp-btn lp-btn--sm lp-btn--ghost">
             <UserRound className="h-4 w-4" />
             <span>Enter</span>
           </button>
@@ -196,7 +197,7 @@ export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
                 type="button"
                 onClick={() => {
                   setMenuOpen(false);
-                  startSession();
+                  startSession(goToHome);
                 }}
                 className="w-full flex items-center justify-center gap-2 rounded-lg border border-[#29202F] bg-[#0A0A12] py-2.5 text-sm font-medium text-white hover:border-[#60304F]"
               >

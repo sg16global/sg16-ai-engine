@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ArrowLeft, TrendingUp, Newspaper, Bitcoin, Bell } from 'lucide-react';
+import { TrendingUp, Newspaper, Bitcoin, Bell } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
@@ -29,30 +29,19 @@ export const MarketWorkspace = () => {
         badgeClass="text-white"
         skin="shell"
       >
-        <div className="h-full flex flex-col min-h-0 text-white">
-          <div className="px-4 sm:px-5 pt-3">
-            <button
-              type="button"
-              onClick={() => setView('hub')}
-              className="inline-flex items-center gap-1.5 text-xs text-white/55 hover:text-white border border-white/15 rounded-xl px-3 py-2"
-            >
-              <ArrowLeft className="w-3.5 h-3.5" /> Back to Market
-            </button>
-          </div>
-          <div className="flex-1 min-h-0">
-            <ChatPanel
-              workspaceId="market"
-              placeholder="Ask for market summary, crypto overview, or news…"
-              suggestions={[
-                "Summarize today's global market mood (not financial advice)",
-                'Crypto summary for beginners (not financial advice)',
-                'Latest major AI industry news',
-                'Help me set a notify-only watchlist plan',
-              ]}
-              loadingLabel="Market Pilot is reviewing…"
-            />
-          </div>
-        </div>
+        <ChatPanel
+          workspaceId="market"
+          placeholder="Ask for market summary, crypto overview, or news…"
+          suggestions={[
+            "Summarize today's global market mood (not financial advice)",
+            'Crypto summary for beginners (not financial advice)',
+            'Latest major AI industry news',
+            'Help me set a notify-only watchlist plan',
+          ]}
+          loadingLabel="Market Pilot is reviewing…"
+          onBack={() => setView('hub')}
+          backLabel="Back to Market"
+        />
       </WorkspaceShell>
     );
   }
