@@ -18,8 +18,8 @@ const PIONEERS: Pioneer[] = [
   { id: 'john-mccarthy', name: 'John McCarthy', role: 'AI Pioneer · Lisp Creator', credit: { author: 'null0 (Flickr)', license: 'CC BY-SA 2.0', source: commons('John_McCarthy_Stanford.jpg') } },
   { id: 'marvin-minsky', name: 'Marvin Minsky', role: 'Early AI Pioneer', credit: { author: 'Sethwoodworth (OLPC)', license: 'CC BY 3.0', source: commons('Marvin_Minsky_at_OLPCb_(3x4_cropped).jpg') } },
   { id: 'geoffrey-hinton', name: 'Geoffrey Hinton', role: 'Deep Learning Pioneer', credit: { author: 'Cmichel67', license: 'CC BY-SA 4.0', source: commons('Geoffrey_Hinton_in_2026.jpg') } },
-  // Rights for this photo still need confirming (no free licence was found).
-  { id: 'arthur-samuel', name: 'Arthur Samuel', role: 'Machine Learning Pioneer', credit: { author: 'Historical photograph', license: 'rights to be confirmed', source: null } },
+  // Supplied by the site owner, who confirmed the rights (2026-10-22).
+  { id: 'arthur-samuel', name: 'Arthur Samuel', role: 'Machine Learning Pioneer', credit: { author: 'Historical photograph', license: 'supplied by Saif Tech Global', source: null } },
   { id: 'claude-shannon', name: 'Claude Shannon', role: 'Information Theory Pioneer', credit: { author: 'Tekniska museet', license: 'CC BY 2.0', source: commons('C.E._Shannon._Tekniska_museet_43069_(2x3_crop).jpg') } },
   { id: 'norbert-wiener', name: 'Norbert Wiener', role: 'Cybernetics Pioneer', credit: { author: 'Garry Olsh', license: 'CC0', source: commons('Norbert_Wiener.png') } },
   { id: 'herbert-simon', name: 'Herbert A. Simon', role: 'AI & Cognitive Science Pioneer', credit: { author: 'Rochester Institute of Technology', license: 'Public domain', source: commons('Herbert_Simon,_RIT_NandE_Vol13Num11_1981_Mar19_Complete.jpg') } },
