@@ -441,6 +441,26 @@
   backdrop-filter: blur(12px);
 }
 
+/* Form fields in shield tools */
+.sg16-field {
+  width: 100%;
+  min-width: 0;
+  color: var(--sg16-text);
+  background: rgba(5, 5, 9, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.65rem;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.875rem;
+  outline: none;
+  color-scheme: dark;
+  transition: border-color var(--sg16-transition), box-shadow var(--sg16-transition);
+}
+
+.sg16-field:focus {
+  border-color: var(--sg16-primary);
+  box-shadow: 0 0 0 3px rgba(255, 22, 141, 0.14);
+}
+
 /* Back / Homepage buttons at the top of the side panel */
 .sg16-nav-pill {
   display: inline-flex;

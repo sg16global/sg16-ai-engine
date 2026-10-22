@@ -19,6 +19,8 @@ import { languageName } from '../../lib/codingReports';
 interface ProjectCheckPanelProps {
   onAnalyze: (prompt: string) => void;
   onScanned?: (report: ShieldScanResponse) => void;
+  /** Code to start with (e.g. a saved snippet). */
+  initialCode?: string;
 }
 
 function scoreColor(score: number) {
@@ -62,8 +64,8 @@ function explainPrompt(report: ShieldScanResponse, code: string) {
 }
 
 /** Free: real Coding Shield score + problem list + safe auto-fixes. Repair / rewrite → Premium. */
-export function ProjectCheckPanel({ onAnalyze, onScanned }: ProjectCheckPanelProps) {
-  const [code, setCode] = useState('');
+export function ProjectCheckPanel({ onAnalyze, onScanned, initialCode = '' }: ProjectCheckPanelProps) {
+  const [code, setCode] = useState(initialCode);
   const [scanning, setScanning] = useState(false);
   const [report, setReport] = useState<ShieldScanResponse | null>(null);
   const [scannedCode, setScannedCode] = useState('');

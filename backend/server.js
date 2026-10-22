@@ -68,6 +68,7 @@ import {
 } from './lib/childrenWorld/handlers.js';
 import { isChildrenWorldEnabled, requireChildrenClient } from './lib/childrenWorld/clientAuth.js';
 import { isSpaPath } from './lib/spaRoutes.js';
+import { handleMarketNews, handleMarketOverview } from './lib/marketData.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const frontendDist = path.join(__dirname, 'public');
@@ -277,6 +278,10 @@ app.post('/api/v1/route', requireAuth, handleRouteRequest);
 app.post('/api/v1/chat', requireAuth, handleChatRequest);
 app.post('/api/v1/speech/transcribe', requireAuth, handleSpeechTranscribe);
 app.post('/api/v1/student/verify', requireAuth, handleStudentVerifyRequest);
+
+// Market Shield: public prices and headlines (no account needed)
+app.get('/api/v1/market/overview', handleMarketOverview);
+app.get('/api/v1/market/news', handleMarketNews);
 
 app.get('/api/v1/coding-shield/health', handleCodingShieldHealth);
 app.post('/api/v1/coding-shield/scan', requireAuth, handleCodingShieldScan);

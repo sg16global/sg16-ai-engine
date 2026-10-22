@@ -1,42 +1,41 @@
 import { useState } from 'react';
-import { TrendingUp, Newspaper, Bitcoin, Bell } from 'lucide-react';
+import { BellRing, MessageSquare, Newspaper } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { ToolCard } from '../../components/ui/Sg16Cards';
-import { useAppStore } from '../../core/appState';
-import { usePilotStore } from '../../core/pilotState';
+import { ToolPage } from '../../components/tools/ToolPage';
+import { AlertsTool, MARKET_KEYS, MarketBoard, NewsTool, type PriceAlert } from '../../components/tools/marketTools';
+import { useLocalCollection } from '../../lib/localStore';
+import { useOpenChatRequest } from '../../hooks/useOpenChatRequest';
 
-type View = 'hub' | 'chat';
+type View = 'hub' | 'chat' | 'alerts' | 'news';
 
 export const MarketWorkspace = () => {
   const [view, setView] = useState<View>('hub');
-  const startPilot = usePilotStore((s) => s.startPilot);
+  const { items: alerts } = useLocalCollection<PriceAlert>(MARKET_KEYS.alerts);
+  const waiting = alerts.filter((a) => !a.triggeredAt).length;
+  const hit = alerts.length - waiting;
 
-  const openChat = (prompt?: string) => {
-    if (prompt) {
-      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
-    }
-    setView('chat');
-  };
+  useOpenChatRequest('market', () => setView('chat'));
 
   if (view === 'chat') {
     return (
       <WorkspaceShell
         title="Market Shield"
-        subtitle="Monitor · summarize · notify — never auto-trade"
-        badge="Intelligence"
+        subtitle="Ask about markets in plain language — never auto-trade, not financial advice"
+        badge="AI"
         badgeClass="text-white"
         skin="shell"
       >
         <ChatPanel
           workspaceId="market"
-          placeholder="Ask for market summary, crypto overview, or news…"
+          placeholder="Ask about a market, a term, or today's news…"
           suggestions={[
-            "Summarize today's global market mood (not financial advice)",
-            'Crypto summary for beginners (not financial advice)',
+            'Explain what moves the price of gold',
+            'What is the difference between a stock index and a stock?',
             'Latest major AI industry news',
-            'Help me set a notify-only watchlist plan',
+            'How do I read a crypto price chart as a beginner?',
           ]}
           loadingLabel="Market Pilot is reviewing…"
           onBack={() => setView('hub')}
@@ -46,51 +45,56 @@ export const MarketWorkspace = () => {
     );
   }
 
+  if (view === 'alerts' || view === 'news') {
+    return (
+      <div className="sg16-work-field h-full">
+        <ToolPage
+          title={view === 'alerts' ? 'Price alerts' : 'Market headlines'}
+          subtitle={view === 'alerts' ? 'Get told when a price crosses your level.' : 'Latest headlines from public news feeds.'}
+          backLabel="Back to Market"
+          onBack={() => setView('hub')}
+        >
+          {view === 'alerts' ? <AlertsTool /> : <NewsTool />}
+        </ToolPage>
+      </div>
+    );
+  }
+
   return (
-    <div className="sg16-work-field min-h-full">
+    <div className="sg16-work-field h-full text-white">
       <ModuleHub
         title="Market Shield"
-        subtitle="Global market intelligence — analyze, monitor, notify. No auto buy/sell."
+        subtitle="Live prices, your watchlist, price alerts and headlines — never auto-trade"
         skin="shell"
       >
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid sm:grid-cols-3 gap-4">
           <ToolCard
-            title="Today's market"
-            desc="Plain-language market mood"
-            icon={<TrendingUp className="w-5 h-5" />}
+            title="Price alerts"
+            desc={alerts.length ? `${waiting} watching${hit ? ` · ${hit} hit` : ''}` : 'Get told when a price crosses your level'}
+            icon={<BellRing className="w-5 h-5" />}
             iconClass="bg-white/10 text-white"
-            onClick={() => openChat("Summarize today's global market mood (not financial advice).")}
+            onClick={() => setView('alerts')}
           />
           <ToolCard
-            title="Crypto summary"
-            desc="Beginner-friendly overview"
-            icon={<Bitcoin className="w-5 h-5" />}
-            iconClass="bg-white/10 text-white"
-            onClick={() => openChat('Give a clear crypto market summary (not financial advice).')}
-          />
-          <ToolCard
-            title="AI / market news"
-            desc="Important headlines only"
+            title="Headlines"
+            desc="Markets, crypto and AI industry news"
             icon={<Newspaper className="w-5 h-5" />}
             iconClass="bg-white/10 text-white"
-            onClick={() => openChat('Summarize the latest major AI and market news.')}
+            onClick={() => setView('news')}
           />
           <ToolCard
-            title="Market Pilot"
-            desc="Watch & notify for hours"
-            icon={<Bell className="w-5 h-5" />}
+            title="Ask Market AI"
+            desc="Plain-language explanations"
+            icon={<MessageSquare className="w-5 h-5" />}
             iconClass="bg-white/10 text-white"
-            onClick={() =>
-              startPilot(
-                'Monitor major markets and crypto themes; notify only on significant moves or news. No trading.',
-                'market',
-              )
-            }
+            onClick={() => setView('chat')}
           />
         </div>
+        <MarketBoard />
         <div className="rounded-2xl border border-white/15 bg-white/[0.03] p-4 text-xs text-white/55 leading-relaxed">
-          <strong className="text-white/80">Safety:</strong> Market Pilot does not buy, sell, or
-          execute trades. Educational summaries only — not financial advice.
+          <strong className="text-white/80">Safety:</strong> SG16 never buys, sells or trades for you. Prices come from public
+          sources (CoinGecko, Binance, Coinbase, Yahoo Finance, ExchangeRate-API, Frankfurter) and can be delayed.
+          Educational use only — not financial advice.
         </div>
       </ModuleHub>
     </div>

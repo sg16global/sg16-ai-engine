@@ -10,6 +10,13 @@ const OFFLINE_RETRY_MS = 15_000;
 let status: EngineStatus = 'checking';
 const listeners = new Set<() => void>();
 
+/** What /health reports about the engine's own services (for the Shield Home status bar). */
+export interface EngineHealth {
+  aiConfigured: boolean;
+  liveSearch: boolean;
+}
+let health: EngineHealth | null = null;
+
 /** Called by apiClient after every request, so status reflects real traffic, not just health pings. */
 export function setEngineStatus(next: EngineStatus) {
   if (next === status) return;
@@ -30,13 +37,27 @@ function subscribe(listener: () => void) {
 
 export async function checkEngineHealth(): Promise<boolean> {
   try {
-    const data = await apiRequest<{ status?: string }>('/health', { timeoutMs: HEALTH_TIMEOUT_MS });
+    const data = await apiRequest<{
+      status?: string;
+      liveSearch?: string;
+      providers?: { primary?: string | null; apiUrl?: string | null; ollamaUrl?: string | null };
+    }>('/health', { timeoutMs: HEALTH_TIMEOUT_MS });
     const ok = data?.status === 'ok';
+    const p = data?.providers;
+    health = {
+      aiConfigured: Boolean(p?.primary || p?.apiUrl || p?.ollamaUrl),
+      liveSearch: data?.liveSearch === 'ready',
+    };
+    listeners.forEach((listener) => listener());
     setEngineStatus(ok ? 'online' : 'offline');
     return ok;
   } catch {
     return false;
   }
+}
+
+export function useEngineHealth(): EngineHealth | null {
+  return useSyncExternalStore(subscribe, () => health, () => health);
 }
 
 /** Live engine connection status shared by every component. */

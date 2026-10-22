@@ -1,9 +1,10 @@
-import { Bell, Moon, Crown, GraduationCap, Menu, LogOut, Home } from 'lucide-react';
+import { Bell, Crown, GraduationCap, Menu, LogOut, Home } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { isAuthenticated, isStudentVerified } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
 import { Sg16Logo } from '../ui/Sg16Logo';
+import { usePilotStore } from '../../core/pilotState';
 
 const titles: Record<string, string> = {
   home: 'SG16 AI Engine',
@@ -33,7 +34,8 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
   const authUser = useAppStore((s) => s.authUser);
   const launchFree = useAppStore((s) => s.launchFree);
   const settings = useAppStore((s) => s.settings);
-  const openHelp = useAppStore((s) => s.openHelp);
+  const openPilot = usePilotStore((s) => s.setOpen);
+  const reminderCount = usePilotStore((s) => s.badgeCount);
   const openPricing = useAppStore((s) => s.openPricing);
   const startSession = useAppStore((s) => s.startSession);
   const openStaging = useAppStore((s) => s.openStaging);
@@ -149,19 +151,17 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
 
         <button
           type="button"
-          onClick={() => document.documentElement.classList.toggle('light-mode')}
-          className="hidden md:block p-2 hover:bg-white/10 rounded-xl opacity-50 cursor-not-allowed"
-          title="Dark mode (default)"
-        >
-          <Moon className="w-5 h-5" />
-        </button>
-        <button
-          type="button"
-          onClick={() => openHelp('overview')}
-          className="p-2 hover:bg-white/10 rounded-xl"
-          title="Notifications & updates"
+          onClick={() => openPilot(true)}
+          className="relative p-2 hover:bg-white/10 rounded-xl"
+          title="Your reminders"
+          aria-label="Your reminders"
         >
           <Bell className="w-5 h-5" />
+          {reminderCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 min-w-4 h-4 px-1 rounded-full text-[9px] font-bold flex items-center justify-center bg-[#FF168D]">
+              {reminderCount > 9 ? '9+' : reminderCount}
+            </span>
+          )}
         </button>
         <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-white/10">
           <div className="text-right hidden sm:block">

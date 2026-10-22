@@ -15,7 +15,7 @@ export function LaunchBanner() {
         <p className="leading-relaxed">
           <strong className="text-white">Launch period</strong>
           {' — '}
-          {launchMessage ||
+          {launchMessage.replace(/^\s*Launch period\s*[—-]\s*/i, '') ||
             `All ${SG16_BRAND.shortName} workspaces are free and unlimited. We will notify you before paid plans begin.`}
         </p>
       </div>

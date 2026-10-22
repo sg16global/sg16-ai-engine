@@ -1,19 +1,29 @@
-import { useState } from 'react';
-import { Stethoscope, FileHeart, CalendarDays, Pill } from 'lucide-react';
+import { useState, type ReactNode } from 'react';
+import { Stethoscope, FileHeart, CalendarDays, Pill, Activity, Scale } from 'lucide-react';
 import { WorkspaceShell } from '../../components/workspace/WorkspaceShell';
 import { ModuleHub } from '../../components/workspace/ModuleHub';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { ToolCard } from '../../components/ui/Sg16Cards';
+import { ToolPage } from '../../components/tools/ToolPage';
+import { StatTile, formatDate } from '../../components/tools/RecordTool';
+import {
+  AppointmentsTool,
+  BmiTool,
+  HealthLogTool,
+  MedicinesTool,
+  healthStats,
+} from '../../components/tools/healthTools';
 import { useAppStore } from '../../core/appState';
+import { useOpenChatRequest } from '../../hooks/useOpenChatRequest';
 
-type View = 'hub' | 'chat';
+type View = 'hub' | 'chat' | 'medicines' | 'appointments' | 'log' | 'bmi';
 
-const summary = [
-  { label: 'Upcoming', value: '2', hint: 'reminders' },
-  { label: 'Reports', value: '5', hint: 'explained' },
-  { label: 'Prescriptions', value: '3', hint: 'tracked' },
-  { label: 'Health Score', value: '92', hint: 'Excellent' },
-];
+const TOOLS: Record<Exclude<View, 'hub' | 'chat'>, { title: string; subtitle: string; body: () => ReactNode }> = {
+  medicines: { title: 'Medicines', subtitle: 'What you take and when. Follow your doctor or pharmacist.', body: () => <MedicinesTool /> },
+  appointments: { title: 'Appointments', subtitle: 'Upcoming visits and the questions you want to ask.', body: () => <AppointmentsTool /> },
+  log: { title: 'Health log', subtitle: 'Weight, blood pressure, sleep, water and more.', body: () => <HealthLogTool /> },
+  bmi: { title: 'BMI calculator', subtitle: 'Body mass index from your height and weight.', body: () => <BmiTool /> },
+};
 
 export const HealthWorkspace = () => {
   const [view, setView] = useState<View>('hub');
@@ -24,13 +34,14 @@ export const HealthWorkspace = () => {
     }
     setView('chat');
   };
+  useOpenChatRequest('health', () => setView('chat'));
 
   if (view === 'chat') {
     return (
       <WorkspaceShell
         title="Health Guide"
         subtitle="Wellness questions & report explain — not a medical diagnosis"
-        badge="Worldwide"
+        badge="AI"
         badgeClass="text-[#FF5CB8]"
         skin="health"
       >
@@ -51,41 +62,68 @@ export const HealthWorkspace = () => {
     );
   }
 
+  if (view !== 'hub') {
+    const tool = TOOLS[view];
+    return (
+      <div className="sg16-work-field h-full">
+        <ToolPage title={tool.title} subtitle={tool.subtitle} backLabel="Back to Health" onBack={() => setView('hub')}>
+          {tool.body()}
+        </ToolPage>
+      </div>
+    );
+  }
+
+  const s = healthStats();
+
   return (
     <div className="sg16-work-field h-full">
     <ModuleHub
       title="Health Shield"
-      subtitle="Wellness tools — ask questions, explain reports, track habits"
+      subtitle="Your medicines, appointments and health log on this device — plus an AI guide for questions"
       skin="health"
     >
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <ToolCard
-          title="Medical Services"
-          desc="Ask wellness & lifestyle questions"
+          title="Ask Health Guide (AI)"
+          desc="Wellness and lifestyle questions — not a diagnosis"
           icon={<Stethoscope className="w-5 h-5" />}
           iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           onClick={() => openChat()}
         />
         <ToolCard
-          title="Health Reports"
-          desc="Paste a summary for plain-language explain"
+          title="Explain a report (AI)"
+          desc="Paste report text for a plain-language explanation"
           icon={<FileHeart className="w-5 h-5" />}
           iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
           onClick={() => openChat('Explain this health report summary in simple words:')}
         />
         <ToolCard
-          title="Appointments"
-          desc="Prep questions before you see a doctor"
-          icon={<CalendarDays className="w-5 h-5" />}
-          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
-          onClick={() => openChat('Help me prepare questions for a doctor appointment.')}
-        />
-        <ToolCard
-          title="Prescriptions"
-          desc="General info about habits & meds (not advice)"
+          title="Medicines"
+          desc={s.activeMedicines ? `${s.activeMedicines} active · next dose ${s.nextDose ? s.nextDose.time : 'tomorrow'}` : 'Track what you take and when'}
           icon={<Pill className="w-5 h-5" />}
           iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
-          onClick={() => openChat('Explain general prescription safety tips (not medical advice).')}
+          onClick={() => setView('medicines')}
+        />
+        <ToolCard
+          title="Appointments"
+          desc={s.nextAppointment ? `Next: ${formatDate(s.nextAppointment.date)} · ${s.nextAppointment.with}` : 'Plan visits and questions to ask'}
+          icon={<CalendarDays className="w-5 h-5" />}
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
+          onClick={() => setView('appointments')}
+        />
+        <ToolCard
+          title="Health log"
+          desc={s.logEntries ? `${s.logEntries} entries` : 'Weight, blood pressure, sleep, water'}
+          icon={<Activity className="w-5 h-5" />}
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
+          onClick={() => setView('log')}
+        />
+        <ToolCard
+          title="BMI calculator"
+          desc="From your height and weight (WHO ranges)"
+          icon={<Scale className="w-5 h-5" />}
+          iconClass="bg-[#FF168D]/15 text-[#FF5CB8]"
+          onClick={() => setView('bmi')}
         />
       </div>
 
@@ -94,22 +132,25 @@ export const HealthWorkspace = () => {
           <h3 className="text-sm font-semibold text-white">Health Summary</h3>
         </div>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {summary.map((s) => (
-            <div key={s.label} className="sg16-card p-4 min-h-[7.5rem] flex flex-col">
-              <div className="text-[11px] uppercase tracking-wider text-white/35">{s.label}</div>
-              <div className="text-2xl font-semibold text-white mt-2">{s.value}</div>
-              <div
-                className={`text-xs mt-auto pt-2 ${
-                  s.label === 'Health Score' ? 'text-emerald-400' : 'text-white/40'
-                }`}
-              >
-                {s.hint}
-              </div>
-            </div>
-          ))}
+          <StatTile
+            label="Next dose"
+            value={s.nextDose ? s.nextDose.time : '—'}
+            hint={s.nextDose ? `${s.nextDose.name}${s.nextDose.dose ? ` · ${s.nextDose.dose}` : ''}` : s.activeMedicines ? 'No more doses today' : 'No medicines added'}
+          />
+          <StatTile
+            label="Appointments"
+            value={s.upcoming.length}
+            hint={s.nextAppointment ? `Next ${formatDate(s.nextAppointment.date)}` : 'None upcoming'}
+          />
+          <StatTile label="Active medicines" value={s.activeMedicines} />
+          <StatTile
+            label={s.latest[0]?.type ?? 'Health log'}
+            value={s.latest[0]?.value ?? '—'}
+            hint={s.latest[0] ? formatDate(s.latest[0].date) : 'No entries yet'}
+          />
         </div>
         <p className="text-[11px] text-white/30 mt-3">
-          Summary cards are local placeholders — always seek a licensed clinician for diagnosis.
+          Numbers come from what you saved on this device. SG16 does not diagnose — always see a licensed clinician.
         </p>
       </div>
     </ModuleHub>

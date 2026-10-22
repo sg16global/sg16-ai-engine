@@ -3,6 +3,7 @@ import { Bell, Globe, UserRound } from 'lucide-react';
 import { useAppStore } from '../core/appState';
 import { isAuthenticated } from '../core/access';
 import { usePilotStore } from '../core/pilotState';
+import { useEngineHealth, useEngineStatus } from '../lib/apiStatus';
 import type { WorkspaceId } from '../core/types';
 import './shieldHome.css';
 
@@ -82,11 +83,50 @@ export const HomePage = () => {
   const navigateToWorkspace = useAppStore((s) => s.navigateToWorkspace);
   const requireAuth = useAppStore((s) => s.requireAuth);
   const startSession = useAppStore((s) => s.startSession);
-  const openHelp = useAppStore((s) => s.openHelp);
   const openUserRoom = useAppStore((s) => s.openUserRoom);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const goToPublicHome = useAppStore((s) => s.goToPublicHome);
   const togglePilot = usePilotStore((s) => s.toggleOpen);
+  const engine = useEngineStatus();
+  const health = useEngineHealth();
+  const aiStatus = useAppStore((s) => s.aiStatus);
+  const [online, setOnline] = useState(() => navigator.onLine);
+
+  useEffect(() => {
+    const update = () => setOnline(navigator.onLine);
+    window.addEventListener('online', update);
+    window.addEventListener('offline', update);
+    return () => {
+      window.removeEventListener('online', update);
+      window.removeEventListener('offline', update);
+    };
+  }, []);
+
+  // Every value below is checked live: /health, the browser's network state and real AI replies.
+  const server = engine === 'online' ? 'ok' : engine === 'checking' ? 'wait' : 'bad';
+  const ai =
+    engine !== 'online' || !health?.aiConfigured || aiStatus === 'offline'
+      ? { tone: 'bad', value: health && !health.aiConfigured ? 'NOT SET UP' : 'UNAVAILABLE' }
+      : aiStatus === 'busy'
+        ? { tone: 'wait', value: 'BUSY' }
+        : aiStatus === 'ok'
+          ? { tone: 'ok', value: 'ANSWERING' }
+          : { tone: 'ok', value: 'CONNECTED' };
+  const status = [
+    {
+      label: 'SYSTEM STATUS',
+      tone: server === 'ok' && ai.tone === 'ok' ? 'ok' : server === 'bad' ? 'bad' : 'wait',
+      value: server === 'ok' && ai.tone === 'ok' ? 'OPERATIONAL' : server === 'bad' ? 'OFFLINE' : server === 'wait' ? 'CHECKING' : 'LIMITED',
+    },
+    { label: 'SERVER STATUS', tone: server, value: server === 'ok' ? 'CONNECTED' : server === 'wait' ? 'CHECKING' : 'OFFLINE' },
+    { label: 'NETWORK', tone: online ? 'ok' : 'bad', value: online ? 'ONLINE' : 'NO INTERNET' },
+    { label: 'AI ENGINE', tone: ai.tone, value: engine === 'checking' ? 'CHECKING' : ai.value },
+    {
+      label: 'LIVE SEARCH',
+      tone: health?.liveSearch && server === 'ok' ? 'ok' : server === 'wait' ? 'wait' : 'bad',
+      value: health?.liveSearch && server === 'ok' ? 'READY' : server === 'wait' ? 'CHECKING' : 'OFF',
+    },
+  ];
   const isGuest = !isAuthenticated(authUser);
 
   useEffect(() => {
@@ -130,8 +170,8 @@ export const HomePage = () => {
           <button
             className="hud-icon"
             type="button"
-            onClick={() => openHelp('overview')}
-            aria-label="Notifications"
+            onClick={() => togglePilot()}
+            aria-label="Your reminders"
           >
             <Bell size={20} />
           </button>
@@ -175,36 +215,14 @@ export const HomePage = () => {
       </div>
 
       <footer className="shield-status">
-        <div>
-          <span>SYSTEM STATUS</span>
-          <strong>
-            <i className="ok" /> OPERATIONAL
-          </strong>
-        </div>
-        <div>
-          <span>SERVER STATUS</span>
-          <strong>
-            <i className="ok" /> CONNECTED
-          </strong>
-        </div>
-        <div>
-          <span>NETWORK</span>
-          <strong>
-            <i className="ok" /> STABLE
-          </strong>
-        </div>
-        <div>
-          <span>AI ENGINE</span>
-          <strong>
-            <i className="ok" /> ACTIVE
-          </strong>
-        </div>
-        <div>
-          <span>SG16 AI ENGINE</span>
-          <strong>
-            <i className="ok" /> VERIFIED
-          </strong>
-        </div>
+        {status.map((item) => (
+          <div key={item.label}>
+            <span>{item.label}</span>
+            <strong>
+              <i className={item.tone} /> {item.value}
+            </strong>
+          </div>
+        ))}
         <div>
           <button type="button" className="shield-status__pilot" onClick={togglePilot}>
             <span>PILOT</span>

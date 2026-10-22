@@ -42,3 +42,7 @@ export function saveCodingReport(report: Omit<CodingReport, 'id' | 'date'>) {
   localStorage.setItem(KEY, JSON.stringify(all));
   return next;
 }
+
+export function deleteCodingReport(id: string) {
+  localStorage.setItem(KEY, JSON.stringify(loadCodingReports().filter((r) => r.id !== id)));
+}

@@ -51,6 +51,7 @@ import { APP_PATHS, normalizePath, pathToRoute } from './core/routes';
 import { loadAuthToken } from './lib/authApi';
 
 import { useTrialSync } from './hooks/useTrialSync';
+import { useMarketAlertWatcher } from './hooks/useMarketAlertWatcher';
 
 import type { WorkspaceType } from './core/types';
 import { PilotOrb } from './components/pilot/PilotOrb';
@@ -124,6 +125,7 @@ function AppShell() {
 
 
   useTrialSync();
+  useMarketAlertWatcher();
 
 
 

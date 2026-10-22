@@ -1,27 +1,8 @@
 import { useEffect, useState } from 'react';
-import {
-  Bot,
-  CheckCircle2,
-  Circle,
-  CircleStop,
-  Loader2,
-  Pause,
-  PauseCircle,
-  Play,
-  Sparkles,
-  Square,
-  X,
-} from 'lucide-react';
+import { Bot, Clock, MessageSquare, Send, X } from 'lucide-react';
 import { usePilotStore } from '../../core/pilotState';
 import { useAppStore } from '../../core/appState';
-import { isShieldWorkspace, pilotForWorkspace, type PilotJob } from '../../core/pilot';
-
-const JOB_STATUS: Record<Exclude<PilotJob['status'], 'idle'>, { label: string; icon: typeof Bot; tone: string }> = {
-  running: { label: 'Pilot running', icon: Loader2, tone: 'text-[#38D9A9]' },
-  paused: { label: 'Paused', icon: PauseCircle, tone: 'text-[#FFB547]' },
-  done: { label: 'Complete', icon: CheckCircle2, tone: 'text-[#38D9A9]' },
-  stopped: { label: 'Stopped', icon: CircleStop, tone: 'text-white/60' },
-};
+import { isShieldWorkspace, pilotForWorkspace } from '../../core/pilot';
 
 interface PilotOrbProps {
   /**
@@ -31,36 +12,32 @@ interface PilotOrbProps {
   launcher?: boolean;
 }
 
-/** Mandatory Pilot V1 UI — neon launcher + panel, available in every shield. */
+/** Pilot: quick AI actions for the current shield + reminders from the user's own saved data. */
 export function PilotOrb({ launcher = true }: PilotOrbProps) {
   const currentWorkspace = useAppStore((s) => s.currentWorkspace);
+  const threads = useAppStore((s) => s.chatThreads);
   const open = usePilotStore((s) => s.open);
   const badgeCount = usePilotStore((s) => s.badgeCount);
-  const job = usePilotStore((s) => s.job);
-  const suggestions = usePilotStore((s) => s.suggestions);
+  const reminders = usePilotStore((s) => s.reminders);
   const toggleOpen = usePilotStore((s) => s.toggleOpen);
   const setOpen = usePilotStore((s) => s.setOpen);
-  const refreshSuggestions = usePilotStore((s) => s.refreshSuggestions);
-  const startPilot = usePilotStore((s) => s.startPilot);
-  const pausePilot = usePilotStore((s) => s.pausePilot);
-  const resumePilot = usePilotStore((s) => s.resumePilot);
-  const stopPilot = usePilotStore((s) => s.stopPilot);
-  const runSuggestion = usePilotStore((s) => s.runSuggestion);
+  const refreshReminders = usePilotStore((s) => s.refreshReminders);
+  const runReminder = usePilotStore((s) => s.runReminder);
+  const ask = usePilotStore((s) => s.ask);
   const [task, setTask] = useState('');
 
+  // Reminders follow the clock (next class, next dose) and the user's data.
   useEffect(() => {
-    refreshSuggestions(currentWorkspace);
-  }, [currentWorkspace, refreshSuggestions]);
+    refreshReminders();
+    const t = window.setInterval(refreshReminders, 60_000);
+    return () => window.clearInterval(t);
+  }, [currentWorkspace, threads, open, refreshReminders]);
 
-  const config = pilotForWorkspace(
-    isShieldWorkspace(currentWorkspace) ? currentWorkspace : 'general',
-  );
-  const running = job?.status === 'running';
-  const status = job && job.status !== 'idle' ? JOB_STATUS[job.status] : null;
+  const config = pilotForWorkspace(isShieldWorkspace(currentWorkspace) ? currentWorkspace : 'general');
 
   const submitTask = () => {
-    if (!task.trim()) return;
-    startPilot(task.trim());
+    if (!task.trim() || !config) return;
+    ask(config.workspaceId, task.trim());
     setTask('');
   };
 
@@ -80,9 +57,7 @@ export function PilotOrb({ launcher = true }: PilotOrbProps) {
             </span>
             <div className="min-w-0 flex-1">
               <div className="text-[13px] font-semibold truncate">{config?.name ?? 'SG16 AI Pilot'}</div>
-              <div className="text-[10.5px] text-white/55 truncate">
-                {config?.tagline ?? 'Powered by SG16 AI'} · pause anytime
-              </div>
+              <div className="text-[10.5px] text-white/55 truncate">{config?.tagline ?? 'Powered by SG16 AI'}</div>
             </div>
             <button
               type="button"
@@ -97,15 +72,35 @@ export function PilotOrb({ launcher = true }: PilotOrbProps) {
           <div className="max-h-[min(64vh,600px)] overflow-y-auto p-3.5 space-y-4">
             {config && <p className="text-xs text-white/75 leading-relaxed">{config.enterHint}</p>}
 
+            <div className="space-y-1.5">
+              <div className="sg16-pilot-label">Your reminders</div>
+              {reminders.length === 0 ? (
+                <p className="text-xs text-white/50 px-1">
+                  Nothing due. Add homework, classes, medicines, appointments or price alerts in the shields and they show here.
+                </p>
+              ) : (
+                reminders.map((r) => (
+                  <button key={r.id} type="button" onClick={() => runReminder(r)} className="sg16-pilot-row">
+                    {r.threadId ? (
+                      <MessageSquare className="w-3.5 h-3.5 shrink-0 text-white/50" />
+                    ) : (
+                      <Clock className={`w-3.5 h-3.5 shrink-0 ${r.urgent ? 'text-[#FF168D]' : 'text-white/50'}`} />
+                    )}
+                    <span className="text-left">{r.text}</span>
+                  </button>
+                ))
+              )}
+            </div>
+
             {config && (
               <div className="space-y-2">
-                <div className="sg16-pilot-label">Quick actions</div>
+                <div className="sg16-pilot-label">Quick actions (AI)</div>
                 <div className="flex flex-wrap gap-1.5">
                   {config.quickActions.map((a) => (
                     <button
                       key={a.label}
                       type="button"
-                      onClick={() => startPilot(a.prompt, config.workspaceId)}
+                      onClick={() => ask(config.workspaceId, a.prompt)}
                       className="sg16-pilot-chip"
                     >
                       {a.label}
@@ -115,90 +110,19 @@ export function PilotOrb({ launcher = true }: PilotOrbProps) {
               </div>
             )}
 
-            {suggestions.length > 0 && (
-              <div className="space-y-1.5">
-                <div className="sg16-pilot-label">Across your shields</div>
-                {suggestions.map((s) =>
-                  s.kind === 'action' ? (
-                    <button key={s.id} type="button" onClick={() => runSuggestion(s)} className="sg16-pilot-row">
-                      <Sparkles className="w-3.5 h-3.5 shrink-0 text-[#FF168D]" />
-                      <span>{s.text}</span>
-                    </button>
-                  ) : (
-                    <p key={s.id} className="text-xs text-white/60 px-1">
-                      {s.text}
-                    </p>
-                  ),
-                )}
-              </div>
-            )}
-
-            {job && status && (
-              <div className="sg16-pilot-job">
-                <div className="flex items-center justify-between gap-2">
-                  <div className={`flex items-center gap-1.5 text-xs font-semibold ${status.tone}`}>
-                    <status.icon className={`w-4 h-4 ${job.status === 'running' ? 'animate-spin' : ''}`} />
-                    {status.label}
-                  </div>
-                  {job.estimatedMinutes != null && job.status === 'running' && (
-                    <div className="text-[10px] text-white/50">~{job.estimatedMinutes} min</div>
-                  )}
-                </div>
-                <div className="text-[11px] text-white/65 line-clamp-2">{job.title}</div>
-                <ul className="space-y-1">
-                  {job.steps.map((step) => (
-                    <li key={step.id} className="text-[11px] flex items-center gap-2">
-                      {step.status === 'done' ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-[#38D9A9]" />
-                      ) : step.status === 'active' ? (
-                        <Loader2 className="w-3.5 h-3.5 text-[#FF168D] animate-spin" />
-                      ) : (
-                        <Circle className="w-3.5 h-3.5 text-white/25" />
-                      )}
-                      <span
-                        className={
-                          step.status === 'active'
-                            ? 'text-white'
-                            : step.status === 'done'
-                              ? 'text-white/55'
-                              : 'text-white/35'
-                        }
-                      >
-                        {step.label}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex gap-2 pt-1">
-                  {job.status === 'running' && (
-                    <button type="button" onClick={pausePilot} className="sg16-pilot-ctl">
-                      <Pause className="w-3.5 h-3.5" /> Pause
-                    </button>
-                  )}
-                  {job.status === 'paused' && (
-                    <button type="button" onClick={resumePilot} className="sg16-pilot-ctl">
-                      <Play className="w-3.5 h-3.5" /> Resume
-                    </button>
-                  )}
-                  {(job.status === 'running' || job.status === 'paused') && (
-                    <button type="button" onClick={stopPilot} className="sg16-pilot-ctl">
-                      <Square className="w-3.5 h-3.5" /> Stop
-                    </button>
-                  )}
-                </div>
-              </div>
-            )}
-
             <div className="space-y-2">
-              <div className="sg16-pilot-label">Start AI Pilot</div>
+              <div className="sg16-pilot-label">Ask {config?.shortName ?? 'SG16'}</div>
               <textarea
                 value={task}
                 onChange={(e) => setTask(e.target.value)}
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) submitTask();
+                  if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    submitTask();
+                  }
                 }}
                 rows={2}
-                placeholder="Describe a multi-step task…"
+                placeholder="Type a question — it opens in the shield's chat"
                 className="sg16-pilot-input"
               />
               <button
@@ -207,12 +131,11 @@ export function PilotOrb({ launcher = true }: PilotOrbProps) {
                 disabled={!task.trim()}
                 className="sg16-btn-primary w-full inline-flex items-center justify-center gap-1.5 text-xs py-2.5"
               >
-                <Sparkles className="w-3.5 h-3.5" /> Start AI Pilot
+                <Send className="w-3.5 h-3.5" /> Ask
               </button>
-              <p className="text-[10px] text-white/40 leading-relaxed">
-                {config?.pilotId === 'market' && 'Market Pilot never buys or sells. '}
-                Voice wake (“Hey SG16”) comes in Phase 2.
-              </p>
+              {config?.pilotId === 'market' && (
+                <p className="text-[10px] text-white/40 leading-relaxed">Market Pilot never buys or sells.</p>
+              )}
             </div>
           </div>
         </section>
@@ -222,7 +145,7 @@ export function PilotOrb({ launcher = true }: PilotOrbProps) {
         <button
           type="button"
           onClick={toggleOpen}
-          className={`sg16-pilot-launcher ${running ? 'sg16-pilot-launcher--running' : ''}`}
+          className="sg16-pilot-launcher"
           aria-label={open ? 'Close AI Pilot' : 'Open AI Pilot'}
           aria-expanded={open}
         >

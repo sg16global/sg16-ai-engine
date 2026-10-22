@@ -39,6 +39,17 @@ import {
   subscriptionFromApi,
 } from '../lib/billingApi';
 import { pushAppPath, routeToPath } from './routes';
+import {
+  adoptOpenConversations,
+  loadThreads,
+  saveThreads,
+  upsertThread,
+  type ChatThread,
+  type ThreadState,
+} from '../lib/chatThreads';
+
+/** Last known state of the AI, from real chat replies (Shield Home status bar). */
+export type AiStatus = 'unknown' | 'ok' | 'busy' | 'offline';
 
 interface AppState {
   currentWorkspace: WorkspaceType;
@@ -47,6 +58,12 @@ interface AppState {
   pendingImageUrl: string | null;
   helpSection: HelpSection;
   messages: Record<WorkspaceId, Message[]>;
+  /** Saved conversations on this device (the open one of each shield included). */
+  chatThreads: ChatThread[];
+  activeThreadIds: Partial<Record<WorkspaceId, string>>;
+  /** Set when History or Pilot asks a shield to open straight into its chat. */
+  openChatFor: WorkspaceId | null;
+  aiStatus: AiStatus;
   settings: AppSettings;
   subscription: Subscription;
   authUser: AuthUser | null;
@@ -98,7 +115,16 @@ interface AppState {
   applyStudentVerification: (result: StudentVerifyResponse) => void;
 
   addMessage: (workspaceId: WorkspaceId, message: Message) => void;
+  /** Delete the open conversation of a shield. */
   clearMessages: (workspaceId: WorkspaceId) => void;
+  /** Start a fresh conversation; the current one stays in History. */
+  newChat: (workspaceId: WorkspaceId) => void;
+  openThread: (threadId: string) => void;
+  deleteThread: (threadId: string) => void;
+  /** Open a shield in its chat view, optionally sending a prompt. */
+  openShieldChat: (workspaceId: WorkspaceId, prompt?: string) => void;
+  consumeOpenChat: (workspaceId: WorkspaceId) => boolean;
+  setAiStatus: (status: AiStatus) => void;
   clearAllMessages: () => void;
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLoading: (loading: boolean) => void;
@@ -113,6 +139,28 @@ let goingBack = false;
 function persistMessages(messages: AppState['messages'], userId?: string | null) {
   saveChatHistory(messages, userId);
 }
+
+function threadState(state: Pick<AppState, 'chatThreads' | 'activeThreadIds'>): ThreadState {
+  return { threads: state.chatThreads, active: state.activeThreadIds };
+}
+
+function persistThreads(state: ThreadState, userId?: string | null) {
+  saveThreads(state, userId);
+  return { chatThreads: state.threads, activeThreadIds: state.active };
+}
+
+/** Everything a signed-in device has saved: open conversations + History. */
+function loadConversations(userId?: string | null) {
+  const messages = loadChatHistory(userId);
+  const threads = adoptOpenConversations(loadThreads(userId), messages);
+  return { messages, chatThreads: threads.threads, activeThreadIds: threads.active };
+}
+
+const NO_CONVERSATIONS = () => ({
+  messages: emptyChatHistory(),
+  chatThreads: [] as ChatThread[],
+  activeThreadIds: {},
+});
 
 function tryOpenWorkspace(
   workspace: WorkspaceType,
@@ -159,6 +207,10 @@ export const useAppStore = create<AppState>((set, getState) => ({
   pendingImageUrl: null,
   helpSection: 'overview',
   messages: emptyChatHistory(),
+  chatThreads: [],
+  activeThreadIds: {},
+  openChatFor: null,
+  aiStatus: 'unknown',
   settings: loadSettings(),
   subscription: loadSubscription(),
   authUser: null,
@@ -213,7 +265,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
       authUser: enriched,
       subscription,
       settings,
-      messages: loadChatHistory(enriched.id),
+      ...loadConversations(enriched.id),
       error: null,
       ...(user.launchFree !== undefined
         ? { launchFree: user.launchFree, checkoutEnabled: !user.launchFree }
@@ -293,7 +345,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
     const token = loadAuthToken();
     if (!token || token.startsWith('local-preview') || !token.includes('.')) {
       if (token) clearAuthToken();
-      set({ authToken: null, authUser: null, messages: emptyChatHistory() });
+      set({ authToken: null, authUser: null, ...NO_CONVERSATIONS() });
       await resumeDevice();
       return;
     }
@@ -308,14 +360,14 @@ export const useAppStore = create<AppState>((set, getState) => ({
       set({
         authUser: user,
         subscription,
-        messages: loadChatHistory(user.id),
+        ...loadConversations(user.id),
         settings: { ...getState().settings, displayName: user.name },
       });
     } catch (err) {
       // Only a rejected token ends the session; if the engine is unreachable, keep it for the next load.
       const offline = err instanceof ApiError && err.offline;
       if (!offline) clearAuthToken();
-      set({ authToken: null, authUser: null, messages: emptyChatHistory() });
+      set({ authToken: null, authUser: null, ...NO_CONVERSATIONS() });
       if (!offline) await resumeDevice();
     }
   },
@@ -331,14 +383,15 @@ export const useAppStore = create<AppState>((set, getState) => ({
       authUser: null,
       authToken: null,
       currentWorkspace: 'home',
-      messages: emptyChatHistory(),
+      ...NO_CONVERSATIONS(),
     });
   },
 
   wipeSession: () => {
     const userId = getState().authUser?.id;
     clearSessionData(userId);
-    set({ messages: emptyChatHistory() });
+    saveThreads({ threads: [], active: {} }, userId);
+    set(NO_CONVERSATIONS());
   },
 
   setWorkspace: (ws) => {
@@ -472,20 +525,94 @@ export const useAppStore = create<AppState>((set, getState) => ({
         [workspaceId]: [...state.messages[workspaceId], message],
       };
       persistMessages(messages, state.authUser?.id);
-      return { messages };
+      return {
+        messages,
+        ...persistThreads(upsertThread(threadState(state), workspaceId, messages[workspaceId]), state.authUser?.id),
+      };
     }),
 
   clearMessages: (workspaceId) =>
     set((state) => {
+      const activeId = state.activeThreadIds[workspaceId];
       const messages = { ...state.messages, [workspaceId]: [] };
       persistMessages(messages, state.authUser?.id);
-      return { messages };
+      const active = { ...state.activeThreadIds };
+      delete active[workspaceId];
+      return {
+        messages,
+        ...persistThreads(
+          { threads: state.chatThreads.filter((t) => t.id !== activeId), active },
+          state.authUser?.id,
+        ),
+      };
     }),
+
+  newChat: (workspaceId) =>
+    set((state) => {
+      const messages = { ...state.messages, [workspaceId]: [] };
+      persistMessages(messages, state.authUser?.id);
+      const active = { ...state.activeThreadIds };
+      delete active[workspaceId];
+      return { messages, ...persistThreads({ threads: state.chatThreads, active }, state.authUser?.id) };
+    }),
+
+  openThread: (threadId) => {
+    const state = getState();
+    const thread = state.chatThreads.find((t) => t.id === threadId);
+    if (!thread) return;
+    const messages = { ...state.messages, [thread.workspaceId]: thread.messages };
+    persistMessages(messages, state.authUser?.id);
+    set({
+      messages,
+      ...persistThreads(
+        { threads: state.chatThreads, active: { ...state.activeThreadIds, [thread.workspaceId]: thread.id } },
+        state.authUser?.id,
+      ),
+    });
+    if (state.currentWorkspace !== thread.workspaceId) getState().openShieldChat(thread.workspaceId);
+    else set({ openChatFor: thread.workspaceId });
+  },
+
+  deleteThread: (threadId) => {
+    const state = getState();
+    const thread = state.chatThreads.find((t) => t.id === threadId);
+    if (!thread) return;
+    if (state.activeThreadIds[thread.workspaceId] === threadId) {
+      getState().clearMessages(thread.workspaceId);
+      return;
+    }
+    set(
+      persistThreads(
+        { threads: state.chatThreads.filter((t) => t.id !== threadId), active: state.activeThreadIds },
+        state.authUser?.id,
+      ),
+    );
+  },
+
+  openShieldChat: (workspaceId, prompt) => {
+    getState().requireAuth(() => {
+      set({
+        openChatFor: workspaceId,
+        ...(prompt ? { pendingPrompt: prompt, pendingPromptToken: Date.now() } : {}),
+      });
+      if (getState().currentWorkspace !== workspaceId) getState().setWorkspace(workspaceId);
+    });
+  },
+
+  consumeOpenChat: (workspaceId) => {
+    if (getState().openChatFor !== workspaceId) return false;
+    set({ openChatFor: null });
+    return true;
+  },
+
+  setAiStatus: (aiStatus) => {
+    if (getState().aiStatus !== aiStatus) set({ aiStatus });
+  },
 
   clearAllMessages: () =>
     set((state) => {
       persistMessages(emptyChatHistory(), state.authUser?.id);
-      return { messages: emptyChatHistory() };
+      return { messages: emptyChatHistory(), ...persistThreads({ threads: [], active: {} }, state.authUser?.id) };
     }),
 
   updateSettings: (patch) =>

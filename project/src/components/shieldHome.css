@@ -288,6 +288,8 @@
 .shield-status strong { font-size: 10px; letter-spacing: .12em; color: #effff8; white-space:nowrap; }
 .shield-status i { display:inline-block; width:7px; height:7px; margin-right:6px; border-radius:50%; vertical-align:0; }
 .shield-status .ok { background:var(--green); box-shadow:0 0 8px rgba(0,255,139,.9); }
+.shield-status .wait { background:#FFB547; box-shadow:0 0 8px rgba(255,181,71,.8); }
+.shield-status .bad { background:#FF3D6E; box-shadow:0 0 8px rgba(255,61,110,.85); }
 .shield-status .pilot { color: var(--sg16-primary); text-shadow: 0 0 8px rgba(255, 22, 141, .6); }
 .shield-status__pilot {
   border: 0;

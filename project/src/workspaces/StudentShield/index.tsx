@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import {
   LayoutDashboard,
   User,
@@ -15,11 +15,30 @@ import {
   ArrowRight,
   GraduationCap,
   PanelLeft,
+  MessageSquare,
 } from 'lucide-react';
 import { ChatPanel } from '../../components/chat/ChatPanel';
 import { useAppStore } from '../../core/appState';
+import { usePilotStore } from '../../core/pilotState';
 import { SG16_ACCENT } from '../../core/pilot';
 import { useAutoHideChrome } from '../../hooks/useAutoHideChrome';
+import { useOpenChatRequest } from '../../hooks/useOpenChatRequest';
+import { ToolPage } from '../../components/tools/ToolPage';
+import { StatTile, formatDate } from '../../components/tools/RecordTool';
+import {
+  AttendanceTool,
+  EMPTY_PROFILE,
+  ExamTool,
+  FeesTool,
+  HomeworkTool,
+  IdCardTool,
+  ProfileTool,
+  STUDENT_KEYS,
+  TimetableTool,
+  studentStats,
+  type StudentProfile,
+} from '../../components/tools/studentTools';
+import { useLocalValue } from '../../lib/localStore';
 
 type StudentView =
   | 'dashboard'
@@ -33,54 +52,59 @@ type StudentView =
   | 'settings'
   | 'chat';
 
-const nav: { id: StudentView; label: string; icon: typeof User; prompt?: string }[] = [
+const nav: { id: StudentView; label: string; icon: typeof User }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { id: 'profile', label: 'Profile', icon: User, prompt: 'Help me update and organize my student profile information.' },
-  { id: 'attendance', label: 'Attendance', icon: CalendarCheck, prompt: 'Help me track and understand my attendance status.' },
-  { id: 'homework', label: 'Homework', icon: BookOpen, prompt: 'Help me check and complete my homework step by step.' },
-  { id: 'timetable', label: 'Timetable', icon: CalendarDays, prompt: 'Create or explain a clear class timetable for me.' },
-  { id: 'exam', label: 'Exam Result', icon: ClipboardList, prompt: 'Help me review exam results and plan improvement.' },
-  { id: 'fees', label: 'Fees & Payment', icon: Wallet, prompt: 'Explain student fees structure and payment planning (general guidance).' },
-  { id: 'qr', label: 'QR ID Card', icon: QrCode, prompt: 'Help me prepare a digital student ID card summary.' },
+  { id: 'chat', label: 'Ask Tutor (AI)', icon: MessageSquare },
+  { id: 'homework', label: 'Homework', icon: BookOpen },
+  { id: 'timetable', label: 'Timetable', icon: CalendarDays },
+  { id: 'attendance', label: 'Attendance', icon: CalendarCheck },
+  { id: 'exam', label: 'Exam Results', icon: ClipboardList },
+  { id: 'fees', label: 'Fees & Payment', icon: Wallet },
+  { id: 'profile', label: 'Profile', icon: User },
+  { id: 'qr', label: 'QR ID Card', icon: QrCode },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
-const dashCards: { id: StudentView; title: string; desc: string; icon: typeof User }[] = [
-  { id: 'profile', title: 'Profile', desc: 'View and edit your personal information.', icon: User },
-  { id: 'attendance', title: 'Attendance', desc: 'Check your attendance records and status.', icon: CalendarCheck },
-  { id: 'homework', title: 'Homework', desc: 'View and submit your homework.', icon: BookOpen },
-  { id: 'timetable', title: 'Timetable', desc: 'View your class schedule and timing.', icon: CalendarDays },
-  { id: 'exam', title: 'Exam Result', desc: 'Check your exam results and grades.', icon: ClipboardList },
-  { id: 'fees', title: 'Fees & Payment', desc: 'View fees structure and payment history.', icon: Wallet },
-];
+const TOOL_PAGES: Partial<Record<StudentView, { title: string; subtitle: string }>> = {
+  homework: { title: 'Homework', subtitle: 'Your tasks and due dates — tick them off when done.' },
+  timetable: { title: 'Timetable', subtitle: 'Your weekly classes. Today’s classes show on the dashboard.' },
+  attendance: { title: 'Attendance', subtitle: 'Mark each day to see your real attendance rate.' },
+  exam: { title: 'Exam Results', subtitle: 'Record scores to see your average and weakest subject.' },
+  fees: { title: 'Fees & Payment', subtitle: 'Track what is paid and what is still due.' },
+  profile: { title: 'Profile', subtitle: 'Your student details, used for the dashboard and ID card.' },
+  qr: { title: 'QR ID Card', subtitle: 'A digital card with a scannable QR code.' },
+};
 
 export const StudentShieldWorkspace = () => {
   const [view, setView] = useState<StudentView>('dashboard');
   const setWorkspace = useAppStore((s) => s.setWorkspace);
   const authUser = useAppStore((s) => s.authUser);
-  const settings = useAppStore((s) => s.settings);
-  const openHelp = useAppStore((s) => s.openHelp);
-  const name = authUser?.name || settings.displayName || 'SG16 USER';
+  const openPilot = usePilotStore((s) => s.setOpen);
+  const [profile] = useLocalValue<StudentProfile>(STUDENT_KEYS.profile, EMPTY_PROFILE);
+  const name = profile.name || authUser?.name || 'Student';
   const chrome = useAutoHideChrome(`student-${view}`, true);
   const chromeOpen = chrome.open;
 
-  const openTool = (id: StudentView, prompt?: string) => {
-    if (id === 'dashboard') {
-      setView('dashboard');
-      chrome.onNavSelect();
-      return;
-    }
+  useOpenChatRequest('student-shield', () => setView('chat'));
+
+  const openTool = (id: StudentView) => {
     if (id === 'settings') {
       setWorkspace('settings');
-      chrome.onNavSelect();
-      return;
+    } else {
+      setView(id);
     }
-    if (prompt) {
-      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
-    }
-    setView('chat');
     chrome.onNavSelect();
   };
+
+  const toolPage = TOOL_PAGES[view];
+  let toolBody: ReactNode = null;
+  if (view === 'homework') toolBody = <HomeworkTool />;
+  else if (view === 'timetable') toolBody = <TimetableTool />;
+  else if (view === 'attendance') toolBody = <AttendanceTool />;
+  else if (view === 'exam') toolBody = <ExamTool />;
+  else if (view === 'fees') toolBody = <FeesTool />;
+  else if (view === 'profile') toolBody = <ProfileTool />;
+  else if (view === 'qr') toolBody = <IdCardTool onEditProfile={() => setView('profile')} />;
 
   return (
     <div className="sg16-student-chrome h-full flex overflow-hidden relative">
@@ -128,18 +152,13 @@ export const StudentShieldWorkspace = () => {
         <nav className="flex-1 overflow-y-auto p-2 space-y-0.5">
           {nav.map((item) => {
             const Icon = item.icon;
-            const active =
-              view === item.id || (view === 'chat' && item.id !== 'dashboard' && item.id === 'homework');
-            const isDash = item.id === 'dashboard' && view === 'dashboard';
             return (
               <button
                 key={item.id}
                 type="button"
-                onClick={() => openTool(item.id, item.prompt)}
+                onClick={() => openTool(item.id)}
                 className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition ${
-                  isDash || (view === 'chat' && item.prompt && active)
-                    ? 'sg16-nav-active'
-                    : 'text-white/80 hover:bg-white/[0.04] hover:text-white'
+                  view === item.id ? 'sg16-nav-active' : 'text-white/80 hover:bg-white/[0.04] hover:text-white'
                 }`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
@@ -186,17 +205,16 @@ export const StudentShieldWorkspace = () => {
                   <span className="w-2 h-2 rounded-full bg-emerald-400" />
                   {name}
                 </div>
-                <div className="text-[10px]" style={{ color: '#FFB3DA' }}>
-                  Student ID: SG16-2026
-                </div>
+                {profile.studentId && (
+                  <div className="text-[10px]" style={{ color: '#FFB3DA' }}>
+                    Student ID: {profile.studentId}
+                  </div>
+                )}
               </div>
-              <button type="button" onClick={() => openHelp('overview')} className="relative p-2">
+              <button type="button" onClick={() => openPilot(true)} className="p-2" aria-label="Your reminders">
                 <Bell className="w-4 h-4" style={{ color: '#FFB3DA' }} />
-                <span className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full text-[9px] font-bold flex items-center justify-center bg-[#FF168D]">
-                  3
-                </span>
               </button>
-              <button type="button" onClick={() => setWorkspace('home')} className="p-2 md:hidden">
+              <button type="button" onClick={() => setWorkspace('home')} className="p-2 md:hidden" aria-label="Back to Shields">
                 <X className="w-4 h-4 text-white/70" />
               </button>
             </div>
@@ -204,103 +222,8 @@ export const StudentShieldWorkspace = () => {
           </div>
 
           {view === 'dashboard' ? (
-            <div className="flex-1 overflow-auto p-4 sm:p-6 bg-black/50">
-              <div className="mb-5">
-                <div className="text-sm text-white/70">Welcome Back,</div>
-                <div className="text-2xl sm:text-3xl font-bold" style={{ color: '#FF3DA5', textShadow: '0 0 18px rgba(185,22,105,0.55)' }}>
-                  {name}
-                </div>
-                <div className="text-sm text-white/55 mt-1">Stay focused and keep learning.</div>
-              </div>
-
-              <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
-                {dashCards.map((c) => {
-                  const Icon = c.icon;
-                  const item = nav.find((n) => n.id === c.id);
-                  return (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => openTool(c.id, item?.prompt)}
-                      className="sg16-neon-frame rounded-xl p-4 text-left flex items-center gap-3 hover:bg-black/55 transition"
-                    >
-                      <span
-                        className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0"
-                        style={{ background: 'rgba(185,22,105,0.45)' }}
-                      >
-                        <Icon className="w-5 h-5" style={{ color: '#FFB3DA' }} />
-                      </span>
-                      <div className="min-w-0 flex-1">
-                        <div className="font-semibold text-sm">{c.title}</div>
-                        <div className="text-[11px] text-white/50 mt-0.5 leading-snug">{c.desc}</div>
-                      </div>
-                      <ArrowRight className="w-4 h-4 shrink-0" style={{ color: '#FFB3DA' }} />
-                    </button>
-                  );
-                })}
-              </div>
-
-              <div className="grid lg:grid-cols-[1fr_1.4fr] gap-3">
-                <button
-                  type="button"
-                  onClick={() => openTool('qr', nav.find((n) => n.id === 'qr')?.prompt)}
-                  className="sg16-neon-frame rounded-xl p-4 text-left"
-                >
-                  <div className="flex items-center gap-2 mb-3">
-                    <QrCode className="w-5 h-5" style={{ color: '#FFB3DA' }} />
-                    <span className="font-semibold text-sm">QR ID Card</span>
-                  </div>
-                  <div
-                    className="w-28 h-28 mx-auto rounded-lg flex items-center justify-center text-[10px] text-center p-2"
-                    style={{ border: `1px solid ${SG16_ACCENT}`, boxShadow: `0 0 20px rgba(185,22,105,0.4)` }}
-                  >
-                    Digital ID
-                    <br />
-                    SG16-2026
-                  </div>
-                  <div className="text-[11px] text-white/50 mt-3 text-center">
-                    View your digital student ID card.
-                  </div>
-                </button>
-
-                <div className="sg16-neon-frame rounded-xl p-4">
-                  <div className="font-semibold text-sm mb-4">Academic Overview</div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    {[
-                      { label: 'Current GPA', value: '3.85' },
-                      { label: 'Total Courses', value: '08' },
-                      { label: 'Completed', value: '05' },
-                      { label: 'Pending', value: '03' },
-                    ].map((s) => (
-                      <div key={s.label} className="text-center">
-                        <div className="text-[10px] text-white/45 uppercase tracking-wide">{s.label}</div>
-                        <div className="text-2xl font-bold mt-1" style={{ color: '#FF3DA5' }}>
-                          {s.value}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <p className="text-[10px] text-white/35 mt-4">
-                    Overview numbers are local placeholders until school data sync is connected.
-                  </p>
-                </div>
-              </div>
-
-              {/* Mobile nav */}
-              <div className="md:hidden mt-4 flex flex-wrap gap-2">
-                {nav.slice(1, 5).map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => openTool(n.id, n.prompt)}
-                    className="text-[11px] px-3 py-2 rounded-full border border-[rgba(185,22,105,0.7)]"
-                  >
-                    {n.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : (
+            <StudentDashboard name={name} hasProfile={Boolean(profile.name)} openTool={openTool} />
+          ) : view === 'chat' ? (
             <div className="flex-1 min-h-0 flex flex-col sg16-work-field">
               <ChatPanel
                 workspaceId="student-shield"
@@ -315,11 +238,162 @@ export const StudentShieldWorkspace = () => {
                 backLabel="Back to Dashboard"
               />
             </div>
-          )}
+          ) : toolPage ? (
+            <div className="flex-1 min-h-0 bg-black/50 sg16-work-field">
+              <ToolPage
+                title={toolPage.title}
+                subtitle={toolPage.subtitle}
+                backLabel="Dashboard"
+                onBack={() => setView('dashboard')}
+              >
+                {toolBody}
+              </ToolPage>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>
   );
 };
 
-export default StudentShieldWorkspace;
+function StudentDashboard({
+  name,
+  hasProfile,
+  openTool,
+}: {
+  name: string;
+  hasProfile: boolean;
+  openTool: (id: StudentView) => void;
+}) {
+  const s = studentStats();
+  const cards: { id: StudentView; title: string; desc: string; icon: typeof User }[] = [
+    {
+      id: 'homework',
+      title: 'Homework',
+      desc: s.pendingHomework ? `${s.pendingHomework} pending${s.overdueHomework ? ` · ${s.overdueHomework} overdue` : ''}` : 'Add and tick off your tasks.',
+      icon: BookOpen,
+    },
+    {
+      id: 'timetable',
+      title: 'Timetable',
+      desc: s.todayClasses.length ? `${s.todayClasses.length} class${s.todayClasses.length > 1 ? 'es' : ''} today` : 'Add your weekly classes.',
+      icon: CalendarDays,
+    },
+    {
+      id: 'attendance',
+      title: 'Attendance',
+      desc: s.attendancePct != null ? `${Math.round(s.attendancePct)}% over ${s.attendanceCount} days` : 'Mark your school days.',
+      icon: CalendarCheck,
+    },
+    {
+      id: 'exam',
+      title: 'Exam Results',
+      desc: s.examAverage != null ? `Average ${Math.round(s.examAverage)}% · ${s.examCount} results` : 'Record your scores.',
+      icon: ClipboardList,
+    },
+    {
+      id: 'fees',
+      title: 'Fees & Payment',
+      desc: s.feesUnpaid ? `${s.feesUnpaid} unpaid · ${s.feesOutstanding.toLocaleString()} due` : 'Track fees and payments.',
+      icon: Wallet,
+    },
+    { id: 'chat', title: 'Ask Tutor (AI)', desc: 'Homework help, explanations and career guidance.', icon: MessageSquare },
+  ];
+
+  return (
+    <div className="flex-1 overflow-auto p-4 sm:p-6 bg-black/50">
+      <div className="mb-5">
+        <div className="text-sm text-white/70">Welcome back,</div>
+        <div className="text-2xl sm:text-3xl font-bold" style={{ color: '#FF3DA5', textShadow: '0 0 18px rgba(185,22,105,0.55)' }}>
+          {name}
+        </div>
+        {!hasProfile && (
+          <button type="button" onClick={() => openTool('profile')} className="text-xs text-white/55 hover:text-white mt-1 underline underline-offset-2">
+            Set up your student profile
+          </button>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        <StatTile label="Homework pending" value={s.pendingHomework} hint={s.overdueHomework ? `${s.overdueHomework} overdue` : undefined} tone={s.overdueHomework ? 'text-[#FF5CB8]' : undefined} />
+        <StatTile label="Classes today" value={s.todayClasses.length} />
+        <StatTile label="Attendance" value={s.attendancePct != null ? `${Math.round(s.attendancePct)}%` : '—'} hint={s.attendanceCount ? `${s.attendanceCount} days recorded` : 'No records yet'} />
+        <StatTile label="Exam average" value={s.examAverage != null ? `${Math.round(s.examAverage)}%` : '—'} hint={s.examCount ? `${s.examCount} results` : 'No results yet'} />
+      </div>
+
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-3 mb-4">
+        {cards.map((c) => {
+          const Icon = c.icon;
+          return (
+            <button
+              key={c.id}
+              type="button"
+              onClick={() => openTool(c.id)}
+              className="sg16-neon-frame rounded-xl p-4 text-left flex items-center gap-3 hover:bg-black/55 transition"
+            >
+              <span className="w-10 h-10 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'rgba(185,22,105,0.45)' }}>
+                <Icon className="w-5 h-5" style={{ color: '#FFB3DA' }} />
+              </span>
+              <div className="min-w-0 flex-1">
+                <div className="font-semibold text-sm">{c.title}</div>
+                <div className="text-[11px] text-white/55 mt-0.5 leading-snug">{c.desc}</div>
+              </div>
+              <ArrowRight className="w-4 h-4 shrink-0" style={{ color: '#FFB3DA' }} />
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-3">
+        <div className="sg16-neon-frame rounded-xl p-4">
+          <div className="font-semibold text-sm mb-3">Today’s classes</div>
+          {s.todayClasses.length ? (
+            <ul className="space-y-1.5 text-sm">
+              {s.todayClasses.map((c) => (
+                <li key={c.id} className="flex gap-3">
+                  <span className="font-mono text-[#FF5CB8] w-24 shrink-0">
+                    {c.start}
+                    {c.end ? `–${c.end}` : ''}
+                  </span>
+                  <span className="text-white/85">{c.subject}</span>
+                  {c.room && <span className="text-white/40 truncate">{c.room}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-white/45">No classes today in your timetable.</p>
+          )}
+        </div>
+        <div className="sg16-neon-frame rounded-xl p-4">
+          <div className="font-semibold text-sm mb-3">Due today or tomorrow</div>
+          {s.dueSoon.length ? (
+            <ul className="space-y-1.5 text-sm">
+              {s.dueSoon.map((h) => (
+                <li key={h.id} className="text-white/85">
+                  <span className="text-[#FF5CB8]">{h.subject}</span> · {h.task}{' '}
+                  <span className="text-white/40 text-xs">({formatDate(h.due)})</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-xs text-white/45">Nothing due in the next two days.</p>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile nav */}
+      <div className="md:hidden mt-4 flex flex-wrap gap-2">
+        {nav.slice(1).map((n) => (
+          <button
+            key={n.id}
+            type="button"
+            onClick={() => openTool(n.id)}
+            className="text-[11px] px-3 py-2 rounded-full border border-[rgba(185,22,105,0.7)]"
+          >
+            {n.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}

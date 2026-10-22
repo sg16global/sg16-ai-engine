@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { ArrowLeft, Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image as ImageIcon, Download, Globe } from 'lucide-react';
+import { ArrowLeft, Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image as ImageIcon, Download, Globe, History, MessageSquarePlus } from 'lucide-react';
+import { MessageContent } from './MessageContent';
 import { useAppStore } from '../../core/appState';
 import { isStudentVerified } from '../../core/access';
 import { sendChat, readDocumentFile, readImageFile } from '../../lib/chatApi';
@@ -59,7 +60,14 @@ export function ChatPanel({
   const loading = useAppStore((s) => s.loading);
   const error = useAppStore((s) => s.error);
   const addMessage = useAppStore((s) => s.addMessage);
-  const clearMessages = useAppStore((s) => s.clearMessages);
+  const newChat = useAppStore((s) => s.newChat);
+  const openThread = useAppStore((s) => s.openThread);
+  const deleteThread = useAppStore((s) => s.deleteThread);
+  const setAiStatus = useAppStore((s) => s.setAiStatus);
+  const allThreads = useAppStore((s) => s.chatThreads);
+  const activeThreadId = useAppStore((s) => s.activeThreadIds[workspaceId]);
+  const threads = allThreads.filter((t) => t.workspaceId === workspaceId);
+  const [historyOpen, setHistoryOpen] = useState(false);
   const setLoading = useAppStore((s) => s.setLoading);
   const setError = useAppStore((s) => s.setError);
   const consumePendingPrompt = useAppStore((s) => s.consumePendingPrompt);
@@ -152,6 +160,8 @@ export function ChatPanel({
           generatedImageUrl: result.generatedImageUrl,
           liveSearch: result.liveSearch,
         });
+        // A web-only reply means the AI itself did not answer; only a real AI reply proves it works.
+        if (!result.liveSearch) setAiStatus('ok');
 
         if (allowVoice && result.reply) {
           speakText(result.reply);
@@ -164,6 +174,7 @@ export function ChatPanel({
           return;
         }
         setError(msg);
+        setAiStatus(/busy/i.test(msg) ? 'busy' : 'offline');
         addMessage(workspaceId, {
           id: uid(),
           role: 'assistant',
@@ -275,15 +286,67 @@ export function ChatPanel({
               {workspaceLabel(workspaceId)} · private thread
             </span>
           </div>
-          {messages.length > 0 && (
-            <button
-              type="button"
-              onClick={() => clearMessages(workspaceId)}
-              className="flex items-center gap-1.5 text-xs text-white/40 hover:text-[#FF5CB8] transition px-2 py-1"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Clear
-            </button>
-          )}
+          <div className="relative flex items-center gap-1 shrink-0">
+            {threads.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setHistoryOpen((v) => !v)}
+                aria-expanded={historyOpen}
+                className="flex items-center gap-1.5 text-xs text-white/55 hover:text-white transition px-2 py-1 rounded-lg hover:bg-white/[0.06]"
+              >
+                <History className="w-3.5 h-3.5" /> History ({threads.length})
+              </button>
+            )}
+            {messages.length > 0 && (
+              <button
+                type="button"
+                onClick={() => {
+                  newChat(workspaceId);
+                  setHistoryOpen(false);
+                }}
+                className="flex items-center gap-1.5 text-xs text-white/55 hover:text-white transition px-2 py-1 rounded-lg hover:bg-white/[0.06]"
+              >
+                <MessageSquarePlus className="w-3.5 h-3.5" /> New chat
+              </button>
+            )}
+            {historyOpen && (
+              <div className="absolute right-0 top-full mt-2 z-30 w-[min(22rem,80vw)] max-h-80 overflow-y-auto rounded-xl border border-white/10 bg-[#0c0a12] shadow-2xl p-1.5">
+                {threads.map((t) => (
+                  <div
+                    key={t.id}
+                    className={`group flex items-start gap-2 rounded-lg px-2.5 py-2 ${
+                      t.id === activeThreadId ? 'bg-[#FF168D]/10' : 'hover:bg-white/[0.05]'
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openThread(t.id);
+                        setHistoryOpen(false);
+                      }}
+                      className="min-w-0 flex-1 text-left"
+                    >
+                      <div className="text-xs text-white/90 line-clamp-2">{t.title}</div>
+                      <div className="text-[10px] text-white/40 mt-0.5">
+                        {new Date(t.updatedAt).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })} ·{' '}
+                        {t.messages.length} messages
+                      </div>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (window.confirm('Delete this conversation?')) deleteThread(t.id);
+                      }}
+                      className="p-1 text-white/35 hover:text-[#FF5CB8]"
+                      aria-label="Delete conversation"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -316,7 +379,7 @@ export function ChatPanel({
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className={`text-sm leading-relaxed ${
+              className={`text-sm leading-relaxed min-w-0 [overflow-wrap:anywhere] ${
                 msg.role === 'user' ? 'sg16-bar-accent' : 'sg16-bar'
               }`}
             >
@@ -346,12 +409,14 @@ export function ChatPanel({
               )}
               {msg.liveSearch && msg.role === 'assistant' && (
                 <div className="flex items-center gap-1.5 text-[10px] text-sky-400/90 mb-2">
-                  <Globe className="w-3 h-3" /> Live web answer · SG16 AI
+                  <Globe className="w-3 h-3" /> Live web results
                 </div>
               )}
-              <p className={`whitespace-pre-wrap ${monospace ? 'font-mono text-xs' : ''}`}>
-                {msg.content}
-              </p>
+              {msg.role === 'assistant' ? (
+                <MessageContent text={msg.content} />
+              ) : (
+                <p className={`whitespace-pre-wrap ${monospace ? 'font-mono text-xs' : ''}`}>{msg.content}</p>
+              )}
             </div>
           ))}
 

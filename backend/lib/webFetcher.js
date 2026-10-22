@@ -9,8 +9,53 @@ function decodeHtml(text) {
     .trim();
 }
 
+// Feeds often escape their HTML (&lt;a href=...&gt;), so decode before removing tags,
+// otherwise the tags come back as visible text.
 function stripTags(html) {
-  return decodeHtml(html.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
+  const unwrapped = html.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1');
+  return decodeHtml(decodeHtml(unwrapped).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' '));
+}
+
+function isUrlLike(text) {
+  return /^(https?:\/\/|www\.)\S+$/i.test(text.trim());
+}
+
+function hostName(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return '';
+  }
+}
+
+/** Google News titles end with " - Publisher"; split them so the source shows separately. */
+function splitPublisher(title) {
+  const m = title.match(/^(.*\S)\s+-\s+([^-]{2,60})$/);
+  return m ? { title: m[1], publisher: m[2].trim() } : { title, publisher: '' };
+}
+
+/** Clean one result for display: a real title, no repeated snippet, the publisher name. */
+export function cleanResult(item) {
+  const raw = (item?.title || '').trim();
+  if (!raw || /^[*\s]+$/.test(raw)) return null;
+  const { title, publisher } = splitPublisher(isUrlLike(raw) ? hostName(raw) || raw : raw);
+  if (!title) return null;
+  let snippet = (item.snippet || '').trim();
+  // Google News descriptions only repeat the headline and publisher.
+  if (snippet && (snippet.startsWith(title) || title.startsWith(snippet.slice(0, 40)))) snippet = '';
+  return {
+    ...item,
+    title,
+    publisher: item.publisher || publisher || hostName(item.url || ''),
+    snippet,
+  };
+}
+
+function shortDate(value) {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'UTC' });
 }
 
 async function fetchText(url, timeoutMs = 15000) {
@@ -74,19 +119,25 @@ export async function fetchNewsResults(query) {
     try {
       const xml = await fetchText(url);
       all.push(...parseRssItems(xml, 6));
-      if (all.length >= 10) break;
+      // The general BBC feeds are only a backup when the search feed returns too little.
+      if (all.length >= 4) break;
     } catch {
       /* try next feed */
     }
   }
 
   const seen = new Set();
-  return all.filter((item) => {
-    const key = item.title.toLowerCase();
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  }).slice(0, 10);
+  return all
+    .map(cleanResult)
+    .filter((item) => {
+      if (!item) return false;
+      const key = item.title.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => (Date.parse(b.date) || 0) - (Date.parse(a.date) || 0))
+    .slice(0, 10);
 }
 
 export async function fetchWeatherResult(query) {
@@ -132,12 +183,13 @@ export async function fetchDuckDuckGoResults(query, limit = 8) {
       if (uddg) href = decodeURIComponent(uddg[1]);
     }
 
-    results.push({
+    const item = cleanResult({
       title: stripTags(titleMatch?.[1] || href),
       url: href,
       snippet: stripTags(snippetMatch?.[1] || '').slice(0, 280),
       source: 'web',
     });
+    if (item) results.push(item);
     if (results.length >= limit) break;
   }
 
@@ -191,14 +243,17 @@ export function formatDirectAnswer(results, query) {
     return null;
   }
 
-  const lines = [`**SG16 AI — Live results for:** ${query}\n`];
-  for (const r of results.slice(0, 8)) {
-    lines.push(`• **${r.title}**`);
-    if (r.snippet) lines.push(`  ${r.snippet}`);
-    if (r.detail) lines.push(`  ${r.detail}`);
-    if (r.url) lines.push(`  [Source](${r.url})`);
-    lines.push('');
-  }
-  lines.push('_Answer assembled from live public web sources by SG16 AI._');
+  const clean = results.map(cleanResult).filter(Boolean).slice(0, 8);
+  if (!clean.length) return null;
+
+  const lines = [`**Live results:** ${query.trim()}`, ''];
+  clean.forEach((r, i) => {
+    const head = r.url ? `[${r.title}](${r.url})` : `**${r.title}**`;
+    const meta = [r.publisher, shortDate(r.date)].filter(Boolean).join(' · ');
+    lines.push(`${i + 1}. ${head}${meta ? ` — ${meta}` : ''}`);
+    if (r.snippet) lines.push(`   ${r.snippet}`);
+    if (r.detail) lines.push(`   ${r.detail}`);
+  });
+  lines.push('', '_Headlines from live public web sources. Open a link to read the full story._');
   return lines.join('\n');
 }

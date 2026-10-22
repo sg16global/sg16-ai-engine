@@ -7,29 +7,19 @@ import { useAppStore } from '../../core/appState';
 
 export const GeneralWorkspace = () => {
   const messages = useAppStore((s) => s.messages.general);
-  const clearMessages = useAppStore((s) => s.clearMessages);
+  const allThreads = useAppStore((s) => s.chatThreads);
+  const activeId = useAppStore((s) => s.activeThreadIds.general);
+  const newChat = useAppStore((s) => s.newChat);
+  const openThread = useAppStore((s) => s.openThread);
+  const deleteThread = useAppStore((s) => s.deleteThread);
   const [query, setQuery] = useState('');
 
   const threads = useMemo(() => {
-    const users = messages.filter((m) => m.role === 'user');
-    const list = users.length
-      ? users
-          .slice()
-          .reverse()
-          .slice(0, 12)
-          .map((m) => ({
-            id: m.id,
-            title: m.content.slice(0, 48) + (m.content.length > 48 ? '…' : ''),
-            time: new Date(m.timestamp || Date.now()).toLocaleDateString(),
-          }))
-      : [
-          { id: 'hint-1', title: 'Ask anything worldwide', time: 'Start' },
-          { id: 'hint-2', title: 'News, facts, daily questions', time: 'Tip' },
-        ];
+    const list = allThreads.filter((t) => t.workspaceId === 'general');
     if (!query.trim()) return list;
     const q = query.toLowerCase();
-    return list.filter((t) => t.title.toLowerCase().includes(q));
-  }, [messages, query]);
+    return list.filter((t) => t.title.toLowerCase().includes(q) || t.messages.some((m) => m.content.toLowerCase().includes(q)));
+  }, [allThreads, query]);
 
   return (
     <WorkspaceShell
@@ -39,13 +29,14 @@ export const GeneralWorkspace = () => {
       badgeClass="text-white"
       skin="shell"
     >
-      <div className="h-full min-h-0 grid lg:grid-cols-[minmax(0,10rem)_minmax(0,1fr)] sg16-work-field">
-        {/* Inner side panel — slim history rail */}
-        <aside className="hidden lg:flex flex-col sg16-sidebar min-h-0 min-w-0 w-full max-w-[10rem] p-2 gap-1.5 border-r border-white/10">
+      <div className="h-full min-h-0 grid lg:grid-cols-[minmax(0,13rem)_minmax(0,1fr)] sg16-work-field">
+        {/* Saved conversations on this device */}
+        <aside className="hidden lg:flex flex-col sg16-sidebar min-h-0 min-w-0 w-full p-2 gap-1.5 border-r border-white/10">
           <button
             type="button"
-            onClick={() => clearMessages('general')}
-            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-black/35 hover:bg-black/50 text-white text-[11px] font-semibold py-2 transition"
+            onClick={() => newChat('general')}
+            disabled={messages.length === 0}
+            className="w-full inline-flex items-center justify-center gap-1.5 rounded-lg bg-black/35 hover:bg-black/50 text-white text-[11px] font-semibold py-2 transition disabled:opacity-50"
           >
             <MessageSquarePlus className="w-3.5 h-3.5" /> New chat
           </button>
@@ -61,26 +52,35 @@ export const GeneralWorkspace = () => {
           </div>
 
           <div className="flex-1 overflow-y-auto space-y-0.5 pt-0.5">
+            {threads.length === 0 && (
+              <p className="px-2 py-3 text-[11px] text-white/40">
+                {query ? 'No chats match.' : 'Your conversations appear here and stay on this device.'}
+              </p>
+            )}
             {threads.map((t) => (
               <div
                 key={t.id}
-                className="rounded-lg px-2 py-2 bg-black/20 hover:bg-black/35 border border-transparent hover:border-white/10"
+                className={`group flex items-start gap-1 rounded-lg px-2 py-2 border ${
+                  t.id === activeId ? 'bg-[#FF168D]/10 border-[#FF168D]/30' : 'bg-black/20 hover:bg-black/35 border-transparent hover:border-white/10'
+                }`}
               >
-                <div className="text-[11px] text-white/90 line-clamp-2 leading-snug">{t.title}</div>
-                <div className="text-[9px] text-white/45 mt-0.5">{t.time}</div>
+                <button type="button" onClick={() => openThread(t.id)} className="min-w-0 flex-1 text-left">
+                  <div className="text-[11px] text-white/90 line-clamp-2 leading-snug">{t.title}</div>
+                  <div className="text-[9px] text-white/45 mt-0.5">{new Date(t.updatedAt).toLocaleDateString()}</div>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('Delete this conversation?')) deleteThread(t.id);
+                  }}
+                  className="p-0.5 text-white/30 hover:text-[#FF5CB8] opacity-0 group-hover:opacity-100 focus:opacity-100"
+                  aria-label="Delete conversation"
+                >
+                  <Trash2 className="w-3 h-3" />
+                </button>
               </div>
             ))}
           </div>
-
-          {messages.length > 0 && (
-            <button
-              type="button"
-              onClick={() => clearMessages('general')}
-              className="inline-flex items-center justify-center gap-1.5 text-[11px] text-white/70 hover:text-white py-2"
-            >
-              <Trash2 className="w-3.5 h-3.5" /> Clear thread
-            </button>
-          )}
         </aside>
 
         <div className="min-h-0 min-w-0">
