@@ -38,4 +38,15 @@ export default tseslint.config(
       'sonarjs/cognitive-complexity': ['warn', 20],
     },
   },
+  {
+    // Pasted Coding Shield snippets only: safe rules ESLint can fix by itself, so the scan
+    // returns improved code. The repo's own files are not affected.
+    files: ['project/src/snippet.*'],
+    rules: {
+      'no-var': 'warn',
+      'prefer-const': 'warn',
+      'object-shorthand': 'warn',
+      'dot-notation': 'warn',
+    },
+  },
 );

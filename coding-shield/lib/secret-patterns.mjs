@@ -21,6 +21,7 @@ export function scanSecretsInText(text, fileLabel = 'snippet') {
         ruleId: rule.id,
         severity: rule.severity,
         file: fileLabel,
+        line: text.slice(0, match.index).split('\n').length,
         match: match[0].slice(0, 24) + (match[0].length > 24 ? '…' : ''),
       });
     }

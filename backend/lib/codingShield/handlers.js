@@ -38,7 +38,7 @@ export async function handleCodingShieldScan(req, res) {
 
     const report = await scanCodeSnippet({
       code,
-      language: language || 'javascript',
+      language: language || 'auto',
       mode: premium && mode === 'deep' ? 'deep' : 'fast',
     });
 
