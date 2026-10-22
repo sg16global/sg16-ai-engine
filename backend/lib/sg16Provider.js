@@ -6,7 +6,10 @@ import {
   probeMistralBrain,
 } from './mistralBrainClient.js';
 
-const COOLDOWN_MS = Number(process.env.SG16_RATE_COOLDOWN_MS || 5 * 60 * 1000);
+// After "too many requests" a model rests 60 s and its provider 30 s, so the next provider answers
+// meanwhile. (Was 5 min / 2 min — with one provider that blocked every user for minutes.)
+const COOLDOWN_MS = Number(process.env.SG16_RATE_COOLDOWN_MS || 60 * 1000);
+const PROVIDER_COOLDOWN_MS = Number(process.env.SG16_PROVIDER_COOLDOWN_MS || 30 * 1000);
 
 const cooldowns = new Map();
 
@@ -219,32 +222,74 @@ function getCustomProvider() {
   };
 }
 
+const MAX_API_SLOTS = 5;
+
+/** Slot 1 reads AI_API_URL, AI_MODEL, …; slot n reads AI_API_URL_n, AI_MODEL_n, … */
+function apiEnv(name, slot) {
+  return process.env[slot === 1 ? name : `${name}_${slot}`]?.trim() || '';
+}
+
+function parseHeaders(raw) {
+  if (!raw) return {};
+  try {
+    const headers = JSON.parse(raw);
+    return headers && typeof headers === 'object' && !Array.isArray(headers) ? headers : {};
+  } catch {
+    console.warn('SG16: AI_API_HEADERS is not valid JSON — ignored');
+    return {};
+  }
+}
+
 /**
- * Any AI API, set with three variables:
- *   AI_API_URL  OpenAI-compatible base URL (e.g. https://api.openai.com/v1, http://your-vps:11434/v1),
- *               or an SG16 Brain endpoint ending in /api/brain (e.g. https://mistralbrain.com/api/brain)
- *   AI_API_KEY  optional — sent as Bearer (an SG16 Brain project key lifts its rate limits)
- *   AI_MODEL    model name for OpenAI-compatible APIs; AI_VISION_MODEL optional for image questions
- * When AI_API_URL is set it is the primary brain for every feature.
+ * One AI API connection. Any company with an OpenAI-compatible API works:
+ *   AI_API_URL       base URL (e.g. https://api.openai.com/v1, https://your-ollama/v1),
+ *                    or an SG16 Brain endpoint ending in /api/brain
+ *   AI_API_KEY       optional — sent as Bearer
+ *   AI_MODEL         chat model — chat, maths and every shield except coding
+ *   AI_CODING_MODEL  optional coding model (Coding Hub); defaults to AI_MODEL
+ *   AI_VISION_MODEL  optional — image questions and student ID checks
+ *   AI_API_HEADERS   optional JSON of extra headers (e.g. Cloudflare Access service-token headers)
+ * Slots 2–5 (AI_API_URL_2 … AI_API_URL_5, same names with _n) are automatic fallbacks, tried in order.
  */
-export function getApiProvider() {
-  const url = process.env.AI_API_URL?.trim();
+function getApiSlotProvider(slot) {
+  const url = apiEnv('AI_API_URL', slot);
   if (!url) return null;
   const base = url.replace(/\/+$/, '');
   const format = /\/api\/brain$/.test(base) ? 'sg16-brain' : 'openai';
-  const model = process.env.AI_MODEL?.trim() || (format === 'sg16-brain' ? 'sg16-brain' : 'gpt-4o-mini');
+  const model = apiEnv('AI_MODEL', slot) || (format === 'sg16-brain' ? 'sg16-brain' : 'gpt-4o-mini');
   return {
-    id: 'api',
+    id: slot === 1 ? 'api' : `api${slot}`,
+    kind: 'api',
     format,
     apiUrl: format === 'sg16-brain' || base.endsWith('/chat/completions') ? base : `${base}/chat/completions`,
-    apiKey: cleanKey(process.env.AI_API_KEY) || '',
+    apiKey: cleanKey(apiEnv('AI_API_KEY', slot)) || '',
+    headers: parseHeaders(apiEnv('AI_API_HEADERS', slot)),
     models: {
       text: model,
       reasoning: model,
-      coding: model,
-      vision: process.env.AI_VISION_MODEL?.trim() || null,
+      coding: apiEnv('AI_CODING_MODEL', slot) || model,
+      vision: apiEnv('AI_VISION_MODEL', slot) || null,
     },
   };
+}
+
+/** The first configured AI API connection (slot 1, or the lowest slot that is set). */
+export function getApiProvider() {
+  return getApiProviders()[0] || null;
+}
+
+/** Every configured AI API connection, in fallback order. */
+export function getApiProviders() {
+  const providers = [];
+  for (let slot = 1; slot <= MAX_API_SLOTS; slot++) {
+    const provider = getApiSlotProvider(slot);
+    if (provider) providers.push(provider);
+  }
+  return providers;
+}
+
+export function isApiProvider(provider) {
+  return provider?.kind === 'api';
 }
 
 export function getPrimaryProvider() {
@@ -360,7 +405,7 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
     ].filter(Boolean))];
   }
 
-  if (provider.id === 'ollama' || provider.id === 'api') {
+  if (provider.id === 'ollama' || isApiProvider(provider)) {
     return [provider.models.text].filter(Boolean);
   }
 
@@ -378,7 +423,7 @@ export function getTextModelChain(provider = getPrimaryProvider()) {
 
 export function getVisionModelChain(provider = getPrimaryProvider()) {
   if (!provider) return [];
-  if (provider.id === 'api') {
+  if (isApiProvider(provider)) {
     return provider.format === 'openai' && provider.models.vision ? [provider.models.vision] : [];
   }
 
@@ -428,8 +473,8 @@ function appendApiProviders(chain) {
 }
 
 export function getChildrenWorldProviderChain() {
-  const api = getApiProvider();
-  if (api) return [api];
+  const apis = getApiProviders();
+  if (apis.length) return apis;
   const mistralBrain = getMistralBrainProvider();
   if (mistralBrain) return [mistralBrain];
   const ollama = getOllamaProvider();
@@ -438,10 +483,10 @@ export function getChildrenWorldProviderChain() {
 }
 
 export function getProviderChain() {
-  const api = getApiProvider();
-  if (api) {
+  const apis = getApiProviders();
+  if (apis.length) {
     const backup = getBackupProvider();
-    return backup ? [api, backup] : [api];
+    return backup ? [...apis, backup] : apis;
   }
 
   const chain = [];
@@ -483,7 +528,7 @@ async function callSg16Brain({ provider, messages, timeoutMs }) {
   const message = system
     ? `[Instructions for this conversation]\n${system}\n\n[User message]\n${last.content}`
     : last.content;
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', ...(provider.headers || {}) };
   if (provider.apiKey) headers.Authorization = `Bearer ${provider.apiKey}`;
 
   const res = await fetch(provider.apiUrl, {
@@ -537,11 +582,11 @@ export async function callChatCompletion({
   provider = null,
 }) {
   const activeProvider = provider || getPrimaryProvider();
-  if (!activeProvider?.apiUrl || (!activeProvider.apiKey && activeProvider.id !== 'api')) {
+  if (!activeProvider?.apiUrl || (!activeProvider.apiKey && !isApiProvider(activeProvider))) {
     throw new Error('SG16 AI is not configured');
   }
 
-  if (activeProvider.id === 'api' && activeProvider.format === 'sg16-brain') {
+  if (isApiProvider(activeProvider) && activeProvider.format === 'sg16-brain') {
     // A self-hosted brain can take ~45 s to wake its model; allow time for a full answer.
     return callSg16Brain({ provider: activeProvider, messages, timeoutMs: Math.max(timeoutMs, 180000) });
   }
@@ -560,7 +605,7 @@ export async function callChatCompletion({
     });
   }
 
-  const headers = { 'Content-Type': 'application/json' };
+  const headers = { 'Content-Type': 'application/json', ...(activeProvider.headers || {}) };
   if (activeProvider.apiKey) headers.Authorization = `Bearer ${activeProvider.apiKey}`;
   if (activeProvider.id === 'groq') {
     headers['Groq-Model-Version'] = 'latest';
@@ -606,9 +651,15 @@ export async function callChatCompletion({
   return content;
 }
 
+/**
+ * Tries each provider in order (AI API slots 1–5, then any legacy backup) until one answers.
+ * `modelsFor(provider)` picks that provider's own model names — a backup company's API does not
+ * know the first provider's model names. Without it, `models` applies to the first provider only.
+ */
 export async function callWithModelFallback({
   messages,
   models,
+  modelsFor = null,
   temperature = 0.7,
   maxTokens = 2048,
   timeoutMs = 90000,
@@ -621,12 +672,16 @@ export async function callWithModelFallback({
 
   let lastError = null;
 
+  const modelChainFor = (provider) => {
+    if (modelsFor) return modelsFor(provider);
+    if (models && provider === providers[0]) return models;
+    return getTextModelChain(provider);
+  };
+
   for (const provider of providers) {
     if (isProviderInCooldown(provider.id)) continue;
 
-    const modelChain = models || getTextModelChain(provider);
-
-    for (const model of modelChain) {
+    for (const model of modelChainFor(provider)) {
       const modelKey = `${provider.id}:${model}`;
       if (isProviderInCooldown(modelKey)) continue;
 
@@ -644,12 +699,12 @@ export async function callWithModelFallback({
         lastError = err;
         if (isRateLimitError(err.message, err.status)) {
           markProviderCooldown(modelKey);
-          markProviderCooldown(provider.id, 2 * 60 * 1000);
+          markProviderCooldown(provider.id, PROVIDER_COOLDOWN_MS);
           console.warn(`SG16 ${provider.id}/${model} limited — trying next`);
           continue;
         }
         if (
-          provider.id === 'api' ||
+          isApiProvider(provider) ||
           provider.id === 'ollama' ||
           provider.id === 'groq' ||
           provider.id === 'custom' ||

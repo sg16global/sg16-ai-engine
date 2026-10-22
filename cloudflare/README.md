@@ -4,7 +4,7 @@
 visitor ──► Cloudflare Worker (sg16engine.com)
               ├── pages, JS, images  → served by Cloudflare
               └── /api/*, /health    → Backend container (Node, on Cloudflare)
-                                         └── AI → AI_API_URL (e.g. your VPS running Devstral)
+                                         └── AI → AI_API_URL (your Qwen models), then AI_API_URL_2…_5 as automatic fallbacks
 users: no accounts, no Google sign-in — chat history stays on each user's device
 ```
 
@@ -16,7 +16,7 @@ The browser only talks to `sg16engine.com`, so there's no CORS setup to do. Goog
 |---|---|
 | Website pages | Cloudflare Worker `sg16-engine-web` (static assets) |
 | Backend (`backend/server.js`) | Cloudflare Container `Backend`, built from the repo `Dockerfile`. It starts on the first request and sleeps after 15 minutes idle. |
-| AI | Whatever `AI_API_URL` points to, for example your VPS |
+| AI | Whatever `AI_API_URL` points to (chat model `AI_MODEL`, Coding Hub model `AI_CODING_MODEL`); up to four more companies' APIs (`AI_API_URL_2`…`_5`) take over automatically when it fails or is busy |
 | Users and chat history | **On each user's device.** No accounts, no Google sign-in; the server refuses to store history. |
 
 Every push to `main` builds and deploys both parts through GitHub Actions (`.github/workflows/deploy-cloudflare.yml`). You don't need Docker on your PC.
@@ -32,12 +32,13 @@ Every push to `main` builds and deploys both parts through GitHub Actions (`.git
    ```bash
    cd cloudflare
    npx wrangler secret put JWT_SECRET          # any long random string (already set)
-   npx wrangler secret put AI_API_URL          # SG16 Brain: https://mistralbrain.com/api/brain
-   npx wrangler secret put AI_API_KEY          # SG16 Brain project key (sg16p_...)
-   npx wrangler secret put AI_MODEL            # only for OpenAI-compatible APIs, e.g. devstral
+   npx wrangler secret put AI_API_URL          # OpenAI-compatible base URL, e.g. https://YOUR-OLLAMA-HOST/v1
+   npx wrangler secret put AI_MODEL            # chat model, e.g. qwen3:4b-instruct-2507-q8_0
+   npx wrangler secret put AI_CODING_MODEL     # Coding Hub model, e.g. qwen2.5-coder:1.5b-instruct-fp16
+   npx wrangler secret put AI_API_KEY          # only if that API needs a key
    ```
 
-   Optional: `AI_VISION_MODEL`, and `DATABASE_URL` (Postgres) only if student verification results must survive container restarts.
+   Optional: `AI_API_HEADERS` (JSON of extra headers, e.g. a Cloudflare Access service token), `AI_VISION_MODEL`, fallback connections `AI_API_URL_2`…`_5` (same names with `_2`…`_5`; see `backend/.env.example` for each company's URL), and `DATABASE_URL` (Postgres) only if student verification results must survive container restarts.
 3. **Deploy.** Merge to `main`, or go to Actions → "Deploy to Cloudflare" → Run workflow.
    - The first container deploy takes several minutes.
    - Check it with `npm run api:check -- https://sg16-engine-web.sg16global.workers.dev`.

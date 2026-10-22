@@ -1,4 +1,4 @@
-import { getPrimaryProvider, getProviderChain, isProviderInCooldown } from './sg16Provider.js';
+import { getPrimaryProvider, getProviderChain, isApiProvider, isProviderInCooldown } from './sg16Provider.js';
 
 /** Workspace-aware generation settings — tuned for speed on Groq/Grok. */
 export function getGenerationProfile(workspaceId, intent) {
@@ -75,7 +75,7 @@ export function getFastChatModelChain(provider = getPrimaryProvider()) {
     return splitModels(process.env.SG16_AI_MODEL_TEXT, 'llama-3.1-8b-instant');
   }
 
-  if (provider.id === 'ollama' || provider.id === 'api') {
+  if (provider.id === 'ollama' || isApiProvider(provider)) {
     return [provider.models.text].filter(Boolean);
   }
 
@@ -111,7 +111,7 @@ export function getCodingModelChain(provider = getPrimaryProvider()) {
     );
   }
 
-  if (provider.id === 'ollama' || provider.id === 'api') {
+  if (provider.id === 'ollama' || isApiProvider(provider)) {
     return [provider.models.coding || provider.models.text].filter(Boolean);
   }
 
@@ -149,7 +149,7 @@ export function getReasoningModelChain(provider = getPrimaryProvider()) {
     return splitModels(process.env.SG16_AI_MODEL_REASONING, 'llama-3.3-70b-versatile');
   }
 
-  if (provider.id === 'ollama' || provider.id === 'api') {
+  if (provider.id === 'ollama' || isApiProvider(provider)) {
     return [provider.models.reasoning || provider.models.text].filter(Boolean);
   }
 

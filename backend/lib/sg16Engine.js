@@ -6,6 +6,7 @@ import {
   callWithModelFallback,
   callWithVisionFallback,
   getPrimaryProvider,
+  isApiProvider,
   isCloudMistralBrain,
   isMistralBrainConfigured,
   isRateLimitError,
@@ -74,7 +75,7 @@ function getApiUrl() {
 }
 
 function hasApiKey() {
-  if (getPrimaryProvider()?.id === 'api') return true;
+  if (isApiProvider(getPrimaryProvider())) return true;
   if (isCloudMistralBrain() && isMistralBrainConfigured()) return true;
   if (isSovereignBrain() && getPrimaryProvider()) return true;
   const key = getApiKey();
@@ -132,11 +133,13 @@ async function callSg16AI({ messages, model, workspaceId = 'general', intent = '
     return content;
   }
 
-  const chain = getModelChainForProfile(profile);
-
+  // Each provider gets its own model names: chat → AI_MODEL, Coding Hub → AI_CODING_MODEL.
   const { content } = await callWithModelFallback({
     messages,
-    models: chain.length ? chain : [model],
+    modelsFor: (provider) => {
+      const chain = getModelChainForProfile(profile, provider);
+      return chain.length ? chain : [model];
+    },
     temperature: profile.temperature,
     maxTokens: profile.maxTokens,
     timeoutMs: profile.timeoutMs,

@@ -32,7 +32,6 @@ RUN npm run build:docker
 
 ENV NODE_ENV=production \
   NODE_PATH=/app/node_modules:/app/backend/node_modules \
-  SG16_BRAIN=mistralbrain \
   SG16_SOVEREIGN_FALLBACK=0 \
   SG16_CHILDREN_ENABLED=0 \
   HOST=0.0.0.0

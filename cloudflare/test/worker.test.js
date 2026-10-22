@@ -132,4 +132,19 @@ describe('backend container', () => {
     const vars = backendEnv({ JWT_SECRET: ' s ', AI_MODEL: 'devstral', DATABASE_URL: '', GOOGLE_CLIENT_ID: 'g', UNRELATED: 'x' });
     assert.deepEqual(vars, { NODE_ENV: 'production', HOST: '0.0.0.0', PORT: '8000', JWT_SECRET: 's', AI_MODEL: 'devstral' });
   });
+  it('passes the coding model, extra headers and fallback AI connections 2–5', async () => {
+    const { backendEnv } = await import('../src/backendEnv.js');
+    const vars = backendEnv({
+      AI_CODING_MODEL: 'qwen2.5-coder:1.5b-instruct-fp16',
+      AI_API_HEADERS: '{"X":"1"}',
+      AI_API_URL_2: 'https://api.openai.com/v1',
+      AI_API_KEY_5: 'k',
+      AI_API_URL_6: 'https://ignored.example',
+    });
+    assert.equal(vars.AI_CODING_MODEL, 'qwen2.5-coder:1.5b-instruct-fp16');
+    assert.equal(vars.AI_API_HEADERS, '{"X":"1"}');
+    assert.equal(vars.AI_API_URL_2, 'https://api.openai.com/v1');
+    assert.equal(vars.AI_API_KEY_5, 'k');
+    assert.equal(vars.AI_API_URL_6, undefined, 'only slots 1–5');
+  });
 });
