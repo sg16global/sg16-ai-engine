@@ -44,5 +44,5 @@ export const mobileBottomNavItems = [
   { id: 'general' as WorkspaceType, label: 'Chat', icon: MessageSquare },
   { id: 'coding' as WorkspaceType, label: 'Coding', icon: Code2 },
   { id: 'market' as WorkspaceType, label: 'Market', icon: TrendingUp },
-  { id: 'pricing' as WorkspaceType, label: 'Premium', icon: Crown },
+  { id: 'pricing' as WorkspaceType, label: 'Passes', icon: Crown },
 ];

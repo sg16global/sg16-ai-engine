@@ -1,82 +1,66 @@
-import { SG16_BRAND } from './branding';
 import type { PlanTier, WorkspaceId } from './types';
 
-export interface PlanDefinition {
-  id: PlanTier;
+/**
+ * SG16 passes. Every pass unlocks all 5 shields; they differ only in how long they last.
+ * Verified students can take the Student Month pass instead of the normal Month.
+ * `tier` maps a pass onto the account plan the server already knows ('pro' / 'student').
+ */
+export interface PassDefinition {
+  id: 'day' | 'week' | 'half-month' | 'month' | 'student-month';
+  tier: Exclude<PlanTier, 'free'>;
   name: string;
   price: string;
-  priceNote: string;
+  days: number;
   description: string;
-  features: string[];
-  limitations?: string[];
-  cta: string;
-  highlighted?: boolean;
   badge?: string;
+  highlighted?: boolean;
+  studentOnly?: boolean;
 }
 
-export const PLANS: PlanDefinition[] = [
+export const ALL_SHIELDS = ['AI Chat', 'Coding Hub', 'Health Shield', 'Market Shield', 'Student Shield'];
+
+export const PASSES: PassDefinition[] = [
+  { id: 'day', tier: 'pro', name: 'Day Pass', price: '$2', days: 1, description: 'All 5 shields for 24 hours.' },
+  { id: 'week', tier: 'pro', name: 'Week Pass', price: '$5', days: 7, description: 'All 5 shields for 7 days.' },
+  { id: 'half-month', tier: 'pro', name: '15-Day Pass', price: '$10', days: 15, description: 'All 5 shields for 15 days.' },
   {
-    id: 'free',
-    name: 'Free Plan',
-    price: '$0',
-    priceNote: '/month',
-    description: `${SG16_BRAND.chatName} + Health basics worldwide.`,
-    features: [
-      `${SG16_BRAND.chatName} — free`,
-      'Health Guide — questions & report explain',
-      'Coding project score (check)',
-      '24h helping hand for basic support',
-    ],
-    limitations: [
-      'Coding repair / rewrite needs Premium',
-      'Student Shield full access needs student plan or Pro',
-    ],
-    cta: 'Current plan',
-  },
-  {
-    id: 'student',
-    name: 'Student Shield',
-    price: '$4',
-    priceNote: '/month',
-    description: 'Education-safe tutor + full 4 services for verified students.',
-    features: [
-      'Student Shield educational guard',
-      'Chat + Health + Coding score',
-      'Coding repair / rewrite',
-      'Verified student ID required',
-    ],
-    limitations: ['Requires selfie + valid Student ID verification'],
-    cta: 'Subscribe — $4/mo',
-    badge: 'Students',
-  },
-  {
-    id: 'pro',
-    name: 'Pro Premium',
-    price: '$10',
-    priceNote: '/month',
-    description: 'Full SG16 power — score, repair, Student Shield, priority help.',
-    features: [
-      'All 4 worldwide services',
-      'Coding project score + Premium repair',
-      'Student Shield access',
-      'Priority support escalation',
-    ],
-    cta: 'Subscribe — $10/mo',
+    id: 'month',
+    tier: 'pro',
+    name: 'Month Pass',
+    price: '$15',
+    days: 30,
+    description: 'All 5 shields for 30 days.',
+    badge: 'Best value',
     highlighted: true,
-    badge: 'Most popular',
+  },
+  {
+    id: 'student-month',
+    tier: 'student',
+    name: 'Student Month',
+    price: '$8',
+    days: 30,
+    description: 'All 5 shields for 30 days — for verified students.',
+    badge: 'Students',
+    studentOnly: true,
   },
 ];
 
-/** Always free forever after sign-in. */
-export const FREE_WORKSPACES: WorkspaceId[] = ['general', 'health', 'market'];
+/** Price per day, e.g. "$0.50 / day". */
+export function perDay(pass: PassDefinition) {
+  const n = Number(pass.price.replace('$', '')) / pass.days;
+  return `$${n.toFixed(2)} / day`;
+}
 
-export const PREMIUM_WORKSPACES: WorkspaceId[] = [
-  'coding',
-  'student-shield',
-];
+/** Short line for menus: "Day $2 · Week $5 · 15 days $10 · Month $15". */
+export const PASS_SUMMARY = 'Day $2 · Week $5 · 15 days $10 · Month $15';
+
+/** After the launch, every shield needs a pass (or the new-account trial). */
+export const FREE_WORKSPACES: WorkspaceId[] = [];
+
+export const PREMIUM_WORKSPACES: WorkspaceId[] = ['general', 'coding', 'health', 'market', 'student-shield'];
 
 export function planLabel(plan: PlanTier): string {
-  if (plan === 'pro') return 'Pro Premium';
-  if (plan === 'student') return 'Student Shield';
-  return 'Free Plan';
+  if (plan === 'pro') return 'SG16 Pass';
+  if (plan === 'student') return 'Student Month';
+  return 'No pass';
 }

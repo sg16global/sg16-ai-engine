@@ -4,6 +4,7 @@ import { canAccessWorkspace } from '../../core/access';
 import { mainNavItems, utilityNavItems } from '../../config/navConfig';
 import { useEngineStatus } from '../../lib/apiStatus';
 import { Sg16Logo } from '../ui/Sg16Logo';
+import { PASS_SUMMARY } from '../../core/plans';
 import type { WorkspaceType } from '../../core/types';
 
 /** Workspace side panel — shown after leaving Home (working modules). */
@@ -175,9 +176,9 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
           }}
           className="w-full text-left rounded-xl bg-black/30 hover:bg-black/45 border border-white/10 p-3 transition"
         >
-          <div className="text-xs font-semibold text-white">Plans from $0/mo</div>
-          <p className="text-[10px] text-white/55 mt-1 leading-relaxed">Free · Student $4 · Pro $10</p>
-          <span className="inline-flex mt-2 text-[11px] font-semibold text-white/90">See pricing →</span>
+          <div className="text-xs font-semibold text-white">Passes from $2</div>
+          <p className="text-[10px] text-white/55 mt-1 leading-relaxed">{PASS_SUMMARY} · Students $8/month</p>
+          <span className="inline-flex mt-2 text-[11px] font-semibold text-white/90">See passes →</span>
         </button>
       </div>
     </aside>

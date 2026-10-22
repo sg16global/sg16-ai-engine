@@ -39,7 +39,7 @@ export function LaunchSubscriptionModal() {
           <h2 className="text-xl font-bold mb-2">Full access — pricing coming soon</h2>
           <p className="text-sm text-gray-400 leading-relaxed">
             {launchMessage ||
-              `Every ${SG16_BRAND.shortName} workspace is free and unlimited right now. Paid plans are shown for reference only.`}
+              `Every ${SG16_BRAND.shortName} workspace is free and unlimited right now. Pass prices are shown for reference only.`}
           </p>
         </div>
 

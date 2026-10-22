@@ -49,7 +49,7 @@ export function StudentVerifyPanel() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold mb-2">Student ID Verification</h1>
         <p className="text-sm text-gray-400 leading-relaxed">
-          Student Shield ($4/month) unlocks all SG16 AI workspaces after verification. Upload a clear selfie
+          The Student Month pass ($8 for 30 days) unlocks all 5 shields after verification. Upload a clear selfie
           holding your valid school or college Student ID card. SG16 AI will scan the image, verify your
           institution, and check the expiry date.
         </p>

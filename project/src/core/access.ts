@@ -46,7 +46,7 @@ export function canAccessWorkspace(
   if (!isAuthenticated(authUser)) return false;
   if (isLaunchPeriod(authUser)) return true;
   if (hasPaidAccess(subscription)) return true;
-  if (ALWAYS_FREE_WORKSPACES.includes(workspace as (typeof ALWAYS_FREE_WORKSPACES)[number])) return true;
+  if (ALWAYS_FREE_WORKSPACES.includes(workspace)) return true;
   if (trialIsActive(authUser!.signupDate)) return true;
   return false;
 }
@@ -90,7 +90,7 @@ export function accessDeniedMessage(
   if (HEAVY_PREMIUM_WORKSPACES.includes(workspace as (typeof HEAVY_PREMIUM_WORKSPACES)[number])) {
     const days = trialDaysRemaining(authUser?.signupDate);
     if (days === 0) {
-      return 'Your 3-day trial has ended. Coding Hub needs Premium for full access. Chat and Health stay free. Project score stays available; repair needs Premium.';
+      return 'Your 3-day trial has ended. Get a pass to keep using the shields — from $2 a day.';
     }
     return `${workspaceLabel(workspace)} requires an active trial or premium plan.`;
   }
@@ -99,7 +99,7 @@ export function accessDeniedMessage(
     return 'This workspace is included in your 3-day trial.';
   }
 
-  return 'Upgrade to Student Shield or Pro Premium to unlock this workspace after your trial.';
+  return 'Your 3-day trial has ended. Get a pass to keep using the shields — from $2 a day (students: $8 a month).';
 }
 
 function workspaceLabel(id: WorkspaceId): string {

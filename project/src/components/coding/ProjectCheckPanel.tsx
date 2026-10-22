@@ -67,7 +67,7 @@ function explainPrompt(report: ShieldScanResponse, code: string) {
   ].join('\n');
 }
 
-/** Free: real Coding Shield score + problem list + safe auto-fixes. Repair / rewrite → Premium. */
+/** Real Coding Shield score + problem list + safe auto-fixes. Repair / rewrite needs a pass (free during launch). */
 export function ProjectCheckPanel({ onAnalyze, onScanned, initialCode = '' }: ProjectCheckPanelProps) {
   const [code, setCode] = useState(initialCode);
   const [run, setRun] = useState<{ kind: 'web' | 'console' | 'none'; doc: string } | null>(null);

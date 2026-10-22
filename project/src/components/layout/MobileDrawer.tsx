@@ -159,7 +159,7 @@ export function MobileDrawer({ open, onClose }: MobileDrawerProps) {
             }}
             className="w-full bg-black/40 hover:bg-black/55 py-2.5 rounded-xl text-sm font-semibold text-white"
           >
-            View pricing plans
+            See passes (from $2)
           </button>
         </div>
       </aside>

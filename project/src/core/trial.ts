@@ -1,7 +1,7 @@
 export const TRIAL_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
 
-/** Always free forever once signed in. */
-export const ALWAYS_FREE_WORKSPACES = ['general', 'health', 'market'] as const;
+/** Free forever once signed in — none: after the launch every shield needs a pass (or the trial). */
+export const ALWAYS_FREE_WORKSPACES: readonly string[] = [];
 
 /** Locked after the 3-day trial (unless paid). */
 export const HEAVY_PREMIUM_WORKSPACES = ['coding'] as const;

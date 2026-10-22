@@ -2,8 +2,8 @@ import { isLaunchFree } from './launchMode.js';
 
 export const TRIAL_DURATION_MS = 3 * 24 * 60 * 60 * 1000;
 
-/** Always free forever after sign-in. */
-export const ALWAYS_FREE_WORKSPACES = new Set(['general', 'health', 'translate']);
+/** Free forever after sign-in — none: after the launch every shield needs a pass (or the trial). */
+export const ALWAYS_FREE_WORKSPACES = new Set();
 
 /** Locked after the 3-day trial unless user has a paid plan. */
 export const HEAVY_PREMIUM_WORKSPACES = new Set(['coding', 'image', 'document']);
@@ -57,10 +57,10 @@ export function serverCanAccessWorkspace(workspaceId, entitlements = {}) {
 export function serverAccessDeniedMessage(workspaceId, signupDate) {
   if (HEAVY_PREMIUM_WORKSPACES.has(workspaceId)) {
     if (signupDate && !trialIsActive(signupDate)) {
-      return 'Your 3-day full-access trial has ended. Coding Hub, Image Studio, and Document Lab require an upgrade. SG16 Chatting and Translate remain free.';
+      return 'Your 3-day trial has ended. Get a pass to keep using the shields — from $2 a day.';
     }
     return 'Sign in with Google to unlock this workspace.';
   }
   if (trialIsActive(signupDate)) return 'This workspace is available during your trial.';
-  return 'Upgrade to Student Shield or Pro Premium to use this workspace after your trial.';
+  return 'Your 3-day trial has ended. Get a pass to keep using the shields — from $2 a day (students: $8 a month).';
 }

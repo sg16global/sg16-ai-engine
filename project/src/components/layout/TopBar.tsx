@@ -67,7 +67,7 @@ export const TopBar = ({ onMenuClick }: TopBarProps) => {
           className="flex items-center gap-1.5 text-xs bg-[#FF168D]/15 border border-[#FF168D]/30 text-[#FF5CB8] px-2 py-1 rounded-lg hover:bg-[#FF168D]/25 transition"
         >
           <Crown className="w-3.5 h-3.5" />
-          {!compact && <span className="hidden sm:inline">Pro Premium</span>}
+          {!compact && <span className="hidden sm:inline">SG16 Pass</span>}
         </button>
       );
     }

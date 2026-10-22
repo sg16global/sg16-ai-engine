@@ -93,7 +93,7 @@ export function SettingsPanel() {
               <ul className="text-xs text-emerald-100/80 space-y-1">
                 <li>• All 5 shields included</li>
                 <li>• No payment during launch</li>
-                <li>• Student Shield & Pro pricing shown for reference only</li>
+                <li>• Pass prices (from $2) shown for reference only</li>
               </ul>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -141,7 +141,7 @@ export function SettingsPanel() {
                 onClick={openPricing}
                 className="text-xs bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] px-3 py-2 rounded-lg font-semibold transition"
               >
-                View pricing
+                See passes
               </button>
               {subscription.plan === 'student' && !isStudentVerified(subscription) && (
                 <button

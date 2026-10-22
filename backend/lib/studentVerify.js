@@ -119,7 +119,7 @@ export async function handleStudentVerifyRequest(req, res) {
     const entitlements = await getEntitlements(googleSub);
     if (!isLaunchFree() && entitlements.planTier !== 'student') {
       return res.status(403).json({
-        error: 'Subscribe to Student Shield ($4/mo) before verifying your Student ID.',
+        error: 'Choose the Student Month pass ($8) before verifying your Student ID.',
         code: 'STUDENT_PLAN_REQUIRED',
       });
     }

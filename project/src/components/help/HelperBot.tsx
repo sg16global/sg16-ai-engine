@@ -6,7 +6,7 @@ const BASIC_REPLIES: { test: RegExp; answer: string }[] = [
   {
     test: /price|pricing|premium|subscribe|\$/,
     answer:
-      'Plans: Free (Chat + Health basics), Student Shield (verified students), Pro Premium (full Coding repair & more). Open Premium in the menu for details.',
+      'Passes: Day $2, Week $5, 15 days $10, Month $15 — every pass unlocks all 5 shields. Verified students: Month $8. Everything is free during the launch.',
   },
   {
     test: /student|shield|verify|id/,
@@ -16,7 +16,7 @@ const BASIC_REPLIES: { test: RegExp; answer: string }[] = [
   {
     test: /coding|score|repair|project/,
     answer:
-      'Open Coding Hub → paste your project → Check & score (free). Repair / rewrite needs Premium.',
+      'Open Coding Hub → paste your code → Shield scan for a score, Preview / Run to see it work, Repair / rewrite to let the AI fix it.',
   },
   {
     test: /health|report|doctor/,

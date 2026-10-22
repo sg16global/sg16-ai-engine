@@ -1,8 +1,7 @@
 import { Check, Lock, Sparkles } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { accessDeniedMessage, isAuthenticated, isLaunchPeriod, trialDaysRemaining } from '../../core/access';
-import { SG16_BRAND } from '../../core/branding';
-import { PLANS } from '../../core/plans';
+import { PASSES, perDay } from '../../core/plans';
 import type { WorkspaceId } from '../../core/types';
 
 interface UpgradeGateProps {
@@ -29,7 +28,7 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
           <Lock className="w-7 h-7 text-amber-400" />
         </div>
         <h2 className="text-xl font-bold mb-2">
-          {!isAuthenticated(authUser) ? 'Enter SG16' : trialEnded ? 'Trial ended' : 'Premium workspace locked'}
+          {!isAuthenticated(authUser) ? 'Enter SG16' : trialEnded ? 'Trial ended' : 'A pass is needed'}
         </h2>
         <p className="text-sm text-gray-400 mb-6 leading-relaxed">{message}</p>
 
@@ -44,12 +43,11 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
         ) : (
           <>
             <div className="space-y-2 mb-6 text-left">
-              {PLANS.filter((p) => p.id !== 'free').map((plan) => (
-                <div key={plan.id} className="flex items-start gap-2 text-xs text-gray-500">
+              {PASSES.map((pass) => (
+                <div key={pass.id} className="flex items-start gap-2 text-xs text-gray-500">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
                   <span>
-                    <strong className="text-gray-300">{plan.name}</strong> — {plan.price}
-                    {plan.priceNote}: {plan.description}
+                    <strong className="text-gray-300">{pass.name}</strong> — {pass.price} ({perDay(pass)}): {pass.description}
                   </span>
                 </div>
               ))}
@@ -70,15 +68,15 @@ export function UpgradeGate({ workspaceId }: UpgradeGateProps) {
                   onClick={openPricing}
                   className="inline-flex items-center justify-center gap-2 bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] font-semibold hover:shadow-[0_0_18px_rgba(255,22,141,0.4)] px-5 py-2.5 rounded-xl text-sm transition"
                 >
-                  View pricing
+                  See passes
                 </button>
               )}
               <button
                 type="button"
-                onClick={() => useAppStore.getState().setWorkspace('general')}
+                onClick={() => useAppStore.getState().setWorkspace('home')}
                 className="px-5 py-2.5 rounded-xl text-sm border border-white/10 hover:border-emerald-500/30 text-gray-300"
               >
-                Continue with {SG16_BRAND.chatName} (Free)
+                Back to Shields
               </button>
             </div>
           </>
