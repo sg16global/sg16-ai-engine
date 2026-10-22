@@ -10,10 +10,12 @@ const WEIGHTS = {
 const TOOL_CATEGORY = {
   eslint: 'quality',
   'sonarqube-sonarlint': 'quality',
+  'eslint-security': 'security',
   semgrep: 'security',
   gitleaks: 'security',
   'secret-patterns': 'security',
   'acorn-esprima': 'syntax',
+  'python-syntax': 'syntax',
   'retire.js': 'dependencies',
   'npm-audit': 'dependencies',
   depcheck: 'dependencies',
@@ -21,50 +23,84 @@ const TOOL_CATEGORY = {
   tsc: 'types',
 };
 
+/** Points lost per issue, and the most one category can lose. Security problems cost the most. */
+const PENALTY = {
+  security: { perIssue: 25, max: 75 },
+  syntax: { perIssue: 100, max: 100 },
+  quality: { perIssue: 6, max: 45 },
+};
+const DEFAULT_PENALTY = { perIssue: 8, max: 40 };
+
+/** Code that does not parse cannot score above F; any security problem caps the score at C. */
+const SYNTAX_ERROR_CAP = 45;
+const SECURITY_ISSUE_CAP = 69;
+
+function issueCount(r) {
+  return r.errorCount ?? r.leakCount ?? r.findingCount ?? r.vulnCount ?? r.auditCount ?? r.unusedCount ?? (r.ok ? 0 : 1);
+}
+
+/** One flat list of what to fix, with line numbers where the tool gives them. */
+function collectIssues(active) {
+  const issues = [];
+  for (const r of active) {
+    const category = TOOL_CATEGORY[r.tool] || 'quality';
+    for (const m of r.messages || []) {
+      issues.push({ tool: r.tool, category, line: m.line ?? null, message: m.message, severity: m.severity || 'error' });
+    }
+    for (const f of r.findings || []) {
+      issues.push({
+        tool: r.tool,
+        category,
+        line: f.line ?? null,
+        message: f.message || `Possible secret (${f.ruleId}): ${f.match || ''}`.trim(),
+        severity: ['error', 'critical', 'high'].includes(f.severity) ? 'error' : 'warning',
+      });
+    }
+    if (!r.ok && !(r.messages?.length || r.findings?.length)) {
+      issues.push({ tool: r.tool, category, line: null, message: r.summary, severity: 'error' });
+    }
+  }
+  const rank = { security: 0, syntax: 1, quality: 2 };
+  return issues
+    .sort(
+      (a, b) =>
+        (rank[a.category] ?? 3) - (rank[b.category] ?? 3) ||
+        (a.severity === b.severity ? 0 : a.severity === 'error' ? -1 : 1) ||
+        (a.line ?? 1e9) - (b.line ?? 1e9),
+    )
+    .slice(0, 50);
+}
+
 export function aggregateShieldScore(results) {
   const active = results.filter((r) => !r.skipped);
-  const categories = {
-    security: { score: 100, issues: 0, tools: [] },
-    quality: { score: 100, issues: 0, tools: [] },
-    syntax: { score: 100, issues: 0, tools: [] },
-    dependencies: { score: 100, issues: 0, tools: [] },
-    coverage: { score: 100, issues: 0, tools: [] },
-    types: { score: 100, issues: 0, tools: [] },
-  };
+  const categories = Object.fromEntries(
+    Object.keys(WEIGHTS).map((cat) => [cat, { score: null, issues: 0, tools: [] }]),
+  );
 
   for (const r of active) {
     const cat = TOOL_CATEGORY[r.tool] || 'quality';
-    categories[cat].tools.push(r.tool);
-    const penalty =
-      r.errorCount ??
-      r.leakCount ??
-      r.findingCount ??
-      r.vulnCount ??
-      r.auditCount ??
-      r.unusedCount ??
-      (r.ok ? 0 : 1);
-    categories[cat].issues += penalty;
-    categories[cat].score = Math.max(0, categories[cat].score - Math.min(40, penalty * 8));
-    if (!r.ok) categories[cat].score = Math.min(categories[cat].score, 70);
+    const c = categories[cat];
+    if (c.score === null) c.score = 100;
+    c.tools.push(r.tool);
+    const count = issueCount(r);
+    const { perIssue, max } = PENALTY[cat] || DEFAULT_PENALTY;
+    c.issues += count;
+    c.score = Math.max(0, c.score - Math.min(max, count * perIssue));
+    if (!r.ok) c.score = Math.min(c.score, 70);
   }
 
-  const usedWeights = { ...WEIGHTS };
-  if (!categories.coverage.tools.length) {
-    usedWeights.syntax += usedWeights.coverage / 2;
-    usedWeights.quality += usedWeights.coverage / 2;
-    usedWeights.coverage = 0;
-  }
-  if (!categories.types.tools.length) {
-    usedWeights.quality += usedWeights.types;
-    usedWeights.types = 0;
-  }
-
-  const totalWeight = Object.values(usedWeights).reduce((a, b) => a + b, 0);
+  // Only categories a tool actually checked count. An unchecked category is unknown, not 100%.
+  let totalWeight = 0;
   let score = 0;
-  for (const [cat, weight] of Object.entries(usedWeights)) {
-    if (weight <= 0) continue;
-    score += (categories[cat].score * weight) / totalWeight;
+  for (const [cat, weight] of Object.entries(WEIGHTS)) {
+    if (categories[cat].score === null) continue;
+    totalWeight += weight;
+    score += categories[cat].score * weight;
   }
+  score = totalWeight ? score / totalWeight : 0;
+
+  if (categories.syntax.issues > 0) score = Math.min(score, SYNTAX_ERROR_CAP);
+  if (categories.security.issues > 0) score = Math.min(score, SECURITY_ISSUE_CAP);
 
   const grade =
     score >= 95 ? 'A+' :
@@ -83,9 +119,11 @@ export function aggregateShieldScore(results) {
     score: Math.round(score),
     grade,
     categories,
+    issues: collectIssues(active),
     topFixes,
     toolsRun: results.length,
     toolsActive: active.length,
     toolsSkipped: results.filter((r) => r.skipped).length,
+    limited: results.some((r) => r.skipped),
   };
 }

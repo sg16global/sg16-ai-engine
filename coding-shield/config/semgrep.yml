@@ -13,5 +13,85 @@ rules:
   - id: sg16-hardcoded-secret
     pattern-regex: (?i)(api[_-]?key|secret|password|token)\s*=\s*['"][^'"]{8,}['"]
     message: Possible hardcoded secret — use env vars
-    languages: [javascript, typescript, json]
+    languages: [javascript, typescript, json, python]
     severity: ERROR
+
+  - id: sg16-sql-injection
+    pattern-either:
+      # "SELECT ... " + value   /   "SELECT ... %s" % value   /   "SELECT ...".format(value)
+      - pattern-regex: (?i)["'`][^"'`\n]*\b(select|insert|update|delete)\b[^"'`\n]*["'`]\s*(\+|%\s*[\w(]|\.format\()
+      # `SELECT ... ${value}`   /   f"SELECT ... {value}"
+      - pattern-regex: (?i)`[^`]*\b(select|insert|update|delete)\b[^`]*\$\{
+      - pattern-regex: (?i)\bf["'][^"'\n]*\b(select|insert|update|delete)\b[^"'\n]*\{
+    message: SQL built from user values — use parameterized queries (placeholders) instead
+    languages: [javascript, typescript, python]
+    severity: ERROR
+
+  - id: sg16-xss-html-sink
+    patterns:
+      - pattern-either:
+          - pattern: $EL.innerHTML = $X
+          - pattern: $EL.outerHTML = $X
+          - pattern: $EL.insertAdjacentHTML($POS, $X)
+      - pattern-not: $EL.innerHTML = "..."
+      - pattern-not: $EL.outerHTML = "..."
+    message: Untrusted HTML can run scripts (XSS) — use textContent or sanitize first
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: sg16-js-command-injection
+    patterns:
+      - pattern-either:
+          - pattern: $CP.exec($A + $B, ...)
+          - pattern: $CP.execSync($A + $B, ...)
+          - pattern: exec($A + $B, ...)
+          - pattern: execSync($A + $B, ...)
+          - pattern: $CP.exec(`...${$X}...`, ...)
+          - pattern: $CP.execSync(`...${$X}...`, ...)
+          - pattern: exec(`...${$X}...`, ...)
+          - pattern: execSync(`...${$X}...`, ...)
+    message: Shell command built from values (command injection) — use execFile/spawn with an argument list
+    languages: [javascript, typescript]
+    severity: ERROR
+
+  - id: sg16-py-command-injection
+    pattern-either:
+      - patterns:
+          - pattern-either:
+              - pattern: os.system($X)
+              - pattern: os.popen($X, ...)
+          - pattern-not: os.system("...")
+          - pattern-not: os.popen("...", ...)
+      - pattern: subprocess.$F(..., shell=True, ...)
+    message: Shell command built from values (command injection) — use subprocess.run([...]) without shell=True
+    languages: [python]
+    severity: ERROR
+
+  - id: sg16-py-dynamic-code
+    patterns:
+      - pattern-either:
+          - pattern: eval($X)
+          - pattern: exec($X)
+      - pattern-not: eval("...")
+      - pattern-not: exec("...")
+    message: Avoid eval/exec on dynamic input
+    languages: [python]
+    severity: WARNING
+
+  - id: sg16-py-unsafe-deserialization
+    pattern-either:
+      - pattern: pickle.loads(...)
+      - pattern: pickle.load(...)
+      - patterns:
+          - pattern: yaml.load(...)
+          - pattern-not: yaml.load(..., Loader=yaml.SafeLoader, ...)
+    message: Unsafe deserialization can run attacker code — use json, or yaml.safe_load
+    languages: [python]
+    severity: ERROR
+
+  - id: sg16-tls-verify-disabled
+    pattern-either:
+      - pattern: requests.$M(..., verify=False, ...)
+    message: TLS certificate checking is turned off
+    languages: [python]
+    severity: WARNING

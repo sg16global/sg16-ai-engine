@@ -12,7 +12,8 @@ import { ChatPanel } from '../../components/chat/ChatPanel';
 import { ProjectCheckPanel } from '../../components/coding/ProjectCheckPanel';
 import { HeroCard, ToolCard, BarListCard, BarRow } from '../../components/ui/Sg16Cards';
 import { useAppStore } from '../../core/appState';
-import { loadCodingReports, saveCodingReport, guessLanguage } from '../../lib/codingReports';
+import { loadCodingReports, saveCodingReport, languageName } from '../../lib/codingReports';
+import type { ShieldScanResponse } from '../../lib/codingShieldApi';
 
 type View = 'hub' | 'check' | 'chat';
 
@@ -21,19 +22,17 @@ export const CodingWorkspace = () => {
   const [reports, setReports] = useState(() => loadCodingReports());
 
   const onAnalyze = (prompt: string) => {
-    const codeMatch = prompt.match(/```([\s\S]*?)```/);
-    const code = codeMatch?.[1] || prompt;
-    const score = Number(prompt.match(/SCORE: (\d+)/)?.[1] || 75);
-    const issueMatches = prompt.match(/^- .+: .+$/gm) || [];
-    saveCodingReport({
-      title: prompt.includes('Coding Shield') ? 'Coding Shield' : 'Project check',
-      language: guessLanguage(code),
-      errors: issueMatches.filter((l) => !/0 error|no secret|valid|clean/i.test(l)).length,
-      score,
-    });
-    setReports(loadCodingReports());
     useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
     setView('chat');
+  };
+  const onScanned = (report: ShieldScanResponse) => {
+    saveCodingReport({
+      title: 'Coding Shield',
+      language: languageName(report.language),
+      errors: report.issues.filter((i) => i.severity === 'error').length,
+      score: report.score,
+    });
+    setReports(loadCodingReports());
   };
   const openChat = (prompt?: string) => {
     if (prompt) {
@@ -67,7 +66,7 @@ export const CodingWorkspace = () => {
               <ArrowLeft className="w-3.5 h-3.5" /> Back to Coding
             </button>
           </div>
-          {view === 'check' && <ProjectCheckPanel onAnalyze={onAnalyze} />}
+          {view === 'check' && <ProjectCheckPanel onAnalyze={onAnalyze} onScanned={onScanned} />}
           <div className="flex-1 min-h-0">
             <ChatPanel
               workspaceId="coding"
