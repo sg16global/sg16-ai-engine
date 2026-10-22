@@ -40,6 +40,8 @@ interface ChatPanelProps {
   /** Shows a back button at the start of the thread bar (e.g. "Back to Coding"). */
   onBack?: () => void;
   backLabel?: string;
+  /** Coding Hub: a Scan button on AI code opens "Check Your Code" with it. */
+  onScanCode?: (code: string) => void;
 }
 
 export function ChatPanel({
@@ -55,6 +57,7 @@ export function ChatPanel({
   getExtraPayload,
   onBack,
   backLabel = 'Back',
+  onScanCode,
 }: ChatPanelProps) {
   const messages = useAppStore((s) => s.messages[workspaceId]);
   const loading = useAppStore((s) => s.loading);
@@ -413,7 +416,7 @@ export function ChatPanel({
                 </div>
               )}
               {msg.role === 'assistant' ? (
-                <MessageContent text={msg.content} />
+                <MessageContent text={msg.content} onScanCode={onScanCode} />
               ) : (
                 <p className={`whitespace-pre-wrap ${monospace ? 'font-mono text-xs' : ''}`}>{msg.content}</p>
               )}

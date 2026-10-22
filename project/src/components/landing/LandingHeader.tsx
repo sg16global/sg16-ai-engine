@@ -43,11 +43,15 @@ export function LandingHeader({ onOpenMemorial }: LandingHeaderProps) {
 
   const onNav = (href: string) => {
     setMenuOpen(false);
+    const onHome = window.location.pathname === '/';
     if (href.startsWith('#')) {
-      document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' });
+      // Sections live on the homepage: from Privacy, Terms… go home first, then scroll.
+      if (!onHome) pushAppPath('/');
+      window.setTimeout(() => document.querySelector(href)?.scrollIntoView({ behavior: 'smooth' }), onHome ? 0 : 150);
       return;
     }
     if (href === '/') {
+      if (!onHome) pushAppPath('/');
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }

@@ -143,6 +143,7 @@ export const CodingWorkspace = () => {
             ]}
             onBack={() => setView('hub')}
             backLabel="Back to Coding"
+            onScanCode={(code) => openCheck(code)}
           />
         )}
       </WorkspaceShell>
@@ -189,8 +190,19 @@ export const CodingWorkspace = () => {
                 </div>
                 <pre className="mt-1.5 max-h-28 overflow-auto rounded-lg bg-black/40 p-2 text-[11px] font-mono text-white/75">{s.code}</pre>
                 <div className="flex flex-wrap gap-2 mt-2">
-                  <button type="button" onClick={() => void navigator.clipboard?.writeText(s.code)} className="sg16-btn-secondary inline-flex items-center gap-1 px-2.5 py-1 text-[11px]">
-                    <Copy className="w-3 h-3" /> Copy
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      const btn = e.currentTarget;
+                      void navigator.clipboard?.writeText(s.code).then(() => {
+                        btn.lastChild!.textContent = ' Copied';
+                        window.setTimeout(() => (btn.lastChild!.textContent = ' Copy'), 1500);
+                      });
+                    }}
+                    className="sg16-btn-secondary inline-flex items-center gap-1 px-2.5 py-1 text-[11px]"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span> Copy</span>
                   </button>
                   <button type="button" onClick={() => openCheck(s.code)} className="sg16-btn-secondary inline-flex items-center gap-1 px-2.5 py-1 text-[11px]">
                     <ShieldCheck className="w-3 h-3" /> Scan

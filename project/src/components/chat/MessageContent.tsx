@@ -1,5 +1,5 @@
-import { useState, type ReactNode } from 'react';
-import { Check, Copy } from 'lucide-react';
+import type { ReactNode } from 'react';
+import { CodeBlock, type PreviewParts } from './CodeBlock';
 
 /**
  * Renders AI replies: paragraphs, headings, bullet / numbered lists, **bold**, _italic_,
@@ -49,33 +49,6 @@ function inline(text: string, keyBase: string): ReactNode[] {
   }
   if (last < text.length) out.push(text.slice(last));
   return out;
-}
-
-function CodeBlock({ code, lang }: { code: string; lang: string }) {
-  const [copied, setCopied] = useState(false);
-  return (
-    <div className="my-2 rounded-xl border border-white/10 bg-black/50 overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/[0.08] text-[10px] uppercase tracking-wider text-white/45">
-        <span>{lang || 'code'}</span>
-        <button
-          type="button"
-          onClick={() => {
-            void navigator.clipboard?.writeText(code).then(() => {
-              setCopied(true);
-              window.setTimeout(() => setCopied(false), 1500);
-            });
-          }}
-          className="inline-flex items-center gap-1 normal-case tracking-normal text-white/60 hover:text-white"
-        >
-          {copied ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-          {copied ? 'Copied' : 'Copy'}
-        </button>
-      </div>
-      <pre className="p-3 overflow-x-auto text-xs leading-relaxed font-mono text-white/90">
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
 }
 
 type Block =
@@ -159,15 +132,44 @@ export function plainText(text: string) {
     .trim();
 }
 
-export function MessageContent({ text, monospace = false }: { text: string; monospace?: boolean }) {
+export function MessageContent({
+  text,
+  monospace = false,
+  onScanCode,
+}: {
+  text: string;
+  monospace?: boolean;
+  /** Coding Hub: open "Check Your Code" with this code. */
+  onScanCode?: (code: string) => void;
+}) {
   const blocks = parse(text);
+  const codeBlocks = blocks.filter((b): b is Extract<Block, { kind: 'code' }> => b.kind === 'code');
+  const isHtml = (b: { lang: string; text: string }) =>
+    /^(html?|xhtml)$/i.test(b.lang) || (!b.lang && /^\s*(<!doctype html|<html)/i.test(b.text));
+  const hasHtml = codeBlocks.some(isHtml);
+  // CSS / JS written next to an HTML page belong to that page's preview.
+  const parts: PreviewParts = hasHtml
+    ? {
+        css: codeBlocks.filter((b) => /^css$/i.test(b.lang)).map((b) => b.text),
+        js: codeBlocks.filter((b) => /^(js|javascript)$/i.test(b.lang)).map((b) => b.text),
+      }
+    : { css: [], js: [] };
   return (
     <div className={`space-y-2 min-w-0 [overflow-wrap:anywhere] ${monospace ? 'text-[13px]' : ''}`}>
       {blocks.map((b, bi) => {
         const key = `b${bi}`;
         switch (b.kind) {
           case 'code':
-            return <CodeBlock key={key} code={b.text} lang={b.lang} />;
+            return (
+              <CodeBlock
+                key={key}
+                code={b.text}
+                lang={b.lang}
+                parts={parts}
+                onScan={onScanCode}
+                noPreview={hasHtml && !isHtml(b)}
+              />
+            );
           case 'heading':
             return (
               <p key={key} className={`font-semibold text-white ${b.level <= 2 ? 'text-base' : 'text-sm'}`}>

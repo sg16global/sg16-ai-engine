@@ -23,6 +23,7 @@ export function SettingsPanel() {
   const engineStatus = useEngineStatus();
   const engineOnline = engineStatus === 'checking' ? null : engineStatus === 'online';
   const [saved, setSaved] = useState(false);
+  const [wiped, setWiped] = useState(false);
 
   useEffect(() => {
     void checkEngineHealth();
@@ -60,24 +61,8 @@ export function SettingsPanel() {
         </button>
       </section>
 
-      <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-4">
-        <h2 className="font-semibold">Voice AI</h2>
-        <label className="flex items-center gap-3 text-sm text-gray-300 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={settings.autoSendVoice}
-            onChange={(e) => updateSettings({ autoSendVoice: e.target.checked })}
-            className="rounded border-white/20"
-          />
-          Auto-send message after voice input
-        </label>
-      </section>
-
       <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-3">
         <h2 className="font-semibold">Engine Status</h2>
-        <p className="text-xs text-gray-500">
-          Photo edits use in-place editing — your original face and photo are preserved, not recreated from scratch.
-        </p>
         <div className="flex items-center gap-2 text-sm">
           <span
             className={`w-2 h-2 rounded-full ${
@@ -106,7 +91,7 @@ export function SettingsPanel() {
               </div>
               <p className="text-xs text-gray-400 leading-relaxed">{launchMessage}</p>
               <ul className="text-xs text-emerald-100/80 space-y-1">
-                <li>• All 8 SG16 AI workspaces included</li>
+                <li>• All 5 shields included</li>
                 <li>• No payment during launch</li>
                 <li>• Student Shield & Pro pricing shown for reference only</li>
               </ul>
@@ -212,14 +197,20 @@ export function SettingsPanel() {
         <h2 className="font-semibold text-[#FF526B]">Privacy</h2>
         <p className="text-xs text-gray-500">
           Your chat history is saved on this device only — SG16 never stores it on its servers. Clear it anytime below.
+          Your shield tools (homework, medicines, alerts…) are not affected.
         </p>
         <button
           type="button"
-          onClick={wipeSession}
+          onClick={() => {
+            if (!window.confirm('Delete every chat conversation saved on this device? This cannot be undone.')) return;
+            wipeSession();
+            setWiped(true);
+          }}
           className="text-xs border border-white/10 hover:border-[#FF526B]/40 px-3 py-2 rounded-lg text-gray-400 hover:text-[#FF526B]"
         >
-          Wipe this session now
+          Delete all chat history
         </button>
+        {wiped && <p className="text-xs text-emerald-400">All chat history on this device was deleted.</p>}
       </section>
     </div>
   );

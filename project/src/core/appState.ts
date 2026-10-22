@@ -627,7 +627,13 @@ export const useAppStore = create<AppState>((set, getState) => ({
 }));
 
 useAppStore.subscribe((state, prev) => {
-  if (goingBack || state.currentWorkspace === prev.currentWorkspace) return;
+  if (state.currentWorkspace === prev.currentWorkspace) return;
+  // Shields have no address of their own: leave /pricing, /room… for /app so a refresh
+  // does not reopen the page the user already left.
+  if (!routeToPath(state.currentWorkspace) && typeof window !== 'undefined' && window.location.pathname !== '/') {
+    pushAppPath('/app');
+  }
+  if (goingBack) return;
   backStack.push(prev.currentWorkspace);
   if (backStack.length > 20) backStack.shift();
 });
