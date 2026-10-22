@@ -18,6 +18,7 @@ import { useAppStore } from '../../core/appState';
 import type { WorkspaceType } from '../../core/types';
 import { Flag, type FlagCode } from './Flag';
 import { HeroStage, LandingNeonBackdrop } from './LandingNeonBackdrop';
+import { PioneersRail, WorldAiRail } from './LandingRails';
 import { LandingHeader } from './LandingHeader';
 import { FinanceCard, GeoMonitorCard } from './LandingNetworkCards';
 import { SiteFooter } from './SiteFooter';
@@ -144,6 +145,9 @@ export function LandingPage() {
               <FinanceCard />
             </div>
           </div>
+
+          {/* ── AI Pioneers rail (under the flags) ── */}
+          <PioneersRail />
 
           {/* ── Row 2: Our 5 Shields · Latest Activity ── */}
           <div id="features" className="lp-row2 scroll-mt-24">
@@ -308,6 +312,9 @@ export function LandingPage() {
             </div>
           </footer>
         </main>
+
+        {/* ── World's AI rail: the gap above the footer's address and contacts ── */}
+        <WorldAiRail />
 
         <SiteFooter />
       </div>
