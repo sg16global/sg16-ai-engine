@@ -1,0 +1,5 @@
+# Cloudflare Pages — SPA fallback for the client-side router.
+# Pages Functions (functions/api/edge/*) run before these rules, so the edge
+# API is never swallowed by the fallback; unknown /api/* paths get a real 404.
+/api/*    /index.html    404
+/*        /index.html    200

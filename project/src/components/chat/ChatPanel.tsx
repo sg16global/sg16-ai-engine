@@ -3,7 +3,8 @@ import { ArrowLeft, Send, Loader2, Trash2, Mic, MicOff, Volume2, Upload, Image a
 import { MessageContent } from './MessageContent';
 import { useAppStore } from '../../core/appState';
 import { isStudentVerified } from '../../core/access';
-import { sendChat, readDocumentFile, readImageFile } from '../../lib/chatApi';
+import { sendChatMessage } from '../../lib/ai';
+import { readDocumentFile, readImageFile } from '../../lib/files';
 import { uid } from '../../lib/utils';
 import { startVoiceCapture, speakText, voiceInputAvailable } from '../../lib/voiceInput';
 import { SG16_BRAND } from '../../core/branding';
@@ -144,7 +145,7 @@ export function ChatPanel({
 
         const extra = getExtraPayload?.() ?? {};
 
-        const result = await sendChat({
+        const result = await sendChatMessage({
           message: messageText,
           workspaceId,
           imageUrl: img,

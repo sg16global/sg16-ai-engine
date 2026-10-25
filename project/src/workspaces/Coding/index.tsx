@@ -25,7 +25,7 @@ import {
   languageName,
   type CodingReport,
 } from '../../lib/codingReports';
-import type { ShieldScanResponse } from '../../lib/codingShieldApi';
+import type { ShieldScanResponse } from '../../lib/codingShield';
 import { useOpenChatRequest } from '../../hooks/useOpenChatRequest';
 
 type View = 'hub' | 'check' | 'chat' | 'reports' | 'snippets';

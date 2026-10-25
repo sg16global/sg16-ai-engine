@@ -1,12 +1,12 @@
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { VitePWA } from 'vite-plugin-pwa';
 
-export default defineConfig(({ mode }) => {
-  // Where `npm run dev` forwards /api and /health. Local backend by default; set
-  // SG16_DEV_API_TARGET=https://sg16engine.com in project/.env to run the UI against production.
-  const devApiTarget = loadEnv(mode, process.cwd(), '').SG16_DEV_API_TARGET || 'http://localhost:8000';
-  const devProxy = { target: devApiTarget, changeOrigin: true, secure: true };
+export default defineConfig(() => {
+  // The app is self-contained: no backend to proxy. Live data comes from
+  // browser-direct APIs and the edge functions in functions/api/edge (served
+  // by Cloudflare Pages in production). For local edge testing:
+  //   npm run build && npx wrangler pages dev dist
 
   return {
     plugins: [
@@ -90,7 +90,7 @@ export default defineConfig(({ mode }) => {
           ],
         },
         workbox: {
-          // Large hero / shield source PNGs exceed the 2 MiB default and fail Railway builds.
+          // Large hero / shield source PNGs exceed the 2 MiB default and would fail the build.
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
           globPatterns: ['**/*.{js,css,html,ico,png,svg,webp,woff2,webmanifest}'],
           globIgnores: [
@@ -100,7 +100,7 @@ export default defineConfig(({ mode }) => {
             '**/shield-home-concept.png',
           ],
           navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/api\//, /^\/health$/, /^\/sitemap\.xml$/, /^\/robots\.txt$/],
+          navigateFallbackDenylist: [/^\/api\//, /^\/sitemap\.xml$/, /^\/robots\.txt$/],
           cleanupOutdatedCaches: true,
           runtimeCaching: [
             {
@@ -122,12 +122,12 @@ export default defineConfig(({ mode }) => {
               },
             },
             {
-              urlPattern: /\/api\/v1\/.*/i,
+              urlPattern: /\/api\/edge\/.*/i,
               handler: 'NetworkFirst',
               options: {
-                cacheName: 'sg16-api-cache',
+                cacheName: 'sg16-edge-cache',
                 networkTimeoutSeconds: 10,
-                expiration: { maxEntries: 50, maxAgeSeconds: 60 * 5 },
+                expiration: { maxEntries: 50, maxAgeSeconds: 60 },
                 cacheableResponse: { statuses: [0, 200] },
               },
             },
@@ -141,7 +141,8 @@ export default defineConfig(({ mode }) => {
       }),
     ],
     build: {
-      outDir: '../backend/public',
+      // Cloudflare Pages serves this directory; edge functions live in functions/.
+      outDir: 'dist',
       emptyOutDir: true,
     },
     server: {
@@ -153,10 +154,6 @@ export default defineConfig(({ mode }) => {
         'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
         // Required for GIS on HTTP localhost — without this Google returns Error 400: origin_mismatch.
         'Referrer-Policy': 'no-referrer-when-downgrade',
-      },
-      proxy: {
-        '/api': devProxy,
-        '/health': devProxy,
       },
     },
     preview: {

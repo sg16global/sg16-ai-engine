@@ -1,4 +1,4 @@
-import { transcribeVoiceAudio } from './speechApi';
+import { transcribeAudio } from './ai/transcribe';
 
 const MAX_RECORD_MS = 30_000;
 
@@ -125,7 +125,7 @@ function startMediaRecorderCapture(language: string): VoiceCaptureSession {
           if (blob.size < 256) {
             throw new Error('Recording too short. Tap mic, speak, then tap again.');
           }
-          const text = await transcribeVoiceAudio(blob, resolvedMime, language.slice(0, 2));
+          const text = await transcribeAudio(blob, resolvedMime, language.slice(0, 2));
           stopResolve?.(text);
         } catch (err) {
           stopReject?.(err instanceof Error ? err : new Error('Voice transcription failed.'));

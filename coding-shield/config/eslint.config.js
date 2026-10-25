@@ -9,7 +9,6 @@ export default tseslint.config(
     ignores: [
       '**/node_modules/**',
       '**/dist/**',
-      '**/backend/public/**',
       '**/project/android/**',
       'coding-shield/reports/**',
     ],
@@ -18,17 +17,8 @@ export default tseslint.config(
   ...tseslint.configs.recommended,
   sonarjs.configs.recommended,
   {
-    files: ['backend/**/*.js'],
-    languageOptions: {
-      globals: globals.node,
-    },
-    rules: {
-      'no-eval': 'error',
-      'no-implied-eval': 'error',
-    },
-  },
-  {
-    files: ['project/src/**/*.{ts,tsx,js,jsx}'],
+    // The app + the Pages Functions (both use web-standard browser/edge globals).
+    files: ['project/src/**/*.{ts,tsx,js,jsx}', 'project/functions/**/*.ts'],
     languageOptions: {
       globals: globals.browser,
     },

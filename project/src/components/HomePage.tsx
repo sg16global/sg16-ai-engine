@@ -102,7 +102,7 @@ export const HomePage = () => {
     };
   }, []);
 
-  // Every value below is checked live: /health, the browser's network state and real AI replies.
+  // Every value below is checked live: the browser's network state, the Admin AI config and real AI replies.
   const server = engine === 'online' ? 'ok' : engine === 'checking' ? 'wait' : 'bad';
   const ai =
     engine !== 'online' || !health?.aiConfigured || aiStatus === 'offline'

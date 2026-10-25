@@ -2,8 +2,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
-const videoPath = path.join(root, 'backend/public/landing/sg16-brain-bg.mp4');
+const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+const videoPath = path.join(root, 'dist/landing/sg16-brain-bg.mp4');
 
 if (!fs.existsSync(videoPath)) {
   console.error('[verify-landing-video] MISSING:', videoPath);
