@@ -23,9 +23,8 @@ import { APP_PATHS, pushAppPath } from '../../core/routes';
 import { checkEngineHealth, useEngineHealth, useEngineStatus, type EngineStatus } from '../../lib/apiStatus';
 import { readLaunchConfig, saveLaunchConfig, type LaunchConfig } from '../../lib/billingApi';
 import {
-  AI_PROVIDER_PRESETS,
   activeProvider,
-  createProviderFromPreset,
+  createProvider,
   isProviderUsable,
   listProviderModels,
   modelForIntent,
@@ -37,14 +36,14 @@ import {
 import { Sg16Logo } from '../ui/Sg16Logo';
 
 /**
- * Admin panel (/admin) — connect and manage the external AI APIs that power
+ * Admin panel (/admin) — connect and manage the AI endpoints that power
  * every SG16 feature (chat, Pilot, Shields, student verification, images, voice).
  *
- * Fully self-contained: providers are configured here and stored on this
- * device (localStorage). API keys go straight from this browser to the
- * provider — there is no SG16 server in between. Switching providers or
- * models is a config change; every internal feature follows automatically
- * because they all call lib/ai/client.ts.
+ * This is a universal gateway: there is no list of known providers. You enter
+ * a raw base URL, an API key, and model strings — any endpoint that speaks
+ * the standard chat-completions protocol works. Everything is stored on this
+ * device (localStorage); API keys go straight from this browser to the
+ * endpoint — there is no SG16 server in between.
  */
 
 const inputClass =
@@ -60,10 +59,10 @@ const iconButtonClass =
 type TestState = { status: 'idle' } | { status: 'testing' } | { status: 'done'; result: ProviderTestResult };
 
 interface ProviderFormState {
-  presetId: string;
   name: string;
   baseUrl: string;
   apiKey: string;
+  requiresKey: boolean;
   chat: string;
   coding: string;
   vision: string;
@@ -73,29 +72,27 @@ interface ProviderFormState {
   fallbacks: string;
 }
 
-function formFromPreset(presetId: string): ProviderFormState {
-  const preset = AI_PROVIDER_PRESETS.find((p) => p.id === presetId);
-  const m = preset?.defaultModels;
+function emptyForm(): ProviderFormState {
   return {
-    presetId,
-    name: preset?.name ?? 'Custom provider',
-    baseUrl: preset?.baseUrl ?? '',
+    name: '',
+    baseUrl: '',
     apiKey: '',
-    chat: m?.chat ?? '',
-    coding: m?.coding ?? '',
-    vision: m?.vision ?? '',
-    audio: m?.audio ?? '',
-    image: m?.image ?? '',
-    fallbacks: (m?.fallbacks ?? []).join(', '),
+    requiresKey: true,
+    chat: '',
+    coding: '',
+    vision: '',
+    audio: '',
+    image: '',
+    fallbacks: '',
   };
 }
 
 function formFromProvider(provider: AiProviderConfig): ProviderFormState {
   return {
-    presetId: provider.presetId,
     name: provider.name,
     baseUrl: provider.baseUrl,
     apiKey: provider.apiKey,
+    requiresKey: provider.requiresKey,
     chat: provider.models.chat,
     coding: provider.models.coding,
     vision: provider.models.vision,
@@ -112,26 +109,25 @@ function parseFallbacks(raw: string): string[] {
     .filter(Boolean);
 }
 
-/** Build a provider instance from the form. `existing` keeps id/priority/enabled when editing. */
-function buildProvider(form: ProviderFormState, existing?: AiProviderConfig): AiProviderConfig | null {
-  const provider = createProviderFromPreset(form.presetId, {
+/** Build a raw provider connection from the form. `existing` keeps id/priority/enabled when editing. */
+function buildProvider(form: ProviderFormState, existing?: AiProviderConfig): AiProviderConfig {
+  return createProvider({
     id: existing?.id,
-    name: form.name.trim() || undefined,
-    baseUrl: form.baseUrl.trim() || undefined,
+    name: form.name.trim(),
+    baseUrl: form.baseUrl.trim(),
     apiKey: form.apiKey.trim(),
+    requiresKey: form.requiresKey,
     enabled: existing?.enabled ?? true,
     priority: existing?.priority ?? useAiConfigStore.getState().providers.length,
+    models: {
+      chat: form.chat.trim(),
+      coding: form.coding.trim(),
+      vision: form.vision.trim(),
+      audio: form.audio.trim(),
+      image: form.image.trim(),
+      fallbacks: parseFallbacks(form.fallbacks),
+    },
   });
-  if (!provider) return null;
-  provider.models = {
-    chat: form.chat.trim(),
-    coding: form.coding.trim(),
-    vision: form.vision.trim(),
-    audio: form.audio.trim(),
-    image: form.image.trim(),
-    fallbacks: parseFallbacks(form.fallbacks),
-  };
-  return provider;
 }
 
 function EnginePill({ status }: { status: EngineStatus }) {
@@ -303,10 +299,10 @@ function StatusCard() {
         </div>
       ) : (
         <div className="rounded-xl border border-dashed border-white/15 p-4">
-          <p className="text-sm text-white/70">No AI provider connected yet.</p>
+          <p className="text-sm text-white/70">No AI endpoint connected yet.</p>
           <p className="text-xs text-white/45 mt-1 leading-relaxed">
-            Add one below — OpenAI, Qwen, DeepSeek, Anthropic, Gemini, Groq, Mistral, xAI, OpenRouter, a local
-            Ollama, or any OpenAI-compatible endpoint. It takes under a minute.
+            Add one below — any API URL, key, and model names. Any endpoint that speaks the standard
+            chat-completions protocol works. It takes under a minute.
           </p>
         </div>
       )}
@@ -540,7 +536,7 @@ function ConnectProviderForm({
   const setActiveProvider = useAiConfigStore((s) => s.setActiveProvider);
   const activeProviderId = useAiConfigStore((s) => s.activeProviderId);
 
-  const [form, setForm] = useState<ProviderFormState>(() => formFromPreset('openai'));
+  const [form, setForm] = useState<ProviderFormState>(() => emptyForm());
   const [showKey, setShowKey] = useState(false);
   const [testState, setTestState] = useState<TestState>({ status: 'idle' });
   const [fetchedModels, setFetchedModels] = useState<string[]>([]);
@@ -559,28 +555,17 @@ function ConnectProviderForm({
     formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [editing]);
 
-  const preset = AI_PROVIDER_PRESETS.find((p) => p.id === form.presetId);
   const candidate = useMemo(() => buildProvider(form, editing ?? undefined), [form, editing]);
   const formValid = Boolean(
-    preset &&
-      candidate &&
-      form.name.trim() &&
+    form.name.trim() &&
       form.baseUrl.trim() &&
-      (!preset.requiresKey || form.apiKey.trim()) &&
+      (!form.requiresKey || form.apiKey.trim()) &&
       form.chat.trim(),
   );
 
   const patch = (partial: Partial<ProviderFormState>) => setForm((prev) => ({ ...prev, ...partial }));
 
-  const selectPreset = (presetId: string) => {
-    setForm(formFromPreset(presetId));
-    setTestState({ status: 'idle' });
-    setFetchedModels([]);
-    setFetchAttempted(false);
-  };
-
   const fetchModels = async () => {
-    if (!candidate) return;
     setFetchingModels(true);
     setFetchAttempted(true);
     const models = await listProviderModels(candidate);
@@ -589,7 +574,6 @@ function ConnectProviderForm({
   };
 
   const runTest = async () => {
-    if (!candidate) return;
     setTestState({ status: 'testing' });
     const result = await testProvider(candidate);
     setTestState({ status: 'done', result });
@@ -597,13 +581,12 @@ function ConnectProviderForm({
   };
 
   const save = () => {
-    if (!candidate) return;
     upsertProvider(candidate);
     if (!activeProviderId) setActiveProvider(candidate.id);
     setSavedFlash(true);
     window.setTimeout(() => setSavedFlash(false), 2500);
     onEditingDone();
-    setForm(formFromPreset(form.presetId));
+    setForm(emptyForm());
     setTestState({ status: 'idle' });
     setFetchedModels([]);
     setFetchAttempted(false);
@@ -613,8 +596,8 @@ function ConnectProviderForm({
   return (
     <div ref={formRef}>
       <Section
-        title={editing ? `Edit provider — ${editing.name}` : 'Connect an AI provider'}
-        description="Pick a preset or enter any OpenAI-compatible endpoint. The key is stored only in this browser and sent straight to the provider."
+        title={editing ? `Edit endpoint — ${editing.name}` : 'Connect an AI endpoint'}
+        description="Enter any API base URL, key, and model names. The key is stored only in this browser and sent straight to the endpoint."
         action={
           editing ? (
             <button type="button" onClick={onEditingDone} className={secondaryButtonClass}>
@@ -624,30 +607,6 @@ function ConnectProviderForm({
           ) : undefined
         }
       >
-        <div>
-          <p className="text-[10px] uppercase tracking-[0.16em] text-white/45 mb-2">Presets</p>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            {AI_PROVIDER_PRESETS.map((p) => {
-              const selected = p.id === form.presetId;
-              return (
-                <button
-                  key={p.id}
-                  type="button"
-                  onClick={() => selectPreset(p.id)}
-                  className={`text-left rounded-xl border p-3 transition ${
-                    selected
-                      ? 'border-[#FF168D]/50 bg-[#FF168D]/10'
-                      : 'border-white/10 bg-black/30 hover:border-white/25'
-                  }`}
-                >
-                  <p className={`text-xs font-semibold ${selected ? 'text-[#FF5CB8]' : 'text-white/85'}`}>{p.name}</p>
-                  <p className="text-[10px] text-white/45 mt-0.5 leading-snug">{p.description}</p>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <label className={labelClass}>
             Display name
@@ -655,7 +614,7 @@ function ConnectProviderForm({
               className={inputClass}
               value={form.name}
               onChange={(e) => patch({ name: e.target.value })}
-              placeholder="My Qwen"
+              placeholder="My endpoint"
             />
           </label>
           <label className={labelClass}>
@@ -664,18 +623,18 @@ function ConnectProviderForm({
               className={`${inputClass} font-mono`}
               value={form.baseUrl}
               onChange={(e) => patch({ baseUrl: e.target.value })}
-              placeholder="https://api.openai.com/v1"
+              placeholder="https://api.example.com/v1"
             />
           </label>
           <label className={`${labelClass} sm:col-span-2`}>
-            API key {preset?.requiresKey ? '(required)' : '(optional)'}
+            API key {form.requiresKey ? '(required)' : '(optional)'}
             <div className="relative">
               <input
                 className={`${inputClass} pr-10 font-mono`}
                 type={showKey ? 'text' : 'password'}
                 value={form.apiKey}
                 onChange={(e) => patch({ apiKey: e.target.value })}
-                placeholder={preset?.requiresKey ? 'sk-…' : 'not needed for local endpoints'}
+                placeholder={form.requiresKey ? 'paste your API key' : 'not needed for keyless endpoints'}
                 autoComplete="off"
                 spellCheck={false}
               />
@@ -691,13 +650,27 @@ function ConnectProviderForm({
           </label>
         </div>
 
+        <div className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-black/30 p-3">
+          <div className="text-xs text-gray-300 min-w-0">
+            Endpoint requires an API key
+            <span className="block text-[11px] text-white/40 mt-0.5">
+              Turn off for keyless endpoints (e.g. a local server).
+            </span>
+          </div>
+          <Toggle
+            checked={form.requiresKey}
+            onChange={(requiresKey) => patch({ requiresKey })}
+            label="Endpoint requires an API key"
+          />
+        </div>
+
         <div>
           <div className="flex items-center justify-between mb-2 gap-2">
             <p className="text-[10px] uppercase tracking-[0.16em] text-white/45">Models</p>
             <button
               type="button"
               onClick={() => void fetchModels()}
-              disabled={!candidate || fetchingModels}
+              disabled={fetchingModels}
               className={secondaryButtonClass}
             >
               {fetchingModels ? (
@@ -721,7 +694,7 @@ function ConnectProviderForm({
                 list="sg16-admin-model-list"
                 value={form.chat}
                 onChange={(e) => patch({ chat: e.target.value })}
-                placeholder="gpt-4o-mini"
+                placeholder="my-chat-model"
               />
             </label>
             <label className={labelClass}>
@@ -731,7 +704,7 @@ function ConnectProviderForm({
                 list="sg16-admin-model-list"
                 value={form.coding}
                 onChange={(e) => patch({ coding: e.target.value })}
-                placeholder="gpt-4o"
+                placeholder="my-coding-model"
               />
             </label>
             <label className={labelClass}>
@@ -741,7 +714,7 @@ function ConnectProviderForm({
                 list="sg16-admin-model-list"
                 value={form.vision}
                 onChange={(e) => patch({ vision: e.target.value })}
-                placeholder="gpt-4o-mini"
+                placeholder="my-chat-model"
               />
             </label>
             <label className={labelClass}>
@@ -751,7 +724,7 @@ function ConnectProviderForm({
                 list="sg16-admin-model-list"
                 value={form.audio}
                 onChange={(e) => patch({ audio: e.target.value })}
-                placeholder="whisper-1"
+                placeholder="my-audio-model"
               />
             </label>
             <label className={labelClass}>
@@ -761,7 +734,7 @@ function ConnectProviderForm({
                 list="sg16-admin-model-list"
                 value={form.image}
                 onChange={(e) => patch({ image: e.target.value })}
-                placeholder="gpt-image-1"
+                placeholder="my-image-model"
               />
             </label>
             <label className={labelClass}>
@@ -770,7 +743,7 @@ function ConnectProviderForm({
                 className={`${inputClass} font-mono`}
                 value={form.fallbacks}
                 onChange={(e) => patch({ fallbacks: e.target.value })}
-                placeholder="gpt-4o-mini, gpt-4o"
+                placeholder="my-chat-model, my-other-model"
               />
             </label>
           </div>
@@ -827,7 +800,7 @@ function ConnectProviderForm({
           </button>
           {!formValid && (
             <span className="text-[11px] text-white/40">
-              {preset?.requiresKey && !form.apiKey.trim()
+              {form.requiresKey && !form.apiKey.trim()
                 ? 'Enter an API key to continue.'
                 : 'Name, base URL and a chat model are required.'}
             </span>

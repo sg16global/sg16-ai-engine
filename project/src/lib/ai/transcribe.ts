@@ -1,11 +1,12 @@
 import { useAiConfigStore } from '../../core/aiConfigStore';
-import { getAdapter } from './adapters';
 import { providerChain } from './config';
+import { wireTranscribe } from './wire';
 
 /**
- * Voice transcription — the browser records audio, a connected provider with
- * an audio model (e.g. Whisper) transcribes it. Browsers with built-in speech
- * recognition (Web Speech API) never reach this — see lib/voiceInput.ts.
+ * Voice transcription — the browser records audio, a connected endpoint with
+ * an audio model transcribes it via the standard protocol (wire.ts). Browsers
+ * with built-in speech recognition (Web Speech API) never reach this — see
+ * lib/voiceInput.ts.
  */
 
 export async function transcribeAudio(blob: Blob, mimeType: string, language?: string): Promise<string> {
@@ -21,10 +22,8 @@ export async function transcribeAudio(blob: Blob, mimeType: string, language?: s
     if (!model) continue;
     if (!provider.baseUrl.trim()) continue;
     if (provider.requiresKey && !provider.apiKey.trim()) continue;
-    const adapter = getAdapter(provider.adapter);
-    if (!adapter.transcribe) continue;
     try {
-      return await adapter.transcribe(provider, blob, mimeType, model, language);
+      return await wireTranscribe(provider, blob, mimeType, model, language);
     } catch (err) {
       errors.push(err instanceof Error ? err.message : String(err));
     }
@@ -33,6 +32,6 @@ export async function transcribeAudio(blob: Blob, mimeType: string, language?: s
   throw new Error(
     errors.length
       ? `Voice transcription failed: ${errors[0]}`
-      : 'Voice transcription needs a provider with an audio model (e.g. Whisper). Connect one in Admin — or use a browser with built-in speech recognition.',
+      : 'Voice transcription needs a connected endpoint with an audio model. Set one in Admin — or use a browser with built-in speech recognition.',
   );
 }

@@ -26,7 +26,7 @@ export async function analyzeImage(imageUrl: string, prompt: string): Promise<st
 /* ── Student ID verification ── */
 
 const VERIFY_SYSTEM = `You are SG16 AI Student Verification by Saif Tech Global LLC.
-Analyze the uploaded photo for student ID verification. Never mention Groq, OpenAI, or third-party providers.
+Analyze the uploaded photo for student ID verification. Never mention any third-party provider by name.
 Return ONLY valid JSON with these fields:
 {
   "selfieWithId": boolean,

@@ -1,18 +1,14 @@
 /**
- * Provider-agnostic AI layer types.
+ * Universal AI gateway types.
  *
- * The app talks to external AI APIs (OpenAI, Qwen, DeepSeek, Anthropic, Gemini,
- * Groq, Mistral, xAI, OpenRouter, Ollama, or any OpenAI-compatible endpoint)
- * directly from the browser. There is no SG16 server in between — the Admin
- * panel (`/admin`) configures the providers below and every core feature
- * (chat, Pilot, Shields, student verification, image, voice) goes through
- * `client.ts`, so switching models never breaks an internal feature.
+ * The app talks to any AI API directly from the browser. There is no SG16
+ * server in between and no list of known providers — a connection is just a
+ * raw base URL, an optional API key, and the model strings to use. Any
+ * endpoint that speaks the standard chat-completions protocol works, with
+ * no code change and no preset.
  */
 
-/** Wire protocol of a provider endpoint. */
-export type AiAdapterKind = 'openai' | 'anthropic' | 'gemini';
-
-/** Model slots a provider fills. Empty string = not supported by this provider. */
+/** Model slots a connection fills. Empty string = not used. */
 export interface AiProviderModels {
   /** General chat model. */
   chat: string;
@@ -20,9 +16,9 @@ export interface AiProviderModels {
   coding: string;
   /** Vision model for image questions / student ID checks (empty = none). */
   vision: string;
-  /** Audio transcription model, e.g. whisper-1 (empty = none). */
+  /** Audio transcription model (empty = none). */
   audio: string;
-  /** Image generation model, e.g. gpt-image-1 (empty = none). */
+  /** Image generation model (empty = none). */
   image: string;
   /** Extra chat models tried in order when the primary is busy or fails. */
   fallbacks: string[];
@@ -31,23 +27,20 @@ export interface AiProviderModels {
 export interface AiProviderConfig {
   /** Unique instance id (uuid). */
   id: string;
-  /** Preset this instance was created from (see presets.ts). */
-  presetId: string;
-  /** Display name (preset name or custom). */
+  /** Display name — any label the user picks (e.g. "Work endpoint"). */
   name: string;
-  adapter: AiAdapterKind;
-  /** Base URL, no trailing slash, e.g. https://api.openai.com/v1 */
+  /** Base URL, no trailing slash, e.g. https://api.example.com/v1 */
   baseUrl: string;
-  /** API key — stored on this device only, sent straight to the provider. */
+  /** API key — stored on this device only, sent straight to the endpoint. */
   apiKey: string;
   models: AiProviderModels;
-  /** Disabled providers are skipped by the fallback chain. */
+  /** Disabled connections are skipped by the fallback chain. */
   enabled: boolean;
-  /** Lower = tried first. The active (primary) provider has the lowest priority. */
+  /** Lower = tried first. The active (primary) connection has the lowest priority. */
   priority: number;
-  /** Whether a key is required (Ollama/local endpoints: false). */
+  /** Whether the endpoint requires a key (local/keyless endpoints: false). */
   requiresKey: boolean;
-  /** Extra headers sent with every request (e.g. OpenRouter referer/title). */
+  /** Extra headers sent with every request. */
   headers?: Record<string, string>;
 }
 
@@ -62,7 +55,7 @@ export interface AiGenerationOptions {
 
 export interface AiConfig {
   providers: AiProviderConfig[];
-  /** Provider with the lowest priority — the one used first. */
+  /** Connection with the lowest priority — the one used first. */
   activeProviderId: string | null;
   options: AiGenerationOptions;
   updatedAt: number;
@@ -86,13 +79,13 @@ export type AiIntent = 'chat' | 'code' | 'vision' | 'reasoning';
 export interface ChatCompletionRequest {
   messages: AiChatMessage[];
   intent?: AiIntent;
-  /** Explicit model override (Admin "test connection"). Applies to every provider. */
+  /** Explicit model override (Admin "test connection"). Applies to every connection. */
   model?: string;
   temperature?: number;
   maxTokens?: number;
   timeoutMs?: number;
   signal?: AbortSignal;
-  /** Restrict the call to one provider (Admin "test connection"). */
+  /** Restrict the call to one connection (Admin "test connection"). */
   providerId?: string;
 }
 
@@ -113,7 +106,7 @@ export class AiError extends Error {
   readonly rateLimited: boolean;
   /** Network-level failure (DNS, CORS, offline, timeout). */
   readonly offline: boolean;
-  /** No enabled provider is configured at all. */
+  /** No enabled connection is configured at all. */
   readonly noProvider: boolean;
 
   constructor(

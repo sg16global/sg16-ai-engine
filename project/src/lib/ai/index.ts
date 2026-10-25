@@ -1,14 +1,16 @@
 /**
- * The provider-agnostic AI layer — one barrel for every AI call in the app.
+ * The universal AI gateway — one barrel for every AI call in the app.
  *
  * `chatCompletion` (client.ts) is the single place requests leave the app;
- * everything else builds on it. Providers are configured in Admin
- * (`/admin`) and stored on this device (core/aiConfigStore.ts).
+ * everything else builds on it. Connections are configured in Admin
+ * (`/admin`) and stored on this device (core/aiConfigStore.ts) as raw
+ * values — any base URL, API key, and model strings. No presets, no
+ * per-vendor adapters.
  */
 
 export * from './types';
-export * from './presets';
 export * from './config';
+export * from './wire';
 export * from './client';
 export * from './prompts';
 export * from './webSearch';

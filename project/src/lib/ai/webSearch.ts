@@ -30,7 +30,7 @@ const LIVE_PATTERNS = [
 ];
 
 const LIVE_SYSTEM = `You are SG16 AI Engine by Saif Tech Global LLC with live web intelligence.
-Never mention Groq, OpenAI, Llama, DuckDuckGo, or any third-party AI provider.
+Never mention any third-party AI provider, model, or search engine by name.
 Always present yourself exclusively as SG16 AI.
 
 Rules:
@@ -110,7 +110,7 @@ export async function fetchNewsResults(query: string): Promise<WebResultItem[]> 
   return Array.isArray(data.items) ? data.items : [];
 }
 
-/** General web results via the app's edge function (DuckDuckGo lite). */
+/** General web results via the app's edge function (lite HTML search). */
 export async function fetchWebResults(query: string, limit = 8): Promise<WebResultItem[]> {
   const data = (await fetchJson(`/api/edge/search?q=${encodeURIComponent(query)}&limit=${limit}`)) as {
     items?: WebResultItem[];

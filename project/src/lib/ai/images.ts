@@ -1,16 +1,14 @@
 import { useAiConfigStore } from '../../core/aiConfigStore';
-import { getAdapter } from './adapters';
 import { providerChain } from './config';
+import { wireEditImage, wireGenerateImage } from './wire';
 import type { AiProviderConfig } from './types';
 
 /**
  * Image workspace — create and edit images from the browser.
  *
- * - A connected provider with an image model (e.g. OpenAI gpt-image-1, or a
- *   Pollinations key on a custom `https://gen.pollinations.ai/v1` endpoint)
- *   does the work through its adapter.
- * - Generation always has a keyless fallback: Pollinations' public endpoint.
- * - Ported from the old server (backend/lib/imageEngine.js).
+ * A connected endpoint with an image model does the work through the
+ * standard protocol (wire.ts). There is no built-in third-party generator:
+ * image creation needs an endpoint with an image model configured in Admin.
  */
 
 const EDIT_PATTERN =
@@ -30,7 +28,7 @@ export function getImageAction(message: string, hasImage: boolean): ImageAction 
   return 'analyze';
 }
 
-/* ── Provider with an image model ── */
+/* ── Endpoint with an image model ── */
 
 function imageProvider(): { provider: AiProviderConfig; model: string } | null {
   const chain = providerChain(useAiConfigStore.getState().providers);
@@ -45,43 +43,15 @@ function imageProvider(): { provider: AiProviderConfig; model: string } | null {
 
 /* ── Generation ── */
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.onerror = () => reject(new Error('Could not read the generated image.'));
-    reader.readAsDataURL(blob);
-  });
-}
-
-/** Keyless fallback generator — public Pollinations endpoint, no key needed. */
-async function pollinationsGenerate(prompt: string): Promise<string> {
-  const encoded = encodeURIComponent(prompt.slice(0, 2000));
-  const res = await fetch(
-    `https://image.pollinations.ai/prompt/${encoded}?width=1024&height=1024&nologo=true&model=flux`,
-    { signal: AbortSignal.timeout(120_000) },
-  );
-  if (!res.ok) throw new Error('SG16 AI image creation failed. Please try again.');
-  return blobToDataUrl(await res.blob());
-}
-
-async function generateWithProvider(prompt: string): Promise<string | null> {
-  const found = imageProvider();
-  if (!found) return null;
-  const adapter = getAdapter(found.provider.adapter);
-  if (!adapter.generateImage) return null;
-  return adapter.generateImage(found.provider, prompt, found.model);
-}
-
-/** Create an image: connected provider first, keyless Pollinations as the fallback. */
+/** Create an image with the connected endpoint's image model. */
 export async function generateImage(prompt: string): Promise<string> {
-  try {
-    const viaProvider = await generateWithProvider(prompt);
-    if (viaProvider) return viaProvider;
-  } catch {
-    /* provider failed — the keyless generator still answers */
+  const found = imageProvider();
+  if (!found) {
+    throw new Error(
+      'Image creation needs a connected endpoint with an image model. Open Admin and set one in the "Image model" field.',
+    );
   }
-  return pollinationsGenerate(prompt);
+  return wireGenerateImage(found.provider, prompt, found.model);
 }
 
 /* ── Editing ── */
@@ -97,18 +67,15 @@ CRITICAL — preserve the original photograph:
 - This must be a photorealistic in-place edit of the original photo.`;
 }
 
-/** Edit a photo in place. Needs a connected provider with an image model. */
+/** Edit a photo in place. Needs a connected endpoint with an image model. */
 export async function editImage(imageDataUrl: string, prompt: string): Promise<string> {
   const found = imageProvider();
-  if (found) {
-    const adapter = getAdapter(found.provider.adapter);
-    if (adapter.editImage) {
-      return adapter.editImage(found.provider, buildPreserveEditPrompt(prompt), imageDataUrl, found.model);
-    }
+  if (!found) {
+    throw new Error(
+      'Photo editing needs a connected endpoint with an image model. Open Admin and set one in the "Image model" field.',
+    );
   }
-  throw new Error(
-    'SG16 AI photo editing needs a connected provider with an image model (for example OpenAI gpt-image-1, or a Pollinations key on a custom endpoint). Open Admin to connect one.',
-  );
+  return wireEditImage(found.provider, buildPreserveEditPrompt(prompt), imageDataUrl, found.model);
 }
 
 /* ── Chat entry (Image workspace) ── */

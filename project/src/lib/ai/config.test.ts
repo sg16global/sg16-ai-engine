@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   activeProvider,
-  createProviderFromPreset,
+  createProvider,
   defaultConfig,
   exportConfigJson,
   importConfigJson,
@@ -16,9 +16,7 @@ import type { AiConfig, AiProviderConfig } from './types';
 function provider(partial: Partial<AiProviderConfig>): AiProviderConfig {
   return {
     id: 'p1',
-    presetId: 'custom',
     name: 'Test',
-    adapter: 'openai',
     baseUrl: 'https://api.example.com/v1',
     apiKey: 'sk-test',
     models: { chat: 'model-a', coding: '', vision: '', audio: '', image: '', fallbacks: [] },
@@ -29,33 +27,40 @@ function provider(partial: Partial<AiProviderConfig>): AiProviderConfig {
   };
 }
 
-describe('createProviderFromPreset', () => {
-  it('builds a provider with preset defaults', () => {
-    const p = createProviderFromPreset('qwen');
-    expect(p).not.toBeNull();
-    expect(p!.presetId).toBe('qwen');
-    expect(p!.baseUrl).toBe('https://dashscope-intl.aliyuncs.com/compatible-mode/v1');
-    expect(p!.models.chat).toBe('qwen-plus');
-    expect(p!.models.fallbacks.length).toBeGreaterThan(0);
-    expect(p!.requiresKey).toBe(true);
-    expect(p!.enabled).toBe(true);
-    expect(p!.id).toBeTruthy();
-  });
-
-  it('applies overrides', () => {
-    const p = createProviderFromPreset('openai', {
-      name: 'Work OpenAI',
+describe('createProvider', () => {
+  it('builds a raw provider from user-entered values', () => {
+    const p = createProvider({
+      name: 'My endpoint',
+      baseUrl: 'https://api.example.com/v1/',
       apiKey: 'sk-abc',
-      models: { chat: 'gpt-4o', coding: '', vision: '', audio: '', image: '', fallbacks: [] },
+      models: { chat: 'my-model', coding: 'my-coder', fallbacks: ['my-model', ' other '] },
     });
-    expect(p!.name).toBe('Work OpenAI');
-    expect(p!.apiKey).toBe('sk-abc');
-    expect(p!.models.chat).toBe('gpt-4o');
-    expect(p!.models.coding).toBe('');
+    expect(p.id).toBeTruthy();
+    expect(p.name).toBe('My endpoint');
+    expect(p.baseUrl).toBe('https://api.example.com/v1'); // trailing slash stripped
+    expect(p.apiKey).toBe('sk-abc');
+    expect(p.models.chat).toBe('my-model');
+    expect(p.models.coding).toBe('my-coder');
+    expect(p.models.vision).toBe('');
+    expect(p.models.fallbacks).toEqual(['my-model', 'other']); // trimmed, empties dropped
+    expect(p.requiresKey).toBe(true);
+    expect(p.enabled).toBe(true);
   });
 
-  it('returns null for an unknown preset', () => {
-    expect(createProviderFromPreset('nope')).toBeNull();
+  it('falls back to a default name and empty key', () => {
+    const p = createProvider({ name: '  ', baseUrl: 'https://x.example.com', models: { chat: 'm' } });
+    expect(p.name).toBe('Custom endpoint');
+    expect(p.apiKey).toBe('');
+  });
+
+  it('keeps an existing id when editing', () => {
+    const p = createProvider({ id: 'keep-me', name: 'X', baseUrl: 'https://x.example.com', models: { chat: 'm' } });
+    expect(p.id).toBe('keep-me');
+  });
+
+  it('honours requiresKey=false for keyless endpoints', () => {
+    const p = createProvider({ name: 'Local', baseUrl: 'http://localhost:11434/v1', requiresKey: false, models: { chat: 'm' } });
+    expect(p.requiresKey).toBe(false);
   });
 });
 
@@ -120,8 +125,8 @@ describe('sanitizeConfig', () => {
   it('sanitizes providers and normalizes duplicate priorities', () => {
     const raw = {
       providers: [
-        { id: 'a', presetId: 'openai', name: 'A', adapter: 'weird', baseUrl: 'https://a.example.com/v1/', priority: 0 },
-        { id: 'b', presetId: 'qwen', name: '  ', baseUrl: 'https://b.example.com/v1', priority: 0 },
+        { id: 'a', name: 'A', baseUrl: 'https://a.example.com/v1/', priority: 0 },
+        { id: 'b', name: '  ', baseUrl: 'https://b.example.com/v1', priority: 0 },
         { not: 'a provider' },
       ],
       activeProviderId: 'a',
@@ -129,12 +134,23 @@ describe('sanitizeConfig', () => {
     };
     const config = sanitizeConfig(raw);
     expect(config.providers).toHaveLength(2);
-    expect(config.providers[0].adapter).toBe('openai'); // unknown adapter falls back
     expect(config.providers[0].baseUrl).toBe('https://a.example.com/v1'); // trailing slash stripped
-    expect(config.providers[1].name).toBe('Custom provider'); // blank name replaced
+    expect(config.providers[1].name).toBe('Custom endpoint'); // blank name replaced
     expect(config.providers.map((p) => p.priority)).toEqual([0, 1]); // unique, deterministic
     expect(config.options).toEqual({ temperature: 0.7, maxTokens: null, liveSearch: false });
     expect(config.activeProviderId).toBe('a');
+  });
+
+  it('drops legacy preset/adapter fields from older configs', () => {
+    const raw = {
+      providers: [
+        { id: 'a', presetId: 'legacy', adapter: 'openai', name: 'Old', baseUrl: 'https://a.example.com', priority: 0 },
+      ],
+    };
+    const config = sanitizeConfig(raw);
+    expect(config.providers).toHaveLength(1);
+    expect(config.providers[0]).not.toHaveProperty('presetId');
+    expect(config.providers[0]).not.toHaveProperty('adapter');
   });
 
   it('keeps default generation options when none are stored', () => {

@@ -1,18 +1,19 @@
 import { useAiConfigStore } from '../../core/aiConfigStore';
 import { setEngineStatus } from '../apiStatus';
-import { getAdapter } from './adapters';
 import { modelForIntent, providerChain } from './config';
+import { wireChat, wireListModels } from './wire';
 import { AiError, type AiIntent, type AiProviderConfig, type ChatCompletionRequest, type ChatCompletionResult } from './types';
 
 /**
  * The one place every AI call goes through.
  *
- * - Picks the active provider, then walks the fallback chain (next providers,
- *   then each provider's model fallbacks) until one answers.
- * - Rate-limited providers/models go into a cooldown and are skipped.
+ * - Picks the active connection, then walks the fallback chain (next
+ *   connections, then each connection's model fallbacks) until one answers.
+ * - Rate-limited connections/models go into a cooldown and are skipped.
  * - Reports real connectivity to the engine status bar (online/offline).
- * - Works identically for every adapter, so Pilot, Shields, chat, vision,
- *   images and voice never care which AI API is connected.
+ * - Every call speaks the same standard protocol (wire.ts), so Pilot,
+ *   Shields, chat, vision, images and voice never care which endpoint
+ *   is connected — any raw URL + key + model works.
  */
 
 const COOLDOWN_MS = 5 * 60 * 1000;
@@ -40,7 +41,7 @@ function snapshotProviders(): AiProviderConfig[] {
   return providerChain(state.providers);
 }
 
-/** Model chain for one provider + intent: resolved slot first, then configured fallbacks. */
+/** Model chain for one connection + intent: resolved slot first, then configured fallbacks. */
 function modelChainFor(provider: AiProviderConfig, intent: AiIntent, override?: string): string[] {
   if (override?.trim()) return [override.trim()];
   const primary = modelForIntent(provider, intent);
@@ -53,9 +54,8 @@ async function callProvider(
   request: ChatCompletionRequest,
   model: string,
 ): Promise<ChatCompletionResult> {
-  const adapter = getAdapter(provider.adapter);
   const started = Date.now();
-  const content = await adapter.chat({
+  const content = await wireChat({
     provider,
     messages: request.messages,
     model,
@@ -78,7 +78,7 @@ export async function chatCompletion(request: ChatCompletionRequest): Promise<Ch
 
   if (!chain.length) {
     throw new AiError(
-      'No AI model is connected yet. Open Admin (in the sidebar) and connect OpenAI, Qwen, DeepSeek, or any other AI API — it takes under a minute.',
+      'No AI endpoint is connected yet. Open Admin (in the sidebar) and connect any AI API — it takes under a minute.',
       { noProvider: true, code: 'NO_PROVIDER' },
     );
   }
@@ -114,8 +114,8 @@ export async function chatCompletion(request: ChatCompletionRequest): Promise<Ch
           markCooldown(provider.id, PROVIDER_COOLDOWN_MS);
           continue;
         }
-        // Auth/config/format errors: try the next model/provider — a wrong key
-        // on one provider must not take down a feature that another can serve.
+        // Auth/config/format errors: try the next model/connection — a wrong key
+        // on one endpoint must not take down a feature that another can serve.
         continue;
       }
     }
@@ -124,14 +124,14 @@ export async function chatCompletion(request: ChatCompletionRequest): Promise<Ch
   setEngineStatus(sawOffline && !lastError?.status ? 'offline' : 'online');
   throw (
     lastError ??
-    new AiError('All AI providers are busy right now. Please try again in a moment.', { rateLimited: true, code: 'BUSY' })
+    new AiError('All AI endpoints are busy right now. Please try again in a moment.', { rateLimited: true, code: 'BUSY' })
   );
 }
 
-/** List the models a provider exposes (Admin "fetch models"). Empty array when unsupported. */
+/** List the models an endpoint exposes (Admin "fetch models"). Empty array when unsupported. */
 export async function listProviderModels(provider: AiProviderConfig): Promise<string[]> {
   try {
-    return await getAdapter(provider.adapter).listModels(provider);
+    return await wireListModels(provider);
   } catch {
     return [];
   }
@@ -147,14 +147,14 @@ export interface ProviderTestResult {
 
 /**
  * Tiny probe used by the Admin panel "Test connection" button.
- * Tests exactly this provider + model — no fallback chain, and it works for
- * providers that are not saved yet (the Admin form tests before saving).
+ * Tests exactly this connection + model — no fallback chain, and it works for
+ * connections that are not saved yet (the Admin form tests before saving).
  */
 export async function testProvider(provider: AiProviderConfig): Promise<ProviderTestResult> {
   const started = Date.now();
   const model = provider.models.chat || provider.models.coding || provider.models.fallbacks[0] || '';
   try {
-    const content = await getAdapter(provider.adapter).chat({
+    const content = await wireChat({
       provider,
       messages: [{ role: 'user', content: 'Reply with exactly: ok' }],
       model,
