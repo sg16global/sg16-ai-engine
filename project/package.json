@@ -7,7 +7,7 @@
     "dev": "vite",
     "prebuild": "node scripts/generate-pwa-assets.mjs",
     "build": "vite build",
-    "postbuild": "node scripts/verify-landing-video.mjs",
+    "postbuild": "node scripts/verify-landing-video.mjs && node scripts/prune-oversized-assets.mjs",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.app.json",
     "test": "vitest run",
