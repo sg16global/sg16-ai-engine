@@ -24,7 +24,6 @@ import {
   saveSubscription,
   type AppSettings,
 } from '../lib/utils';
-import { ApiError } from '../lib/apiClient';
 import {
   clearAuthToken,
   fetchAuthMe,
@@ -110,7 +109,7 @@ interface AppState {
 
   selectPlan: (plan: PlanTier) => void;
   startCheckout: (plan: 'student' | 'pro') => Promise<void>;
-  syncSubscriptionFromServer: () => Promise<void>;
+  syncSubscription: () => Promise<void>;
   loadPublicConfig: () => Promise<void>;
   applyStudentVerification: (result: StudentVerifyResponse) => void;
 
@@ -271,7 +270,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
         ? { launchFree: user.launchFree, checkoutEnabled: !user.launchFree }
         : {}),
     });
-    queueMicrotask(() => void getState().syncSubscriptionFromServer());
+    queueMicrotask(() => void getState().syncSubscription());
   },
 
   enterGuestTour: () => {
@@ -279,7 +278,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
     pushAppPath('/app');
   },
 
-  syncSubscriptionFromServer: async () => {
+  syncSubscription: async () => {
     const token = getState().authToken;
     if (!token) return;
     try {
@@ -323,10 +322,9 @@ export const useAppStore = create<AppState>((set, getState) => ({
         : getState().subscription;
       saveSubscription(subscription);
       set({ authUser: user, subscription });
-    } catch (err) {
-      if (err instanceof ApiError && err.unauthorized) {
-        getState().logout();
-      }
+    } catch {
+      // A rejected local token ends the session; the next entry starts a fresh one.
+      getState().logout();
     }
   },
 
@@ -363,12 +361,11 @@ export const useAppStore = create<AppState>((set, getState) => ({
         ...loadConversations(user.id),
         settings: { ...getState().settings, displayName: user.name },
       });
-    } catch (err) {
-      // Only a rejected token ends the session; if the engine is unreachable, keep it for the next load.
-      const offline = err instanceof ApiError && err.offline;
-      if (!offline) clearAuthToken();
+    } catch {
+      // The local token does not match this device — end the session and start a fresh one.
+      clearAuthToken();
       set({ authToken: null, authUser: null, ...NO_CONVERSATIONS() });
-      if (!offline) await resumeDevice();
+      await resumeDevice();
     }
   },
 
@@ -514,7 +511,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
     };
     saveSubscription(subscription);
     set({ subscription, error: result.approved ? null : result.reason });
-    void getState().syncSubscriptionFromServer();
+    void getState().syncSubscription();
     if (result.approved) set({ currentWorkspace: 'home' });
   },
 

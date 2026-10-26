@@ -17,7 +17,7 @@ import {
 import { FullScreen, PreviewFrame, previewForPasted } from '../chat/CodeBlock';
 import { useAppStore } from '../../core/appState';
 import { hasPaidAccess, isLaunchPeriod } from '../../core/access';
-import { scanWithCodingShield, type ShieldScanResponse } from '../../lib/codingShieldApi';
+import { scanCodeSnippet, type ShieldScanResponse } from '../../lib/codingShield';
 import { languageName } from '../../lib/codingReports';
 
 interface ProjectCheckPanelProps {
@@ -91,7 +91,7 @@ export function ProjectCheckPanel({ onAnalyze, onScanned, initialCode = '' }: Pr
     setScanning(true);
     setError(null);
     try {
-      const result = await scanWithCodingShield({ code: body, language: 'auto', mode });
+      const result = await scanCodeSnippet({ code: body, language: 'auto', mode });
       setReport(result);
       setScannedCode(body);
       onScanned?.(result);

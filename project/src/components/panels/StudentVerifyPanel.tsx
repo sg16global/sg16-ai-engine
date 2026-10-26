@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Camera, Loader2, Upload, CheckCircle2, XCircle } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
-import { readImageFile, verifyStudentId } from '../../lib/chatApi';
+import { verifyStudentIdPhoto } from '../../lib/ai';
+import { readImageFile } from '../../lib/files';
 import { verificationStatusLabel } from '../../core/access';
 
 export function StudentVerifyPanel() {
@@ -32,7 +33,7 @@ export function StudentVerifyPanel() {
     setLoading(true);
     setError(null);
     try {
-      const result = await verifyStudentId(imageUrl);
+      const result = await verifyStudentIdPhoto(imageUrl);
       applyStudentVerification(result);
       if (!result.approved) {
         setError(result.reason);

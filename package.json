@@ -2,7 +2,7 @@
   "name": "sg16-ai-engine",
   "private": true,
   "version": "1.0.0",
-  "description": "SG16 AI Engine — full-stack deploy (React PWA + Express API)",
+  "description": "SG16 AI Engine — self-contained Cloudflare Edge-native Vite PWA (no dedicated backend)",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -19,14 +19,12 @@
     "typescript-eslint": "^8.46.2"
   },
   "scripts": {
-    "build": "npm ci --prefix project && npm run build --prefix project && npm ci --prefix backend --omit=dev",
-    "build:docker": "npm run build --prefix project && npm ci --prefix backend --omit=dev",
-    "start": "node backend/server.js",
-    "dev": "node scripts/dev.mjs",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix project",
-    "api:check": "node scripts/check-api.mjs",
-    "cf:deploy": "npm run build --prefix project && npm run deploy --prefix cloudflare",
+    "build": "npm ci --prefix project && npm run build --prefix project",
+    "dev": "npm run dev --prefix project",
+    "dev:pages": "npm run build --prefix project && npx wrangler pages dev project/dist",
+    "typecheck": "npm run typecheck --prefix project",
+    "test": "npm run test --prefix project",
+    "pages:deploy": "npm run build --prefix project && npx wrangler pages deploy project/dist --project-name=sg16-ai-engine",
     "android:sync": "npm run build && npm run cap:sync --prefix project",
     "android:open": "npm run cap:open --prefix project",
     "shield": "node coding-shield/run.mjs",

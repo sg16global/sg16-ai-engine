@@ -1,71 +1,100 @@
-# SG16 Architecture — project independence
+# SG16 Architecture — self-contained Engine
 
-## Brain (shared utility)
-
-| Service | URL | Role |
-|---------|-----|------|
-| SG16 Mistral X | `https://api.mistralbrain.com` | Cloudflare Workers AI — primary brain for all SG16 AI products |
-
-Each product calls the brain **directly** from its own Cloudflare Pages Functions (or from this Engine app for Engine users only).
+SG16 AI Engine is a **fully self-contained, Cloudflare Edge-native Vite app**. There is no
+dedicated backend server and no persistent "AI Brain": the app talks to **any AI API
+directly from the browser** — a connection is just a raw base URL, an optional API key,
+and model strings. There is no list of known providers and no per-vendor code; any
+endpoint that speaks the standard chat-completions protocol works. The only server-side
+code is a set of tiny stateless Cloudflare Pages Functions for the data sources that
+block browser CORS.
 
 ## This repo: SG16 AI Engine (`sg16engine.com`)
 
-**Railway product** — coding hub, shields, auth, PostgreSQL, React PWA.
+```
+project/                  the app (Vite + React PWA) — the only product code
+├── src/lib/ai/           universal AI gateway (wire protocol, client, engine, vision, images, voice)
+├── src/core/aiConfigStore.ts   AI config store (connections, fallback chain, options) — localStorage
+├── src/components/admin/ Admin panel at /admin — connect any AI endpoint, no account needed
+├── src/lib/codingShield/ Coding Shield — honest browser port (no CLI tools faked)
+├── functions/api/edge/   stateless Pages Functions: news RSS, web search, Yahoo quotes
+├── public/_headers       security headers
+└── public/_redirects     SPA fallback (Pages Functions take precedence)
+```
 
-- Brain mode: `SG16_BRAIN=mistralbrain` → calls `api.mistralbrain.com` (no local Ollama in production)
-- **Not a hub** for children.com or ads network — those projects have their own direct brain routes
+**Hosting**: Cloudflare Pages — static `project/dist/` plus `project/functions/`. Deployed by
+`.github/workflows/deploy-pages.yml` on every push to `main` (or `npm run pages:deploy` locally).
+
+## How AI works (universal gateway, no presets)
+
+- **Admin panel (`/admin`)**: enter a raw base URL, an API key, and model strings
+  (chat / coding / vision / audio / image / fallbacks), reorder the fallback chain,
+  test connections, and export/import the config. Everything is stored on the
+  device (`localStorage`, key `sg16_ai_config_v1`) — API keys go straight from the
+  browser to the endpoint and are never sent to an SG16 server (there isn't one).
+- **One wire protocol**: `src/lib/ai/wire.ts` speaks the standard chat-completions
+  API (`POST {baseUrl}/chat/completions`, `GET {baseUrl}/models`, plus audio and
+  image endpoints). There are no per-vendor adapters — the same code path serves
+  every endpoint, so **connecting a new API is a config change, never a code change**.
+- **One client for everything**: `src/lib/ai/client.ts` (`chatCompletion`) is the single place
+  requests leave the app. It picks the active connection, walks the fallback chain (connections, then
+  per-model fallbacks), cools down rate-limited endpoints, and reports real connectivity to the
+  engine status bar. Chat, Pilot, Shields, student verification, image studio and voice all build
+  on it.
+- **Build-time defaults** (optional): `VITE_SG16_AI_BASE_URL` / `VITE_SG16_AI_API_KEY` /
+  `VITE_SG16_AI_NAME` / `VITE_SG16_AI_MODEL` / `VITE_SG16_AI_CODING_MODEL` /
+  `VITE_SG16_AI_VISION_MODEL` — see `project/.env.example`. Runtime Admin config wins.
+
+## Data sources (no server of our own)
+
+| Data | Path | Notes |
+|------|------|-------|
+| AI chat/vision/images/voice | browser → endpoint | configured in Admin |
+| Crypto prices | browser → CoinGecko → Binance → Coinbase | all CORS-enabled |
+| FX rates | browser → open.er-api.com → Frankfurter (ECB) | CORS-enabled |
+| Weather | browser → wttr.in | CORS-enabled |
+| News headlines | `/api/edge/news` (Pages Function) | Google News RSS + BBC |
+| Web search | `/api/edge/search` (Pages Function) | lite HTML search |
+| Indices / gold / oil | `/api/edge/quotes` (Pages Function) | Yahoo spark (query1 → query2); Yahoo blocks browser CORS |
+
+The edge functions are stateless, keyless, and cached at the edge for 60–300 s. The market module
+adds a 60 s client cache and serves the last good data (`stale: true`) when every source fails —
+it never invents numbers.
+
+## Sessions, billing, privacy
+
+- **Auth**: local device sessions (`src/lib/authApi.ts`). No accounts, no Google sign-in, no JWT
+  server — a device id + token live in `localStorage`.
+- **Billing**: local launch configuration (`src/lib/billingApi.ts`, key `sg16_launch_config_v1`).
+  Launch mode = all features free; checkout is off until a payment provider is wired up. Admin can
+  edit it on the device.
+- **Chat history**: stored on the device only.
+
+## Coding Shield
+
+`src/lib/codingShield/` is an honest browser port of the old server-side shield: JS syntax checks
+(acorn), pattern-based lint/security rules, secret scanning, and package detection run in the
+browser. Server-only tools (ESLint, Semgrep, Gitleaks, …) are reported as `skipped` — never faked.
+The standalone CLI scanner remains in `coding-shield/` (`npm run shield`).
 
 ## Other SG16 products (separate repos / Pages projects)
 
-| Project | Domain | Brain path |
-|---------|--------|------------|
-| Children World | sg16children.com | Own `functions/api/sg16/*` → api.mistralbrain.com |
-| Ads Network | ads.saiftechglobal.com | Own `functions/api/brain/ad-copy` → api.mistralbrain.com |
-| Finance | sg16finance.com | No brain — market data APIs only |
-| Geo Monitor | saifglobal16.info | No brain — news/weather/NASA APIs only |
-| Hub landing | saiftechglobal.com | Static links only |
+| Project | Domain | Notes |
+|---------|--------|-------|
+| Children World | sg16children.com | Separate app in `sg16-children-world/` — own functions, own brain routes |
+| Desktop | — | Separate Electron app in `desktop/` |
 
-## Failover (per project)
-
-Each project owns its own fallback (offline demo, static copy, retry) — **no cross-project mixing through Engine**.
-
-## Legacy
-
-- `/api/sg16/*` routes on Engine remain for backward compatibility but are **deprecated** for sg16children.com production.
-- Ollama/sovereign code paths in this repo are legacy; production Railway uses cloud brain only.
+Each product owns its own AI connections and fallbacks — nothing routes through Engine.
 
 ## Running locally
 
 ```bash
-npm install --prefix backend && npm install --prefix project
-cp backend/.env.example backend/.env    # fill in the keys you have
-npm run dev                             # backend :8000 + frontend :5173
-npm run api:check                       # confirms the backend answers
+npm install --prefix project
+npm run dev            # SPA only (edge functions degrade gracefully)
+npm run dev:pages      # build + wrangler pages dev dist  (full stack incl. /api/edge/*)
+npm run typecheck      # tsc --noEmit (src + functions)
+npm test               # vitest unit tests for the ported logic
 ```
 
-- No Postgres? The backend falls back to a JSON store.
-- Chat needs an AI: set `AI_API_URL`, `AI_API_KEY` (optional) and `AI_MODEL` in `backend/.env`. Any
-  OpenAI-compatible API works: OpenAI, Groq, OpenRouter, Mistral, or your own Ollama VPS (`http://IP:11434/v1`).
-  `npm run api:check` sends a test prompt and shows whether the AI answers.
-- UI only, against the live engine: set `SG16_DEV_API_TARGET=https://sg16engine.com` in `project/.env`, then `npm run dev -- --ui`.
-- Check any deployment: `npm run api:check -- https://sg16engine.com`.
-
-## Frontend API connection
-
-All frontend calls go through `project/src/lib/apiClient.ts` (`apiRequest`):
-
-- Same-origin by default; `VITE_API_BASE_URL` points a build at another backend origin.
-- Errors are thrown as `ApiError` (`status`, `code`, `offline`, `unauthorized`) — responses are never faked.
-- Every request updates the shared engine status (`lib/apiStatus.ts`). The sidebar, settings and
-  `EngineOfflineBanner` read it, and the monitor re-checks `/health` every 15s while offline.
-- A saved session is only cleared when the server rejects it (401), not when the engine is unreachable.
-
-## Hosting without Railway
-
-- **Website**: Cloudflare Worker in `cloudflare/`. It serves the built React app and forwards `/api/*` and
-  `/health` to the backend container. See `cloudflare/README.md`.
-- **Backend**: Node (`backend/server.js`) as a Cloudflare Container in the same Worker, built from the
-  `Dockerfile`. Deployed by `.github/workflows/deploy-cloudflare.yml` on every push to `main`.
-- **Users**: no accounts and no Google sign-in. Each browser gets an anonymous device session
-  (`POST /api/v1/auth/device`); chat history is stored only on the device, and the server refuses to store it.
-- **AI**: any OpenAI-compatible API via `AI_API_URL` / `AI_API_KEY` / `AI_MODEL` in `backend/.env`.
+Deploy: `npm run pages:deploy` (needs `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`), or connect
+the repo to Cloudflare Pages (build command `npm run build`, output directory `dist`, both inside
+`project/`) — the `functions/` directory is deployed automatically.

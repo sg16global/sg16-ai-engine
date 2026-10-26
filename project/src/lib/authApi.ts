@@ -1,8 +1,18 @@
 import type { AuthUser } from '../core/types';
-import { API_V1, apiRequest } from './apiClient';
+import { readLaunchConfig } from './billingApi';
+import { loadSubscription } from './utils';
+
+/**
+ * Local device sessions — no server, no accounts, no Google.
+ *
+ * Each browser gets an anonymous device id (localStorage). "Entering SG16"
+ * mints a local token for that device; chat history stays on the device and
+ * is keyed by it. Nothing is sent anywhere — the app is fully self-contained.
+ */
 
 const AUTH_TOKEN_KEY = 'sg16_auth_token';
-const AUTH_FETCH_TIMEOUT_MS = 12_000;
+const DEVICE_ID_KEY = 'sg16_device_id';
+const FIRST_SEEN_KEY = 'sg16_first_seen';
 
 function isLegacyPreviewToken(token: string) {
   return token === 'local-preview-token' || token.startsWith('local-preview');
@@ -15,8 +25,6 @@ function readStoredToken(): string | null {
     return null;
   }
 }
-
-const DEVICE_ID_KEY = 'sg16_device_id';
 
 function readDeviceId(): string | null {
   try {
@@ -44,23 +52,51 @@ function getOrCreateDeviceId(): string {
   return id;
 }
 
-/** Anonymous session for this device — no Google account, name or email. */
-export async function loginDevice(): Promise<{ token: string; user: AuthUser }> {
-  const result = await apiRequest<{ token: string; user: AuthUser }>(`${API_V1}/auth/device`, {
-    method: 'POST',
-    body: { deviceId: getOrCreateDeviceId() },
-    timeoutMs: AUTH_FETCH_TIMEOUT_MS,
-  });
-  saveAuthToken(result.token);
-  return result;
+/** When this device first entered SG16 — drives the local 3-day trial clock. */
+function getOrCreateFirstSeen(): number {
+  try {
+    const raw = localStorage.getItem(FIRST_SEEN_KEY);
+    if (raw) {
+      const n = Number(raw);
+      if (Number.isFinite(n) && n > 0) return n;
+    }
+    const now = Date.now();
+    localStorage.setItem(FIRST_SEEN_KEY, String(now));
+    return now;
+  } catch {
+    return Date.now();
+  }
 }
 
+/** The anonymous user this device session presents — built locally, never fetched. */
+function buildDeviceUser(): AuthUser {
+  return {
+    id: getOrCreateDeviceId(),
+    signupDate: getOrCreateFirstSeen(),
+    name: 'SG16 User',
+    launchFree: readLaunchConfig().launchFree,
+    trialActive: false,
+    trialDaysRemaining: 0,
+    subscription: loadSubscription(),
+  };
+}
+
+/** Anonymous session for this device — no Google account, name or email. Always succeeds. */
+export async function loginDevice(): Promise<{ token: string; user: AuthUser }> {
+  const user = buildDeviceUser();
+  const token = `sg16.${user.id}.${crypto.randomUUID()}`;
+  saveAuthToken(token);
+  return { token, user };
+}
+
+/** The local session behind a token — throws when the token does not match this device. */
 export async function fetchAuthMe(token: string): Promise<{ user: AuthUser; subscription?: AuthUser['subscription'] }> {
-  const data = await apiRequest<{ user: AuthUser; subscription?: AuthUser['subscription'] }>(`${API_V1}/auth/me`, {
-    headers: { Authorization: `Bearer ${token}` },
-    timeoutMs: AUTH_FETCH_TIMEOUT_MS,
-  });
-  return { user: data.user, subscription: data.subscription };
+  const deviceId = readDeviceId();
+  if (!deviceId || !token.startsWith(`sg16.${deviceId}.`)) {
+    throw new Error('Session expired. Please enter SG16 again.');
+  }
+  const user = buildDeviceUser();
+  return { user, subscription: user.subscription };
 }
 
 export function loadAuthToken(): string | null {
@@ -92,11 +128,4 @@ export function saveAuthToken(token: string) {
 export function clearAuthToken() {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   sessionStorage.removeItem(AUTH_TOKEN_KEY);
-}
-
-export function authHeaders(): HeadersInit {
-  const token = loadAuthToken();
-  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-  if (token) headers.Authorization = `Bearer ${token}`;
-  return headers;
 }

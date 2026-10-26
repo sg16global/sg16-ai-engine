@@ -2,25 +2,12 @@ node_modules/
 dist/
 desktop/release/
 .env
-backend/.env
 project/.env
-backend/data/signup-ledger.json
-backend/data/user-rooms.json
 *.log
 
-# Vite dev PWA artifacts
+# Vite dev PWA artifacts + build output (served by Cloudflare Pages from project/dist)
 project/dev-dist/
-
-# Built frontend (generated on Railway during npm run build)
-backend/public/assets/
-backend/public/index.html
-backend/public/sw.js
-backend/public/workbox-*.js
-backend/public/manifest.webmanifest
-backend/public/manifest.json
-backend/public/*.mjs
-backend/public/landing/sg16-*
-backend/public/shield-home/
+project/dist/
 
 # OS / editor
 .DS_Store
