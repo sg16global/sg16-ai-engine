@@ -1,5 +1,4 @@
 import type { ChatRequest, ChatResponse } from '../../core/types';
-import { useAiConfigStore } from '../../core/aiConfigStore';
 import { chatCompletion } from './client';
 import { createOrEditImage, getImageAction } from './images';
 import { buildSystemPrompt } from './prompts';
@@ -11,7 +10,7 @@ import { AiError, type AiChatMessage, type AiIntent } from './types';
  * (backend/lib/sg16Engine.js), with the brain/provider references removed.
  *
  * Every reply goes through `client.ts`, so Pilot, Shields and every workspace
- * answer with whichever AI API is connected in Admin — switching models never
+ * answer through SG16's own backend — switching the owner's models never
  * changes what a feature can do.
  */
 
@@ -87,7 +86,7 @@ function toUserError(err: unknown): Error {
       return new Error('SG16 AI is busy right now. Please try again in a minute.');
     }
     if (err.offline) {
-      return new Error('Could not reach the AI provider. Check your connection and try again.');
+      return new Error('Could not reach SG16 AI. Check your connection and try again.');
     }
     return new Error(err.message);
   }
@@ -134,7 +133,6 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
 
   const intent = detectIntent(message, workspaceId, Boolean(request.imageUrl));
   const profile = generationProfile(workspaceId, intent);
-  const options = useAiConfigStore.getState().options;
 
   const messages: AiChatMessage[] = [
     {
@@ -164,8 +162,8 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
     const result = await chatCompletion({
       messages,
       intent,
-      temperature: options.temperature ?? profile.temperature,
-      maxTokens: options.maxTokens ?? profile.maxTokens,
+      temperature: profile.temperature,
+      maxTokens: profile.maxTokens,
       timeoutMs: profile.timeoutMs,
     });
     return { reply: result.content };

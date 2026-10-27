@@ -1,9 +1,8 @@
-import { ArrowLeft, Globe, Lock, SlidersHorizontal } from 'lucide-react';
+import { ArrowLeft, Globe, Lock } from 'lucide-react';
 import { useAppStore } from '../../core/appState';
 import { canAccessWorkspace } from '../../core/access';
 import { mainNavItems, utilityNavItems } from '../../config/navConfig';
 import { useEngineStatus } from '../../lib/apiStatus';
-import { APP_PATHS, pushAppPath } from '../../core/routes';
 import { Sg16Logo } from '../ui/Sg16Logo';
 import { PASS_SUMMARY } from '../../core/plans';
 import type { WorkspaceType } from '../../core/types';
@@ -150,20 +149,6 @@ export const Sidebar = ({ onNavSelect }: { onNavSelect?: () => void }) => {
             {online === null ? 'Checking…' : online ? 'Online' : 'Offline'}
           </span>
         </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            pushAppPath(APP_PATHS.admin);
-            onNavSelect?.();
-          }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm text-white/75 hover:bg-white/[0.04] border border-white/10"
-          title="Connect AI providers (admin)"
-        >
-          <SlidersHorizontal className="w-4 h-4 shrink-0" />
-          <span className="font-medium flex-1 text-left">Admin</span>
-          <span className="text-[10px] px-1.5 py-0.5 rounded bg-[#FF168D]/20 text-[#FF5CB8] font-semibold">AI</span>
-        </button>
 
         <button
           type="button"

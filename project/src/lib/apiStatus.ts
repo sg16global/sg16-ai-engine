@@ -1,15 +1,15 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
-import { useAiConfigStore } from '../core/aiConfigStore';
-import { isProviderUsable, providerChain } from './ai/config';
+import { wireStatus } from './ai/wire';
+import { liveSearchAvailable } from './ai/webSearch';
 
 /**
- * Engine status — the app's own connectivity, no server involved.
+ * Engine status — the browser's network plus SG16's own backend.
  *
- * The app is self-contained: the "engine" is this browser plus the AI
- * providers configured in Admin. Status is driven by real AI traffic
- * (lib/ai/client.ts calls setEngineStatus after every call) and by the
- * browser's network state; `checkEngineHealth` reports what is configured.
+ * Status is driven by real AI traffic (lib/ai/client.ts calls
+ * setEngineStatus after every call) and by the browser's network state;
+ * `checkEngineHealth` asks the backend (GET /api/ai/status) whether the
+ * owner's AI is configured.
  */
 
 export type EngineStatus = 'online' | 'offline' | 'checking';
@@ -20,7 +20,7 @@ const OFFLINE_RETRY_MS = 15_000;
 let status: EngineStatus = 'checking';
 const listeners = new Set<() => void>();
 
-/** What the configured AI connection can do (for the Shield Home status bar). */
+/** What the backend AI can do (for the Shield Home status bar). */
 export interface EngineHealth {
   aiConfigured: boolean;
   liveSearch: boolean;
@@ -49,15 +49,15 @@ function notifyHealth() {
   listeners.forEach((listener) => listener());
 }
 
-/** Re-read the AI configuration and the browser's network state. */
+/** Re-read the backend AI status and the browser's network state. */
 export async function checkEngineHealth(): Promise<boolean> {
-  const state = useAiConfigStore.getState();
-  const usable = providerChain(state.providers).some(isProviderUsable);
+  const browserOnline = typeof navigator === 'undefined' ? true : navigator.onLine;
+  const backend = browserOnline ? await wireStatus() : null;
   health = {
-    aiConfigured: usable,
-    liveSearch: state.options.liveSearch,
+    aiConfigured: backend?.configured ?? false,
+    liveSearch: liveSearchAvailable(),
   };
-  const online = typeof navigator === 'undefined' ? true : navigator.onLine;
+  const online = browserOnline && backend !== null;
   notifyHealth();
   setEngineStatus(online ? 'online' : 'offline');
   return online;

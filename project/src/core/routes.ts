@@ -17,8 +17,6 @@ export const APP_PATHS = {
   room: '/room',
   settings: '/settings',
   help: '/help',
-  /** Admin panel — connect external AI APIs (local device config, no account). */
-  admin: '/admin',
 } as const;
 
 type RouteTarget = {

@@ -1,14 +1,10 @@
-import { useAiConfigStore } from '../../core/aiConfigStore';
-import { providerChain } from './config';
-import { wireEditImage, wireGenerateImage } from './wire';
-import type { AiProviderConfig } from './types';
+import { wireImage } from './wire';
 
 /**
  * Image workspace — create and edit images from the browser.
  *
- * A connected endpoint with an image model does the work through the
- * standard protocol (wire.ts). There is no built-in third-party generator:
- * image creation needs an endpoint with an image model configured in Admin.
+ * SG16's backend does the work (/api/ai/image, wire.ts) with the image model
+ * the owner configured — the browser never talks to an AI endpoint itself.
  */
 
 const EDIT_PATTERN =
@@ -28,30 +24,11 @@ export function getImageAction(message: string, hasImage: boolean): ImageAction 
   return 'analyze';
 }
 
-/* ── Endpoint with an image model ── */
-
-function imageProvider(): { provider: AiProviderConfig; model: string } | null {
-  const chain = providerChain(useAiConfigStore.getState().providers);
-  for (const provider of chain) {
-    if (!provider.baseUrl.trim()) continue;
-    if (provider.requiresKey && !provider.apiKey.trim()) continue;
-    const model = provider.models.image.trim();
-    if (model) return { provider, model };
-  }
-  return null;
-}
-
 /* ── Generation ── */
 
-/** Create an image with the connected endpoint's image model. */
+/** Create an image (SG16 backend, /api/ai/image). */
 export async function generateImage(prompt: string): Promise<string> {
-  const found = imageProvider();
-  if (!found) {
-    throw new Error(
-      'Image creation needs a connected endpoint with an image model. Open Admin and set one in the "Image model" field.',
-    );
-  }
-  return wireGenerateImage(found.provider, prompt, found.model);
+  return wireImage(prompt);
 }
 
 /* ── Editing ── */
@@ -67,15 +44,9 @@ CRITICAL — preserve the original photograph:
 - This must be a photorealistic in-place edit of the original photo.`;
 }
 
-/** Edit a photo in place. Needs a connected endpoint with an image model. */
+/** Edit a photo in place (SG16 backend, /api/ai/image). */
 export async function editImage(imageDataUrl: string, prompt: string): Promise<string> {
-  const found = imageProvider();
-  if (!found) {
-    throw new Error(
-      'Photo editing needs a connected endpoint with an image model. Open Admin and set one in the "Image model" field.',
-    );
-  }
-  return wireEditImage(found.provider, buildPreserveEditPrompt(prompt), imageDataUrl, found.model);
+  return wireImage(buildPreserveEditPrompt(prompt), imageDataUrl);
 }
 
 /* ── Chat entry (Image workspace) ── */

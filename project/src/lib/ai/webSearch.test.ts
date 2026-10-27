@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { useAiConfigStore } from '../../core/aiConfigStore';
 import { formatContextBlock, formatDirectAnswer, needsWebSearch, type WebResultItem } from './webSearch';
 
 describe('needsWebSearch', () => {
@@ -20,13 +19,6 @@ describe('needsWebSearch', () => {
     expect(needsWebSearch('what is the latest news about AI today?')).toBe(true);
     expect(needsWebSearch('bitcoin price now')).toBe(true);
     expect(needsWebSearch('who won the match last night?')).toBe(true);
-  });
-
-  it('respects the liveSearch option', () => {
-    useAiConfigStore.getState().setOptions({ liveSearch: false });
-    expect(needsWebSearch('latest news about AI today')).toBe(false);
-    useAiConfigStore.getState().setOptions({ liveSearch: true });
-    expect(needsWebSearch('latest news about AI today')).toBe(true);
   });
 
   it('ignores very short messages', () => {

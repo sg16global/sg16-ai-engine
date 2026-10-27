@@ -10,6 +10,14 @@ if (import.meta.env.DEV && 'serviceWorker' in navigator) {
   });
 }
 
+// Zero-Data Trace: the old device-side AI setup (removed) stored endpoint keys
+// here. AI keys now live only on the backend, so wipe any leftover copy.
+try {
+  localStorage.removeItem('sg16_ai_config_v1');
+} catch {
+  /* storage unavailable */
+}
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ErrorBoundary>

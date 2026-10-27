@@ -21,10 +21,10 @@
   "scripts": {
     "build": "npm ci --prefix project && npm run build --prefix project",
     "dev": "npm run dev --prefix project",
-    "dev:pages": "npm run build --prefix project && npx wrangler pages dev project/dist",
+    "dev:pages": "npm run build --prefix project && cd project && npx wrangler pages dev dist",
     "typecheck": "npm run typecheck --prefix project",
     "test": "npm run test --prefix project",
-    "pages:deploy": "npm run build --prefix project && npx wrangler pages deploy project/dist --project-name=sg16-ai-engine",
+    "pages:deploy": "npm run build --prefix project && cd project && npx wrangler pages deploy dist --project-name=sg16-ai-engine",
     "android:sync": "npm run build && npm run cap:sync --prefix project",
     "android:open": "npm run cap:open --prefix project",
     "shield": "node coding-shield/run.mjs",

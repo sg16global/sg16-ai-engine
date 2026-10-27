@@ -1,4 +1,3 @@
-import { useAiConfigStore } from '../../core/aiConfigStore';
 import { chatCompletion } from './client';
 import type { AiChatMessage } from './types';
 
@@ -9,9 +8,11 @@ import type { AiChatMessage } from './types';
  * - News RSS + web search + Yahoo quotes: CORS-blocked for browsers, so they
  *   go through the app's own stateless Cloudflare Pages Functions
  *   (/api/edge/*) — no dedicated server, no keys, edge-cached.
- * - Synthesis: the configured AI model answers from the live context, so
- *   answers work identically no matter which AI API is connected.
+ * - Synthesis: SG16's backend model answers from the live context.
  */
+
+/** Live web context is on unless the build sets VITE_SG16_LIVE_SEARCH=0. */
+const LIVE_SEARCH_ENABLED = (import.meta.env.VITE_SG16_LIVE_SEARCH ?? '').trim() !== '0';
 
 const LIVE_PATTERNS = [
   /\b(news|headlines|breaking)\b/i,
@@ -54,7 +55,7 @@ function isCreativeOrCodeTask(message: string): boolean {
 }
 
 export function needsWebSearch(message: string, workspaceId = 'general'): boolean {
-  if (!useAiConfigStore.getState().options.liveSearch) return false;
+  if (!LIVE_SEARCH_ENABLED) return false;
   if (workspaceId === 'coding' || workspaceId === 'translate') return false;
   if (isChitchat(message) || isCreativeOrCodeTask(message)) return false;
 
@@ -80,7 +81,7 @@ export function needsWebSearch(message: string, workspaceId = 'general'): boolea
 
 export function liveSearchAvailable(): boolean {
   if (typeof navigator !== 'undefined' && !navigator.onLine) return false;
-  return useAiConfigStore.getState().options.liveSearch;
+  return LIVE_SEARCH_ENABLED;
 }
 
 /* ── Edge function + direct fetchers ── */
@@ -254,7 +255,7 @@ async function synthesizeFromWebContext(
   message: string,
   history: Pick<AiChatMessage, 'role' | 'content'>[],
   results: WebResultItem[],
-): Promise<{ reply: string; model: string } | null> {
+): Promise<{ reply: string } | null> {
   const context = formatContextBlock(results);
   if (!context) return null;
 
@@ -270,8 +271,8 @@ async function synthesizeFromWebContext(
   });
 
   try {
-    const { content, model } = await chatCompletion({ messages, intent: 'chat', temperature: 0.3, maxTokens: 1800, timeoutMs: 90_000 });
-    return { reply: content, model };
+    const { content } = await chatCompletion({ messages, intent: 'chat', temperature: 0.3, maxTokens: 1800, timeoutMs: 90_000 });
+    return { reply: content };
   } catch {
     return null;
   }

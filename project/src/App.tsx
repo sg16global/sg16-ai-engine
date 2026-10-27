@@ -37,7 +37,6 @@ import { InstallPrompt } from './components/pwa/InstallPrompt';
 import { SeoCanonical } from './components/SeoCanonical';
 
 import { LandingPage } from './components/landing/LandingPage';
-import { AdminApp } from './components/admin/AdminApp';
 
 import { PublicLegalShell } from './components/legal/PublicLegalShell';
 import { StagingWindow } from './staging/StagingWindow';
@@ -430,12 +429,7 @@ function App() {
   const showLanding = isLandingRoute(pathname) || isWelcomeRoute(pathname);
   const showGuestApp = !isAuthenticated(authUser) && isGuestAppRoute(pathname);
   const showPublicLegal = !isAuthenticated(authUser) && isPublicLegalPath(pathname);
-  const showAdmin = normalizePath(pathname) === APP_PATHS.admin;
   const restoringSession = !authHydrated && Boolean(loadAuthToken()) && isGuestAppRoute(pathname);
-
-  useEffect(() => {
-    if (showAdmin) document.title = 'Admin — SG16 AI Engine';
-  }, [showAdmin]);
 
 
 
@@ -480,15 +474,6 @@ function App() {
       <>
         <SeoCanonical />
         <AuthSplash />
-      </>
-    );
-  }
-
-  if (showAdmin) {
-    return (
-      <>
-        <SeoCanonical />
-        <AdminApp />
       </>
     );
   }

@@ -1,11 +1,10 @@
 import { Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAppStore } from '../../core/appState';
-import { checkEngineHealth, useEngineHealth, useEngineStatus } from '../../lib/apiStatus';
+import { checkEngineHealth, useEngineStatus } from '../../lib/apiStatus';
 import { isStudentVerified, verificationStatusLabel } from '../../core/access';
 import { planLabel } from '../../core/plans';
 import { SG16_BRAND } from '../../core/branding';
-import { APP_PATHS, pushAppPath } from '../../core/routes';
 import { CompanyDetailsCard } from '../company/CompanyDetailsCard';
 
 export function SettingsPanel() {
@@ -22,7 +21,6 @@ export function SettingsPanel() {
   const openPricing = useAppStore((s) => s.openPricing);
   const openStudentVerify = useAppStore((s) => s.openStudentVerify);
   const engineStatus = useEngineStatus();
-  const engineHealth = useEngineHealth();
   const engineOnline = engineStatus === 'checking' ? null : engineStatus === 'online';
   const [saved, setSaved] = useState(false);
   const [wiped, setWiped] = useState(false);
@@ -79,18 +77,6 @@ export function SettingsPanel() {
           {engineOnline === true && 'SG16 AI Engine is online and ready'}
           {engineOnline === false && 'SG16 AI Engine is offline — check your connection'}
         </div>
-        {!engineHealth.aiConfigured && (
-          <div className="rounded-xl border border-[#FF168D]/30 bg-[#FF168D]/5 p-3 flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs text-[#FFB3BE]">No AI API connected yet — chat, Pilot and the shields need one.</p>
-            <button
-              type="button"
-              onClick={() => pushAppPath(APP_PATHS.admin)}
-              className="text-xs bg-[#FF168D] hover:bg-[#FF3DA5] text-[#09060B] px-3 py-2 rounded-lg font-semibold transition"
-            >
-              Open Admin
-            </button>
-          </div>
-        )}
       </section>
 
       <section className="bg-[#0A0A12]/80 border border-white/10 rounded-2xl p-6 space-y-4">

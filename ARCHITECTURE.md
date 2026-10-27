@@ -1,54 +1,56 @@
-# SG16 Architecture — self-contained Engine
+# SG16 Architecture — SaaS engine on Cloudflare Pages
 
-SG16 AI Engine is a **fully self-contained, Cloudflare Edge-native Vite app**. There is no
-dedicated backend server and no persistent "AI Brain": the app talks to **any AI API
-directly from the browser** — a connection is just a raw base URL, an optional API key,
-and model strings. There is no list of known providers and no per-vendor code; any
-endpoint that speaks the standard chat-completions protocol works. The only server-side
-code is a set of tiny stateless Cloudflare Pages Functions for the data sources that
-block browser CORS.
+SG16 AI Engine is a **Vite + React PWA on Cloudflare Pages with a small backend in Pages
+Functions**. Users sign up, pay and use the 5 Shields — they never see an AI provider, base URL,
+API key or model name. Only the owner configures the AI, once, as encrypted Pages secrets; the
+browser talks only to SG16's own `/api/*` and never to a third party directly.
 
 ## This repo: SG16 AI Engine (`sg16engine.com`)
 
 ```
 project/                  the app (Vite + React PWA) — the only product code
-├── src/lib/ai/           universal AI gateway (wire protocol, client, engine, vision, images, voice)
-├── src/core/aiConfigStore.ts   AI config store (connections, fallback chain, options) — localStorage
-├── src/components/admin/ Admin panel at /admin — connect any AI endpoint, no account needed
+├── src/lib/ai/           AI layer: wire.ts calls /api/ai/* only (chat, vision, images, voice)
 ├── src/lib/codingShield/ Coding Shield — honest browser port (no CLI tools faked)
+├── functions/api/ai/     backend: AI gateway (owner secrets → AI endpoint)
 ├── functions/api/edge/   stateless Pages Functions: news RSS, web search, Yahoo quotes
 ├── public/_headers       security headers
 └── public/_redirects     SPA fallback (Pages Functions take precedence)
 ```
 
-**Hosting**: Cloudflare Pages — static `project/dist/` plus `project/functions/`. Deployed by
-`.github/workflows/deploy-pages.yml` on every push to `main` (or `npm run pages:deploy` locally).
+**Hosting**: Cloudflare Pages project `sg16-ai-engine` — static `project/dist/` plus
+`project/functions/`. Deployed only by `.github/workflows/deploy-pages.yml` on every push to `main`.
 
-## How AI works (universal gateway, no presets)
+## How AI works (backend gateway, owner secrets)
 
-- **Admin panel (`/admin`)**: enter a raw base URL, an API key, and model strings
-  (chat / coding / vision / audio / image / fallbacks), reorder the fallback chain,
-  test connections, and export/import the config. Everything is stored on the
-  device (`localStorage`, key `sg16_ai_config_v1`) — API keys go straight from the
-  browser to the endpoint and are never sent to an SG16 server (there isn't one).
-- **One wire protocol**: `src/lib/ai/wire.ts` speaks the standard chat-completions
-  API (`POST {baseUrl}/chat/completions`, `GET {baseUrl}/models`, plus audio and
-  image endpoints). There are no per-vendor adapters — the same code path serves
-  every endpoint, so **connecting a new API is a config change, never a code change**.
-- **One client for everything**: `src/lib/ai/client.ts` (`chatCompletion`) is the single place
-  requests leave the app. It picks the active connection, walks the fallback chain (connections, then
-  per-model fallbacks), cools down rate-limited endpoints, and reports real connectivity to the
-  engine status bar. Chat, Pilot, Shields, student verification, image studio and voice all build
-  on it.
-- **Build-time defaults** (optional): `VITE_SG16_AI_BASE_URL` / `VITE_SG16_AI_API_KEY` /
-  `VITE_SG16_AI_NAME` / `VITE_SG16_AI_MODEL` / `VITE_SG16_AI_CODING_MODEL` /
-  `VITE_SG16_AI_VISION_MODEL` — see `project/.env.example`. Runtime Admin config wins.
+- **Backend** (`functions/api/ai/`): `POST /api/ai/chat`, `POST /api/ai/transcribe`,
+  `POST /api/ai/image`, `GET /api/ai/status`. `_gateway.ts` reads the owner's secrets, picks the
+  model for the request (chat / code / vision), and walks `AI_FALLBACK_MODELS` when a model is busy.
+  POSTs are accepted only from the site's own origin; bodies and token budgets are capped.
+- **Owner secrets** (Cloudflare dashboard → Pages project → Settings → Variables and Secrets, type
+  *Secret*, or `npx wrangler pages secret put <NAME> --project-name sg16-ai-engine`):
 
-## Data sources (no server of our own)
+  | Secret | Required | Meaning |
+  |--------|----------|---------|
+  | `AI_BASE_URL` | yes | standard chat-completions endpoint, e.g. `https://api.example.com/v1` |
+  | `AI_API_KEY` | no | sent as `Authorization: Bearer …` (omit for keyless endpoints) |
+  | `AI_CHAT_MODEL` | yes | general chat model |
+  | `AI_CODING_MODEL` | no | coding model (falls back to the chat model) |
+  | `AI_VISION_MODEL` | no | image questions + student ID checks |
+  | `AI_AUDIO_MODEL` | no | voice transcription |
+  | `AI_IMAGE_MODEL` | no | image creation / photo editing |
+  | `AI_FALLBACK_MODELS` | no | comma list, tried in order when the chat model is busy |
+
+- **Browser**: `src/lib/ai/client.ts` (`chatCompletion`) is the single place chat requests leave the
+  app; `wire.ts` only calls `/api/ai/*`. Chat, Pilot, Shields, student verification, image studio and
+  voice all build on it. Nothing about the AI endpoint is ever in the bundle.
+- **Zero-Data Trace**: the backend never logs or stores request bodies, keys or upstream error text;
+  users get short generic errors. Old device-side AI configs (`sg16_ai_config_v1`) are wiped on load.
+
+## Data sources
 
 | Data | Path | Notes |
 |------|------|-------|
-| AI chat/vision/images/voice | browser → endpoint | configured in Admin |
+| AI chat/vision/images/voice | `/api/ai/*` (Pages Functions) | owner secrets, see above |
 | Crypto prices | browser → CoinGecko → Binance → Coinbase | all CORS-enabled |
 | FX rates | browser → open.er-api.com → Frankfurter (ECB) | CORS-enabled |
 | Weather | browser → wttr.in | CORS-enabled |
@@ -65,8 +67,8 @@ it never invents numbers.
 - **Auth**: local device sessions (`src/lib/authApi.ts`). No accounts, no Google sign-in, no JWT
   server — a device id + token live in `localStorage`.
 - **Billing**: local launch configuration (`src/lib/billingApi.ts`, key `sg16_launch_config_v1`).
-  Launch mode = all features free; checkout is off until a payment provider is wired up. Admin can
-  edit it on the device.
+  Launch mode = all features free; checkout is off until a payment provider is wired up in the
+  backend.
 - **Chat history**: stored on the device only.
 
 ## Coding Shield
@@ -90,11 +92,11 @@ Each product owns its own AI connections and fallbacks — nothing routes throug
 ```bash
 npm install --prefix project
 npm run dev            # SPA only (edge functions degrade gracefully)
-npm run dev:pages      # build + wrangler pages dev dist  (full stack incl. /api/edge/*)
+npm run dev:pages      # build + wrangler pages dev dist  (full stack incl. /api/ai/* and /api/edge/*;
+                       # put local AI secrets in project/.dev.vars — git-ignored)
 npm run typecheck      # tsc --noEmit (src + functions)
 npm test               # vitest unit tests for the ported logic
 ```
 
-Deploy: `npm run pages:deploy` (needs `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID`), or connect
-the repo to Cloudflare Pages (build command `npm run build`, output directory `dist`, both inside
-`project/`) — the `functions/` directory is deployed automatically.
+Deploy: push to `main` — GitHub Actions builds and deploys to the Pages project. There is no
+Cloudflare Git integration and no Workers project for this repo.

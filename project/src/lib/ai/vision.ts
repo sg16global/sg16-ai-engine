@@ -3,8 +3,8 @@ import { chatCompletion } from './client';
 import type { AiChatMessage } from './types';
 
 /**
- * Vision — image questions and Student ID verification, answered by whichever
- * provider has a vision model connected in Admin. Ported from the old server
+ * Vision — image questions and Student ID verification, answered by the
+ * backend's vision model (/api/ai/chat, intent "vision"). Ported from the old server
  * (backend/lib/studentVerify.js); nothing is stored anywhere.
  */
 

@@ -3,6 +3,8 @@ dist/
 desktop/release/
 .env
 project/.env
+.dev.vars
+project/.dev.vars
 *.log
 
 # Vite dev PWA artifacts + build output (served by Cloudflare Pages from project/dist)
@@ -26,3 +28,4 @@ project/android/capacitor-cordova-android-plugins/build/
 
 # Coding Shield scan output
 coding-shield/reports/
+.wrangler/

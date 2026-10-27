@@ -1,15 +1,12 @@
 /**
- * The universal AI gateway — one barrel for every AI call in the app.
+ * The AI layer — one barrel for every AI call in the app.
  *
- * `chatCompletion` (client.ts) is the single place requests leave the app;
- * everything else builds on it. Connections are configured in Admin
- * (`/admin`) and stored on this device (core/aiConfigStore.ts) as raw
- * values — any base URL, API key, and model strings. No presets, no
- * per-vendor adapters.
+ * `chatCompletion` (client.ts) is the single place chat requests leave the
+ * app, and wire.ts only ever calls SG16's own backend (/api/ai/*). The AI
+ * endpoint, keys and models are owner secrets on the backend.
  */
 
 export * from './types';
-export * from './config';
 export * from './wire';
 export * from './client';
 export * from './prompts';
