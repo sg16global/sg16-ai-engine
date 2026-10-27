@@ -50,7 +50,7 @@ export interface Gateway {
 export class GatewayError extends Error {
   constructor(
     readonly status: number,
-    readonly code: 'NOT_CONFIGURED' | 'BAD_REQUEST' | 'FORBIDDEN' | 'BUSY' | 'UNAVAILABLE' | 'EMPTY',
+    readonly code: 'NOT_CONFIGURED' | 'BAD_REQUEST' | 'FORBIDDEN' | 'BUSY' | 'UNAVAILABLE' | 'EMPTY' | 'UNSUPPORTED',
     message: string,
   ) {
     super(message);

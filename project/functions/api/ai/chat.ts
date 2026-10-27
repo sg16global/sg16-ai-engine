@@ -58,6 +58,18 @@ function validMessages(raw: unknown): Message[] {
   });
 }
 
+function hasImage(messages: Message[]): boolean {
+  return messages.some((m) => Array.isArray(m.content) && m.content.some((p) => p && p.type === 'image_url'));
+}
+
+/**
+ * A photo the endpoint refuses (4xx other than auth / rate limit) means the
+ * connected AI is text-only — say so, instead of "try again later".
+ */
+function photoRefused(status: number, withImage: boolean): boolean {
+  return withImage && status >= 400 && status < 500 && status !== 401 && status !== 403 && status !== 429;
+}
+
 function textOf(content: unknown): string {
   if (typeof content === 'string') return content;
   if (Array.isArray(content)) {
@@ -83,6 +95,7 @@ export async function onRequestPost(context: AiContext): Promise<Response> {
     const maxTokens = clamp(body.maxTokens, 1, MAX_TOKENS);
 
     const models = modelChain(gw, intent);
+    const withImage = hasImage(messages);
     let lastStatus = 502;
     for (const model of models) {
       let res: Response;
@@ -105,6 +118,9 @@ export async function onRequestPost(context: AiContext): Promise<Response> {
       if (!res.ok) {
         lastStatus = res.status;
         if (isRetryable(res.status)) continue;
+        if (photoRefused(res.status, withImage)) {
+          throw new GatewayError(400, 'UNSUPPORTED', "Photo questions aren't supported by the connected AI. This AI is text-only.");
+        }
         throw upstreamError(res.status);
       }
       const data = (await res.json().catch(() => null)) as { choices?: Array<{ message?: { content?: unknown } }> } | null;
