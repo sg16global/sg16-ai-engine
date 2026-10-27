@@ -9,7 +9,7 @@
  *   AI_API_KEY           optional  sent as "Authorization: Bearer …" (omit for keyless endpoints)
  *   AI_CHAT_MODEL        required  general chat model
  *   AI_CODING_MODEL      optional  coding model (falls back to AI_CHAT_MODEL)
- *   AI_VISION_MODEL      optional  image questions + student ID checks
+ *   AI_VISION_MODEL      optional  image questions + student ID checks (falls back to AI_CHAT_MODEL)
  *   AI_AUDIO_MODEL       optional  voice transcription
  *   AI_IMAGE_MODEL       optional  image generation / editing
  *   AI_FALLBACK_MODELS   optional  comma list, tried in order when the chat model is busy or fails
@@ -67,7 +67,7 @@ export function gateway(env: AiEnv): Gateway | null {
     apiKey: (env.AI_API_KEY ?? '').trim(),
     chat,
     coding: (env.AI_CODING_MODEL ?? '').trim(),
-    vision: (env.AI_VISION_MODEL ?? '').trim(),
+    vision: (env.AI_VISION_MODEL ?? '').trim() || chat,
     audio: (env.AI_AUDIO_MODEL ?? '').trim(),
     image: (env.AI_IMAGE_MODEL ?? '').trim(),
     fallbacks: (env.AI_FALLBACK_MODELS ?? '')
@@ -85,7 +85,7 @@ export function requireGateway(env: AiEnv): Gateway {
 
 /** Model chain for an intent: the slot's model first, then (chat only) the fallbacks. */
 export function modelChain(gw: Gateway, intent: AiIntent): string[] {
-  if (intent === 'vision') return gw.vision ? [gw.vision] : [];
+  if (intent === 'vision') return [gw.vision];
   if (intent === 'code') return [...new Set([gw.coding || gw.chat, ...(gw.coding ? [] : gw.fallbacks)])];
   return [...new Set([gw.chat, ...gw.fallbacks])];
 }

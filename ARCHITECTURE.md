@@ -35,7 +35,7 @@ project/                  the app (Vite + React PWA) — the only product code
   | `AI_API_KEY` | no | sent as `Authorization: Bearer …` (omit for keyless endpoints) |
   | `AI_CHAT_MODEL` | yes | general chat model |
   | `AI_CODING_MODEL` | no | coding model (falls back to the chat model) |
-  | `AI_VISION_MODEL` | no | image questions + student ID checks |
+  | `AI_VISION_MODEL` | no | image questions + student ID checks (falls back to the chat model) |
   | `AI_AUDIO_MODEL` | no | voice transcription |
   | `AI_IMAGE_MODEL` | no | image creation / photo editing |
   | `AI_FALLBACK_MODELS` | no | comma list, tried in order when the chat model is busy |

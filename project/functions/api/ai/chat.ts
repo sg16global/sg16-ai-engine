@@ -83,8 +83,6 @@ export async function onRequestPost(context: AiContext): Promise<Response> {
     const maxTokens = clamp(body.maxTokens, 1, MAX_TOKENS);
 
     const models = modelChain(gw, intent);
-    if (!models.length) throw new GatewayError(503, 'NOT_CONFIGURED', 'Image questions are not available yet.');
-
     let lastStatus = 502;
     for (const model of models) {
       let res: Response;
