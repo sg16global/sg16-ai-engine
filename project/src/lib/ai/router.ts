@@ -72,7 +72,6 @@ export async function routeIntent(query: string): Promise<RouteResponse> {
         { role: 'system', content: ROUTER_SYSTEM },
         { role: 'user', content: trimmed },
       ],
-      intent: 'chat',
       temperature: 0,
       maxTokens: 160,
       timeoutMs: 20_000,

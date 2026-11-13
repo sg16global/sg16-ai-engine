@@ -1,73 +1,62 @@
 /**
- * POST /api/ai/chat — every chat, Pilot, Shield and vision reply.
+ * POST /api/ai/chat — every chat, Pilot, Shield and photo question.
  *
- * Body: { messages: [{ role, content }], intent?, temperature?, maxTokens? }
+ * Body: { messages: [{ role, content }], temperature?, maxTokens? }
  * Reply: { content }
  *
- * Picks the model for the intent from the owner's secrets (see _gateway.ts),
- * then walks the fallback models when one is busy or down.
+ * Sends the conversation to the owner's AI (AI_BASE_URL, AI_MODEL — see
+ * _gateway.ts). Messages are tidied, never refused: unknown roles become
+ * "user", unusable parts are dropped, and very long histories keep their
+ * system prompt plus the latest turns.
  */
 
 import {
   type AiContext,
-  type AiIntent,
   GatewayError,
-  assertBodySize,
-  assertSameOrigin,
   authHeaders,
   clamp,
   errorResponse,
-  isRetryable,
   json,
-  modelChain,
   requireGateway,
   upstreamError,
 } from './_gateway';
 
-const MAX_BODY_BYTES = 12 * 1024 * 1024; // room for one or two photos as data URLs
-const MAX_MESSAGES = 80;
+const MAX_TURNS = 80;
 const MAX_TOKENS = 4096;
 const TIMEOUT_MS = 90_000;
-const INTENTS: AiIntent[] = ['chat', 'code', 'vision', 'reasoning'];
 const ROLES = ['system', 'user', 'assistant'];
 
-type Message = { role: string; content: unknown };
+type Part = { type: 'text'; text: string } | { type: 'image_url'; image_url: { url: string } };
+type Message = { role: string; content: string | Part[] };
 
-function isPart(part: unknown): boolean {
-  if (!part || typeof part !== 'object') return false;
-  const p = part as Record<string, unknown>;
-  if (p.type === 'text') return typeof p.text === 'string';
-  if (p.type === 'image_url') {
-    const url = (p.image_url as Record<string, unknown> | undefined)?.url;
-    return typeof url === 'string' && (url.startsWith('data:image/') || url.startsWith('https://'));
+function cleanPart(raw: unknown): Part | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const p = raw as Record<string, unknown>;
+  if (p.type === 'text' && typeof p.text === 'string') return { type: 'text', text: p.text };
+  const url = (p.image_url as Record<string, unknown> | undefined)?.url;
+  if (p.type === 'image_url' && typeof url === 'string' && url) return { type: 'image_url', image_url: { url } };
+  return null;
+}
+
+function cleanMessage(raw: unknown): Message | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const m = raw as Record<string, unknown>;
+  const role = ROLES.includes(m.role as string) ? (m.role as string) : 'user';
+  if (typeof m.content === 'string') return m.content.trim() ? { role, content: m.content } : null;
+  if (Array.isArray(m.content)) {
+    const parts = m.content.map(cleanPart).filter((p): p is Part => p !== null);
+    return parts.length ? { role, content: parts } : null;
   }
-  return false;
+  return null;
 }
 
-function validMessages(raw: unknown): Message[] {
-  if (!Array.isArray(raw) || !raw.length || raw.length > MAX_MESSAGES) {
-    throw new GatewayError(400, 'BAD_REQUEST', 'Message is required.');
-  }
-  return raw.map((m) => {
-    const msg = m as Record<string, unknown>;
-    const okContent = typeof msg?.content === 'string' || (Array.isArray(msg?.content) && msg.content.every(isPart));
-    if (!msg || !ROLES.includes(msg.role as string) || !okContent) {
-      throw new GatewayError(400, 'BAD_REQUEST', 'Message is not valid.');
-    }
-    return { role: msg.role as string, content: msg.content };
-  });
-}
-
-function hasImage(messages: Message[]): boolean {
-  return messages.some((m) => Array.isArray(m.content) && m.content.some((p) => p && p.type === 'image_url'));
-}
-
-/**
- * A photo the endpoint refuses (4xx other than auth / rate limit) means the
- * connected AI is text-only — say so, instead of "try again later".
- */
-function photoRefused(status: number, withImage: boolean): boolean {
-  return withImage && status >= 400 && status < 500 && status !== 401 && status !== 403 && status !== 429;
+/** Usable messages: system prompts first, then the latest MAX_TURNS turns. */
+function cleanMessages(raw: unknown): Message[] {
+  const all = (Array.isArray(raw) ? raw : []).map(cleanMessage).filter((m): m is Message => m !== null);
+  const system = all.filter((m) => m.role === 'system');
+  const turns = all.filter((m) => m.role !== 'system').slice(-MAX_TURNS);
+  if (!turns.length) throw new GatewayError(400, 'BAD_REQUEST', 'Please type a message.');
+  return [...system, ...turns];
 }
 
 function textOf(content: unknown): string {
@@ -81,57 +70,45 @@ function textOf(content: unknown): string {
   return '';
 }
 
+/** Reply text from a chat-completions answer (also accepts a plain `response` / `result.response`). */
+function replyOf(data: unknown): string {
+  const d = data as {
+    choices?: Array<{ message?: { content?: unknown } }>;
+    response?: unknown;
+    result?: { response?: unknown };
+  } | null;
+  return textOf(d?.choices?.[0]?.message?.content ?? d?.response ?? d?.result?.response);
+}
+
 export async function onRequestPost(context: AiContext): Promise<Response> {
   try {
-    assertSameOrigin(context.request);
-    assertBodySize(context.request, MAX_BODY_BYTES);
     const gw = requireGateway(context.env);
 
     const body = (await context.request.json().catch(() => null)) as Record<string, unknown> | null;
-    if (!body) throw new GatewayError(400, 'BAD_REQUEST', 'Message is required.');
-    const messages = validMessages(body.messages);
-    const intent = INTENTS.includes(body.intent as AiIntent) ? (body.intent as AiIntent) : 'chat';
-    const temperature = clamp(body.temperature, 0, 2);
-    const maxTokens = clamp(body.maxTokens, 1, MAX_TOKENS);
+    const messages = cleanMessages(body?.messages);
+    const temperature = clamp(body?.temperature, 0, 2);
+    const maxTokens = clamp(body?.maxTokens, 1, MAX_TOKENS);
 
-    const models = modelChain(gw, intent);
-    const withImage = hasImage(messages);
-    let lastStatus = 502;
-    for (const model of models) {
-      let res: Response;
-      try {
-        res = await fetch(`${gw.baseUrl}/chat/completions`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...authHeaders(gw) },
-          body: JSON.stringify({
-            model,
-            messages,
-            ...(temperature !== undefined ? { temperature } : {}),
-            ...(maxTokens !== undefined ? { max_tokens: Math.round(maxTokens) } : {}),
-          }),
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        });
-      } catch {
-        lastStatus = 502;
-        continue;
-      }
-      if (!res.ok) {
-        lastStatus = res.status;
-        if (isRetryable(res.status)) continue;
-        if (photoRefused(res.status, withImage)) {
-          throw new GatewayError(400, 'UNSUPPORTED', "Photo questions aren't supported by the connected AI. This AI is text-only.");
-        }
-        throw upstreamError(res.status);
-      }
-      const data = (await res.json().catch(() => null)) as { choices?: Array<{ message?: { content?: unknown } }> } | null;
-      const content = textOf(data?.choices?.[0]?.message?.content).trim();
-      if (!content) {
-        lastStatus = 502;
-        continue;
-      }
-      return json({ content });
+    let res: Response;
+    try {
+      res = await fetch(`${gw.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...authHeaders(gw) },
+        body: JSON.stringify({
+          model: gw.model,
+          messages,
+          ...(temperature !== undefined ? { temperature } : {}),
+          ...(maxTokens !== undefined ? { max_tokens: Math.round(maxTokens) } : {}),
+        }),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+    } catch {
+      throw upstreamError(502);
     }
-    throw upstreamError(lastStatus);
+    if (!res.ok) throw upstreamError(res.status);
+    const content = replyOf(await res.json().catch(() => null)).trim();
+    if (!content) throw new GatewayError(502, 'EMPTY', 'SG16 AI returned an empty response. Please try again.');
+    return json({ content });
   } catch (err) {
     return errorResponse(err);
   }

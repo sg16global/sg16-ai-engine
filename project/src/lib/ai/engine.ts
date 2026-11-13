@@ -161,7 +161,6 @@ export async function sendChatMessage(request: ChatRequest): Promise<ChatRespons
   try {
     const result = await chatCompletion({
       messages,
-      intent,
       temperature: profile.temperature,
       maxTokens: profile.maxTokens,
       timeoutMs: profile.timeoutMs,

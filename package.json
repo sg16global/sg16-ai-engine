@@ -2,7 +2,7 @@
   "name": "sg16-ai-engine",
   "private": true,
   "version": "1.0.0",
-  "description": "SG16 AI Engine — self-contained Cloudflare Edge-native Vite PWA (no dedicated backend)",
+  "description": "SG16 AI Engine — Vite PWA on Cloudflare Pages with Pages Functions and Cloudflare Workers AI",
   "engines": {
     "node": ">=20.0.0"
   },
@@ -24,7 +24,6 @@
     "dev:pages": "npm run build --prefix project && cd project && npx wrangler pages dev dist",
     "typecheck": "npm run typecheck --prefix project",
     "test": "npm run test --prefix project",
-    "pages:deploy": "npm run build --prefix project && cd project && npx wrangler pages deploy dist --project-name=sg16-ai-engine",
     "android:sync": "npm run build && npm run cap:sync --prefix project",
     "android:open": "npm run cap:open --prefix project",
     "shield": "node coding-shield/run.mjs",

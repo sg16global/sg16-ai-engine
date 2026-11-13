@@ -1,6 +1,6 @@
 /**
  * AI types shared by the app. The browser only talks to SG16's own backend
- * (/api/ai/*); the AI endpoint, keys and models live there as owner secrets.
+ * (/api/ai/*); the AI connection is set once by the owner on that backend.
  */
 
 export type AiChatMessageContent =
@@ -15,12 +15,11 @@ export interface AiChatMessage {
   content: AiChatMessageContent;
 }
 
-/** What the model is being asked for — decides which model slot is used. */
+/** What the message is about — tunes temperature / length / history in the browser (same model for all). */
 export type AiIntent = 'chat' | 'code' | 'vision' | 'reasoning';
 
 export interface ChatCompletionRequest {
   messages: AiChatMessage[];
-  intent?: AiIntent;
   temperature?: number;
   maxTokens?: number;
   timeoutMs?: number;
@@ -40,7 +39,7 @@ export class AiError extends Error {
   readonly rateLimited: boolean;
   /** Network-level failure (offline, timeout). */
   readonly offline: boolean;
-  /** The owner has not set the AI secrets yet. */
+  /** The owner has not connected an AI yet. */
   readonly noProvider: boolean;
 
   constructor(

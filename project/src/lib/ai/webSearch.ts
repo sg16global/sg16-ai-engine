@@ -271,7 +271,7 @@ async function synthesizeFromWebContext(
   });
 
   try {
-    const { content } = await chatCompletion({ messages, intent: 'chat', temperature: 0.3, maxTokens: 1800, timeoutMs: 90_000 });
+    const { content } = await chatCompletion({ messages, temperature: 0.3, maxTokens: 1800, timeoutMs: 90_000 });
     return { reply: content };
   } catch {
     return null;

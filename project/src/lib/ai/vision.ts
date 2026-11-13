@@ -4,7 +4,7 @@ import type { AiChatMessage } from './types';
 
 /**
  * Vision — image questions and Student ID verification, answered by the
- * backend's vision model (/api/ai/chat, intent "vision"). Ported from the old server
+ * connected AI (/api/ai/chat) — the same model as every chat. Ported from the old server
  * (backend/lib/studentVerify.js); nothing is stored anywhere.
  */
 
@@ -19,7 +19,7 @@ export async function analyzeImage(imageUrl: string, prompt: string): Promise<st
       ],
     },
   ];
-  const result = await chatCompletion({ messages, intent: 'vision', temperature: 0.4, maxTokens: 1200 });
+  const result = await chatCompletion({ messages, temperature: 0.4, maxTokens: 1200 });
   return result.content;
 }
 
@@ -80,7 +80,7 @@ async function callVision(imageUrl: string): Promise<Record<string, unknown>> {
       ],
     },
   ];
-  const result = await chatCompletion({ messages, intent: 'vision', temperature: 0.1, maxTokens: 600 });
+  const result = await chatCompletion({ messages, temperature: 0.1, maxTokens: 600 });
   const parsed = extractJson(result.content);
   if (!parsed) {
     throw new Error('SG16 AI could not read verification data. Please upload a clearer photo.');
