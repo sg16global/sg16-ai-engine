@@ -61,9 +61,17 @@ export function ChatPanel({
   onScanCode,
 }: ChatPanelProps) {
   const messages = useAppStore((s) => s.messages[workspaceId]);
-  const loading = useAppStore((s) => s.loading);
-  const error = useAppStore((s) => s.error);
+  // Busy is per conversation and the error per shield: a request in one shield (or in an
+  // older chat of this shield) never blocks or marks another.
+  const loading = useAppStore((s) => {
+    const id = s.activeThreadIds[workspaceId];
+    return id ? s.chatBusy[id] === true : false;
+  });
+  const error = useAppStore((s) => s.chatErrors[workspaceId] ?? null);
+  const setChatBusy = useAppStore((s) => s.setChatBusy);
+  const setChatError = useAppStore((s) => s.setChatError);
   const addMessage = useAppStore((s) => s.addMessage);
+  const addReply = useAppStore((s) => s.addReply);
   const newChat = useAppStore((s) => s.newChat);
   const openThread = useAppStore((s) => s.openThread);
   const deleteThread = useAppStore((s) => s.deleteThread);
@@ -72,8 +80,7 @@ export function ChatPanel({
   const activeThreadId = useAppStore((s) => s.activeThreadIds[workspaceId]);
   const threads = allThreads.filter((t) => t.workspaceId === workspaceId);
   const [historyOpen, setHistoryOpen] = useState(false);
-  const setLoading = useAppStore((s) => s.setLoading);
-  const setError = useAppStore((s) => s.setError);
+  const setError = useCallback((msg: string | null) => setChatError(workspaceId, msg), [setChatError, workspaceId]);
   const consumePendingPrompt = useAppStore((s) => s.consumePendingPrompt);
   const pendingPromptToken = useAppStore((s) => s.pendingPromptToken);
   const consumePendingImage = useAppStore((s) => s.consumePendingImage);
@@ -117,6 +124,7 @@ export function ChatPanel({
           : `Analyze this document (${pendingDoc!.name}):\n\n${pendingDoc!.text}`
         : content;
 
+      const ws = workspaceId;
       const userMsg: Message = {
         id: uid(),
         role: 'user',
@@ -125,7 +133,15 @@ export function ChatPanel({
         imageUrl: img,
       };
 
-      addMessage(workspaceId, userMsg);
+      // Prior turns only: the new question goes as `message` (never twice), and error
+      // notices ("Sorry — …", including ones saved by older builds) are never sent back as context.
+      const history = messages
+        .filter((m) => !m.isError && !(m.role === 'assistant' && m.content.startsWith('Sorry — ')))
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      addMessage(ws, userMsg);
+      // The conversation this question belongs to — the reply goes back into it.
+      const threadId = useAppStore.getState().activeThreadIds[ws] ?? '';
       setInput('');
       setImageUrl(undefined);
       setPendingDoc(null);
@@ -134,20 +150,15 @@ export function ChatPanel({
           ? 'SG16 AI is searching the web...'
           : loadingLabel,
       );
-      setLoading(true);
-      setError(null);
+      setChatBusy(threadId, true);
+      setChatError(ws, null);
 
       try {
-        const history = [...messages, userMsg].map((m) => ({
-          role: m.role,
-          content: m.content,
-        }));
-
         const extra = getExtraPayload?.() ?? {};
 
         const result = await sendChatMessage({
           message: messageText,
-          workspaceId,
+          workspaceId: ws,
           imageUrl: img,
           history,
           targetLanguage: extra.targetLanguage,
@@ -156,7 +167,7 @@ export function ChatPanel({
           studentVerified: isStudentVerified(subscription),
         });
 
-        addMessage(workspaceId, {
+        addReply(ws, threadId, {
           id: uid(),
           role: 'assistant',
           content: result.reply,
@@ -174,30 +185,31 @@ export function ChatPanel({
         const msg = err instanceof Error ? err.message : 'Something went wrong';
         if (msg === 'AUTH_REQUIRED') {
           startSession();
-          setLoading(false);
           return;
         }
-        setError(msg);
+        setChatError(ws, msg);
         setAiStatus(/busy/i.test(msg) ? 'busy' : 'offline');
-        addMessage(workspaceId, {
+        addReply(ws, threadId, {
           id: uid(),
           role: 'assistant',
           content: `Sorry — ${msg}`,
           timestamp: Date.now(),
+          isError: true,
         });
       } finally {
-        setLoading(false);
+        setChatBusy(threadId, false);
       }
     },
     [
-      input, imageUrl, pendingDoc, loading, messages, workspaceId,
-      addMessage, setLoading, setError, getExtraPayload, allowVoice, settings.autoSendVoice, subscription,
+      input, imageUrl, pendingDoc, loading, messages, workspaceId, loadingLabel,
+      addMessage, addReply, setChatBusy, setChatError, setAiStatus, startSession,
+      getExtraPayload, allowVoice, subscription,
     ],
   );
 
   useEffect(() => {
-    const pending = consumePendingPrompt();
-    const pendingImg = consumePendingImage();
+    const pending = consumePendingPrompt(workspaceId);
+    const pendingImg = consumePendingImage(workspaceId);
     if (pendingImg) setImageUrl(pendingImg);
     if (pending) sendMessage(pending, pendingImg ?? undefined);
     else if (pendingImg) sendMessage('Analyze this image', pendingImg);
@@ -306,6 +318,7 @@ export function ChatPanel({
                 type="button"
                 onClick={() => {
                   newChat(workspaceId);
+                  setError(null);
                   setHistoryOpen(false);
                 }}
                 className="flex items-center gap-1.5 text-xs text-white/55 hover:text-white transition px-2 py-1 rounded-lg hover:bg-white/[0.06]"
