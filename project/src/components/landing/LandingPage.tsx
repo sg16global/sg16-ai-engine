@@ -21,7 +21,9 @@ import { HeroStage, LandingNeonBackdrop } from './LandingNeonBackdrop';
 import { PioneersRail, WorldAiRail } from './LandingRails';
 import { LandingHeader } from './LandingHeader';
 import { FinanceCard, GeoMonitorCard } from './LandingNetworkCards';
+import { RobotPresenter, RobotShowButton, useRobotToggle } from './robot/RobotPresenter';
 import { SiteFooter } from './SiteFooter';
+import { WorldClockCard } from './WorldClockCard';
 import { WorldDotMap } from './WorldDotMap';
 import './landingStyles.css';
 
@@ -82,6 +84,7 @@ export function LandingPage() {
   const enterGuestTour = useAppStore((s) => s.enterGuestTour);
   const openStaging = useAppStore((s) => s.openStaging);
   const setWorkspace = useAppStore((s) => s.setWorkspace);
+  const [robotOn, setRobotOn] = useRobotToggle();
 
   const openShield = (id: WorkspaceType) => {
     enterGuestTour();
@@ -96,11 +99,20 @@ export function LandingPage() {
         <LandingHeader />
 
         <main className="lp-container">
-          {/* ── Row 1: Geo Monitor · Hero · SG16 Finance ── */}
-          <div className="lp-top">
-            <div className="lp-top__side">
-              <GeoMonitorCard />
-            </div>
+          {/*
+            ── Row 1 ──
+            Robot on:  (open space) · Hero + flags · SG16 Robo
+                       [World Clock · Geo Monitor · SG16 Finance] under them, same size
+            Robot off: Geo Monitor · Hero + flags · SG16 Finance   (the original design)
+          */}
+          <div className={`lp-top${robotOn ? ' lp-top--robot' : ''}`}>
+            {robotOn ? (
+              <div className="lp-top__side lp-top__side--open" aria-hidden />
+            ) : (
+              <div className="lp-top__side">
+                <GeoMonitorCard />
+              </div>
+            )}
 
             <div className="lp-top__hero">
             <section className="lp-hero" aria-labelledby="lp-hero-title">
@@ -141,12 +153,31 @@ export function LandingPage() {
             </ul>
             </div>
 
-            <div className="lp-top__side">
-              <FinanceCard />
-            </div>
+            {robotOn ? (
+              <>
+                <div className="lp-top__side lp-top__side--robot">
+                  <RobotPresenter
+                    flags={HERO_FLAGS}
+                    shields={SHIELDS_DATA}
+                    onStartTour={() => enterGuestTour()}
+                    onHide={() => setRobotOn(false)}
+                  />
+                </div>
+                <div className="lp-monitors">
+                  <WorldClockCard flags={HERO_FLAGS} />
+                  <GeoMonitorCard />
+                  <FinanceCard />
+                </div>
+              </>
+            ) : (
+              <div className="lp-top__side">
+                <FinanceCard />
+              </div>
+            )}
           </div>
+          {!robotOn && <RobotShowButton onShow={() => setRobotOn(true)} />}
 
-          {/* ── AI Pioneers rail (under the flags) ── */}
+          {/* ── AI Pioneers rail ── */}
           <PioneersRail />
 
           {/* ── Row 2: Our 5 Shields · Latest Activity ── */}

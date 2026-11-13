@@ -55,6 +55,8 @@ interface AppState {
   pendingPrompt: string | null;
   pendingPromptToken: number;
   pendingImageUrl: string | null;
+  /** The shield a pending prompt / image belongs to — only that shield's chat sends it. */
+  pendingPromptFor: WorkspaceId | null;
   helpSection: HelpSection;
   messages: Record<WorkspaceId, Message[]>;
   /** Saved conversations on this device (the open one of each shield included). */
@@ -69,6 +71,9 @@ interface AppState {
   authToken: string | null;
   loading: boolean;
   error: string | null;
+  /** Chat busy per conversation (thread id) and chat error per shield, so one never blocks or marks another. */
+  chatBusy: Record<string, boolean>;
+  chatErrors: Partial<Record<WorkspaceId, string | null>>;
   launchFree: boolean;
   checkoutEnabled: boolean;
   launchMessage: string;
@@ -90,8 +95,8 @@ interface AppState {
   goBack: () => void;
   /** Public homepage (/). The session stays; Enter or Start Tour returns to Shield Home. */
   goToPublicHome: () => void;
-  consumePendingPrompt: () => string | null;
-  consumePendingImage: () => string | null;
+  consumePendingPrompt: (workspaceId: WorkspaceId) => string | null;
+  consumePendingImage: (workspaceId: WorkspaceId) => string | null;
 
   requireAuth: (action: () => void) => void;
   /**
@@ -114,6 +119,11 @@ interface AppState {
   applyStudentVerification: (result: StudentVerifyResponse) => void;
 
   addMessage: (workspaceId: WorkspaceId, message: Message) => void;
+  /**
+   * Add an AI reply to the conversation it belongs to (`threadId`). If the user opened another
+   * chat while waiting, the reply goes into the saved conversation in History, not the open one.
+   */
+  addReply: (workspaceId: WorkspaceId, threadId: string | undefined, message: Message) => void;
   /** Delete the open conversation of a shield. */
   clearMessages: (workspaceId: WorkspaceId) => void;
   /** Start a fresh conversation; the current one stays in History. */
@@ -128,6 +138,8 @@ interface AppState {
   updateSettings: (patch: Partial<AppSettings>) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+  setChatBusy: (threadId: string, busy: boolean) => void;
+  setChatError: (workspaceId: WorkspaceId, error: string | null) => void;
 }
 
 /** Screens visited in this tab, for the side panel's Back button. */
@@ -204,12 +216,15 @@ export const useAppStore = create<AppState>((set, getState) => ({
   pendingPrompt: null,
   pendingPromptToken: 0,
   pendingImageUrl: null,
+  pendingPromptFor: null,
   helpSection: 'overview',
   messages: emptyChatHistory(),
   chatThreads: [],
   activeThreadIds: {},
   openChatFor: null,
   aiStatus: 'unknown',
+  chatBusy: {},
+  chatErrors: {},
   settings: loadSettings(),
   subscription: loadSubscription(),
   authUser: null,
@@ -450,6 +465,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
       const payload = {
         pendingPrompt: prompt ?? null,
         pendingImageUrl: imageUrl ?? null,
+        pendingPromptFor: prompt || imageUrl ? workspace : null,
       };
       if (canAccessWorkspace(workspace, subscription, authUser)) {
         set({ currentWorkspace: workspace, ...payload, error: null });
@@ -465,16 +481,18 @@ export const useAppStore = create<AppState>((set, getState) => ({
     getState().requireAuth(run);
   },
 
-  consumePendingPrompt: () => {
-    const prompt = getState().pendingPrompt;
+  consumePendingPrompt: (workspaceId) => {
+    const { pendingPrompt, pendingPromptFor } = getState();
+    if (!pendingPrompt || pendingPromptFor !== workspaceId) return null;
     set({ pendingPrompt: null });
-    return prompt;
+    return pendingPrompt;
   },
 
-  consumePendingImage: () => {
-    const imageUrl = getState().pendingImageUrl;
+  consumePendingImage: (workspaceId) => {
+    const { pendingImageUrl, pendingPromptFor } = getState();
+    if (!pendingImageUrl || pendingPromptFor !== workspaceId) return null;
     set({ pendingImageUrl: null });
-    return imageUrl;
+    return pendingImageUrl;
   },
 
   selectPlan: (plan) => {
@@ -527,6 +545,23 @@ export const useAppStore = create<AppState>((set, getState) => ({
         ...persistThreads(upsertThread(threadState(state), workspaceId, messages[workspaceId]), state.authUser?.id),
       };
     }),
+
+  addReply: (workspaceId, threadId, message) => {
+    const state = getState();
+    if (!threadId || state.activeThreadIds[workspaceId] === threadId) {
+      state.addMessage(workspaceId, message);
+      return;
+    }
+    const thread = state.chatThreads.find((t) => t.id === threadId);
+    if (!thread) return; // the conversation was deleted while waiting
+    const updated = { ...thread, messages: [...thread.messages, message], updatedAt: Date.now() };
+    set(
+      persistThreads(
+        { threads: [updated, ...state.chatThreads.filter((t) => t.id !== threadId)], active: state.activeThreadIds },
+        state.authUser?.id,
+      ),
+    );
+  },
 
   clearMessages: (workspaceId) =>
     set((state) => {
@@ -590,7 +625,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
     getState().requireAuth(() => {
       set({
         openChatFor: workspaceId,
-        ...(prompt ? { pendingPrompt: prompt, pendingPromptToken: Date.now() } : {}),
+        ...(prompt ? { pendingPrompt: prompt, pendingPromptFor: workspaceId, pendingPromptToken: Date.now() } : {}),
       });
       if (getState().currentWorkspace !== workspaceId) getState().setWorkspace(workspaceId);
     });
@@ -621,6 +656,14 @@ export const useAppStore = create<AppState>((set, getState) => ({
 
   setLoading: (loading) => set({ loading }),
   setError: (error) => set({ error }),
+  setChatBusy: (threadId, busy) =>
+    set((state) => {
+      const chatBusy = { ...state.chatBusy };
+      if (busy) chatBusy[threadId] = true;
+      else delete chatBusy[threadId];
+      return { chatBusy };
+    }),
+  setChatError: (workspaceId, error) => set((state) => ({ chatErrors: { ...state.chatErrors, [workspaceId]: error } })),
 }));
 
 useAppStore.subscribe((state, prev) => {

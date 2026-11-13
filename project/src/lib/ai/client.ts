@@ -6,8 +6,8 @@ import { AiError, type ChatCompletionRequest, type ChatCompletionResult } from '
  * The one place every AI call goes through.
  *
  * Pilot, Shields, chat and vision all call `chatCompletion`, which asks SG16's
- * own backend (/api/ai/chat). Model choice and fallbacks happen there, so the
- * browser never knows which AI endpoint answers. Every call reports real
+ * own backend (/api/ai/chat), which forwards it to the owner's connected AI, so
+ * the browser never knows which AI endpoint answers. Every call reports real
  * connectivity to the engine status bar.
  */
 
@@ -18,7 +18,6 @@ export async function chatCompletion(request: ChatCompletionRequest): Promise<Ch
   try {
     const content = await wireChat({
       messages: request.messages,
-      intent: request.intent ?? 'chat',
       temperature: request.temperature,
       maxTokens: request.maxTokens,
       timeoutMs: request.timeoutMs ?? DEFAULT_TIMEOUT_MS,

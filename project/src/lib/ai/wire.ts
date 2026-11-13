@@ -1,15 +1,15 @@
-import { AiError, type AiChatMessage, type AiIntent } from './types';
+import { AiError, type AiChatMessage } from './types';
 
 /**
  * The one wire — the browser talks only to SG16's own backend.
  *
- *   POST /api/ai/chat         chat, Pilot, Shields, vision
+ *   POST /api/ai/chat         chat, Pilot, Shields, photo questions
  *   POST /api/ai/transcribe   voice input (multipart)
  *   POST /api/ai/image        image creation / photo editing
- *   GET  /api/ai/status       what the engine can do (booleans only)
+ *   GET  /api/ai/status       whether the owner's AI is connected
  *
- * The AI endpoint, keys and models are the owner's Cloudflare secrets
- * (functions/api/ai/_gateway.ts). Nothing about them reaches the browser.
+ * The AI connection (endpoint, key, model) is set once by the owner on the
+ * backend (functions/api/ai/_gateway.ts). None of it reaches the browser.
  */
 
 const DEFAULT_TIMEOUT_MS = 100_000;
@@ -49,7 +49,6 @@ async function post(path: string, body: BodyInit, init: { json?: boolean; timeou
 
 export interface WireChatParams {
   messages: AiChatMessage[];
-  intent: AiIntent;
   temperature?: number;
   maxTokens?: number;
   timeoutMs?: number;
@@ -58,8 +57,8 @@ export interface WireChatParams {
 
 /** POST /api/ai/chat — returns the assistant's text. */
 export async function wireChat(params: WireChatParams): Promise<string> {
-  const { messages, intent, temperature, maxTokens, timeoutMs, signal } = params;
-  const data = (await post('/api/ai/chat', JSON.stringify({ messages, intent, temperature, maxTokens }), {
+  const { messages, temperature, maxTokens, timeoutMs, signal } = params;
+  const data = (await post('/api/ai/chat', JSON.stringify({ messages, temperature, maxTokens }), {
     json: true,
     timeoutMs,
     signal,
@@ -99,9 +98,6 @@ export async function wireImage(prompt: string, imageDataUrl?: string): Promise<
 
 export interface WireStatus {
   configured: boolean;
-  vision: boolean;
-  audio: boolean;
-  image: boolean;
 }
 
 /** GET /api/ai/status — null when the backend cannot be reached. */
@@ -110,12 +106,7 @@ export async function wireStatus(): Promise<WireStatus | null> {
     const res = await fetch('/api/ai/status', { signal: AbortSignal.timeout(10_000) });
     if (!res.ok) return null;
     const data = (await res.json()) as Partial<WireStatus>;
-    return {
-      configured: data.configured === true,
-      vision: data.vision === true,
-      audio: data.audio === true,
-      image: data.image === true,
-    };
+    return { configured: data.configured === true };
   } catch {
     return null;
   }

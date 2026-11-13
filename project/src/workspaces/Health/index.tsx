@@ -30,7 +30,7 @@ export const HealthWorkspace = () => {
 
   const openChat = (prompt?: string) => {
     if (prompt) {
-      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
+      useAppStore.setState({ pendingPrompt: prompt, pendingPromptFor: 'health', pendingPromptToken: Date.now() });
     }
     setView('chat');
   };

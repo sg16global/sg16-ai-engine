@@ -3,7 +3,7 @@
  *
  * `chatCompletion` (client.ts) is the single place chat requests leave the
  * app, and wire.ts only ever calls SG16's own backend (/api/ai/*). The AI
- * endpoint, keys and models are owner secrets on the backend.
+ * connection is set once by the owner on that backend.
  */
 
 export * from './types';

@@ -84,7 +84,7 @@ export const CodingWorkspace = () => {
   const [checkCode, setCheckCode] = useState('');
 
   const onAnalyze = (prompt: string) => {
-    useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
+    useAppStore.setState({ pendingPrompt: prompt, pendingPromptFor: 'coding', pendingPromptToken: Date.now() });
     setView('chat');
   };
   const onScanned = (report: ShieldScanResponse) => {
@@ -98,7 +98,7 @@ export const CodingWorkspace = () => {
   };
   const openChat = (prompt?: string) => {
     if (prompt) {
-      useAppStore.setState({ pendingPrompt: prompt, pendingPromptToken: Date.now() });
+      useAppStore.setState({ pendingPrompt: prompt, pendingPromptFor: 'coding', pendingPromptToken: Date.now() });
     }
     setView('chat');
   };

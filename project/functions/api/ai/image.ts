@@ -1,5 +1,6 @@
 /**
- * POST /api/ai/image — create an image, or edit an uploaded photo.
+ * POST /api/ai/image — create an image, or edit an uploaded photo, with the
+ * owner's AI (AI_BASE_URL + AI_IMAGE_MODEL). Off while AI_IMAGE_MODEL is blank.
  *
  * Body: { prompt, image?: data URL } — with `image` the photo is edited in place.
  * Reply: { image: data URL or https URL }
@@ -8,8 +9,6 @@
 import {
   type AiContext,
   GatewayError,
-  assertBodySize,
-  assertSameOrigin,
   authHeaders,
   errorResponse,
   json,
@@ -17,7 +16,7 @@ import {
   upstreamError,
 } from './_gateway';
 
-const MAX_BODY_BYTES = 12 * 1024 * 1024;
+const TIMEOUT_MS = 120_000;
 
 type ImageReply = { data?: Array<{ b64_json?: string; url?: string }> };
 
@@ -30,22 +29,19 @@ function photoBlob(dataUrl: string): Blob {
 
 export async function onRequestPost(context: AiContext): Promise<Response> {
   try {
-    assertSameOrigin(context.request);
-    assertBodySize(context.request, MAX_BODY_BYTES);
     const gw = requireGateway(context.env);
     if (!gw.image) throw new GatewayError(503, 'NOT_CONFIGURED', 'Image creation is not available yet.');
 
     const body = (await context.request.json().catch(() => null)) as Record<string, unknown> | null;
     const prompt = typeof body?.prompt === 'string' ? body.prompt.trim().slice(0, 4000) : '';
     if (!prompt) throw new GatewayError(400, 'BAD_REQUEST', 'Describe the image you want.');
-    const photo = typeof body?.image === 'string' ? body.image : '';
+    const photo = typeof body?.image === 'string' && body.image ? photoBlob(body.image) : null;
 
     let res: Response;
     try {
       if (photo) {
-        const blob = photoBlob(photo);
         const form = new FormData();
-        form.append('image', blob, `photo.${blob.type.split('/')[1] || 'png'}`);
+        form.append('image', photo, `photo.${photo.type.split('/')[1] || 'png'}`);
         form.append('prompt', prompt);
         form.append('n', '1');
         form.append('size', '1024x1024');
@@ -55,18 +51,17 @@ export async function onRequestPost(context: AiContext): Promise<Response> {
           method: 'POST',
           headers: authHeaders(gw),
           body: form,
-          signal: AbortSignal.timeout(120_000),
+          signal: AbortSignal.timeout(TIMEOUT_MS),
         });
       } else {
         res = await fetch(`${gw.baseUrl}/images/generations`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', ...authHeaders(gw) },
           body: JSON.stringify({ model: gw.image, prompt, n: 1, size: '1024x1024', response_format: 'b64_json' }),
-          signal: AbortSignal.timeout(120_000),
+          signal: AbortSignal.timeout(TIMEOUT_MS),
         });
       }
-    } catch (err) {
-      if (err instanceof GatewayError) throw err;
+    } catch {
       throw upstreamError(502);
     }
     if (!res.ok) throw upstreamError(res.status);

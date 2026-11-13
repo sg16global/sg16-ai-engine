@@ -13,7 +13,7 @@ type Pioneer = {
 
 const commons = (file: string) => `https://commons.wikimedia.org/wiki/File:${file}`;
 
-const PIONEERS: Pioneer[] = [
+export const PIONEERS: Pioneer[] = [
   { id: 'alan-turing', name: 'Alan Turing', role: 'Computing & Machine Intelligence Pioneer', credit: { author: 'Elliott & Fry', license: 'Public domain', source: commons('Alan_turing_header.jpg') } },
   { id: 'john-mccarthy', name: 'John McCarthy', role: 'AI Pioneer · Lisp Creator', credit: { author: 'null0 (Flickr)', license: 'CC BY-SA 2.0', source: commons('John_McCarthy_Stanford.jpg') } },
   { id: 'marvin-minsky', name: 'Marvin Minsky', role: 'Early AI Pioneer', credit: { author: 'Sethwoodworth (OLPC)', license: 'CC BY 3.0', source: commons('Marvin_Minsky_at_OLPCb_(3x4_cropped).jpg') } },
@@ -28,7 +28,7 @@ const PIONEERS: Pioneer[] = [
 ];
 
 /** Names as plain text (no company logos), with a not-affiliated note. */
-const WORLD_AI: [string, string][] = [
+export const WORLD_AI: [string, string][] = [
   ['Claude', 'Anthropic'],
   ['ChatGPT', 'OpenAI'],
   ['Gemini', 'Google'],

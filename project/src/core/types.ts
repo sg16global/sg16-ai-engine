@@ -77,6 +77,8 @@ export interface Message {
   imageUrl?: string;
   generatedImageUrl?: string;
   liveSearch?: boolean;
+  /** An error notice shown in the chat — never sent back to the AI as context. */
+  isError?: boolean;
 }
 
 export interface MemoryEntry {
