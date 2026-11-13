@@ -43,6 +43,8 @@ interface ChatPanelProps {
   backLabel?: string;
   /** Coding Hub: a Scan button on AI code opens "Check Your Code" with it. */
   onScanCode?: (code: string) => void;
+  /** The page has its own history side panel (shown from the lg breakpoint): hide the in-chat History / New chat there. */
+  sidePanelHistory?: boolean;
 }
 
 export function ChatPanel({
@@ -59,6 +61,7 @@ export function ChatPanel({
   onBack,
   backLabel = 'Back',
   onScanCode,
+  sidePanelHistory = false,
 }: ChatPanelProps) {
   const messages = useAppStore((s) => s.messages[workspaceId]);
   // Busy is per conversation and the error per shield: a request in one shield (or in an
@@ -302,7 +305,8 @@ export function ChatPanel({
               {workspaceLabel(workspaceId)} · private thread
             </span>
           </div>
-          <div className="relative flex items-center gap-1 shrink-0">
+          {/* With a side panel (AI Chat on desktop) History and New chat live there only — no second copy here. */}
+          <div className={`relative flex items-center gap-1 shrink-0${sidePanelHistory ? ' lg:hidden' : ''}`}>
             {threads.length > 0 && (
               <button
                 type="button"
