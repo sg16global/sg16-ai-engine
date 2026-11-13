@@ -309,6 +309,107 @@
   margin-top: 40px;
 }
 
+/*
+ * Robot on: the robot stands in the right column across both rows; Geo Monitor and
+ * SG16 Finance sit side by side under the flags, in the hero's column (no empty gap).
+ */
+.lp-top--robot {
+  row-gap: 30px;
+}
+.lp-top--robot .lp-top__side--open {
+  grid-column: 1;
+  grid-row: 1 / span 2;
+}
+.lp-top--robot .lp-top__hero {
+  grid-column: 2;
+  grid-row: 1;
+}
+.lp-top__side--robot {
+  grid-column: 3;
+  grid-row: 1 / span 2;
+  margin-top: 0;
+}
+/* World Clock · Geo Monitor · SG16 Finance: one row from the left corner to the robot, all the same size. */
+.lp-monitors {
+  grid-column: 1 / span 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(18px, 2vw, 28px);
+  align-items: stretch;
+}
+.lp-monitors > .lp-monitor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+.lp-monitors .lp-link--caps,
+.lp-monitors .lp-clock__foot {
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+/* World Clock rows */
+.lp-clock {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+.lp-clock__place {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: rgba(247, 247, 252, 0.92);
+}
+.lp-clock__place > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lp-clock__place em {
+  font-style: normal;
+  color: rgba(247, 247, 252, 0.55);
+}
+.lp-clock__place .lp-flag {
+  width: 22px;
+  height: 15px;
+  flex: none;
+  border-radius: 2px;
+}
+.lp-clock__time {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+.lp-clock__time small {
+  display: block;
+  font-size: 9.5px;
+  font-weight: 600;
+  color: var(--sg16-primary);
+}
+.lp-clock__icon {
+  width: 14px;
+  height: 14px;
+  color: var(--sg16-primary);
+}
+.lp-clock__zone {
+  color: rgba(247, 247, 252, 0.5);
+}
+.lp-top--robot .lp-flags {
+  gap: 16px 26px;
+  margin-top: 54px;
+}
+.lp-top--robot .lp-flags .lp-flag {
+  width: 50px;
+  height: 33px;
+}
+
 /* Hero stage */
 .lp-hero {
   position: relative;
@@ -1141,6 +1242,30 @@
     margin-top: 16px;
   }
 
+  .lp-top__side--open {
+    display: none;
+  }
+
+  /* Robot on, narrower screens: hero + flags, then the robot, then the two cards. */
+  .lp-top--robot .lp-top__hero {
+    grid-column: 1 / -1;
+    grid-row: auto;
+  }
+
+  .lp-top__side--robot {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    justify-self: center;
+    width: min(100%, 300px);
+    margin-top: 0;
+  }
+
+  .lp-monitors {
+    grid-column: 1 / -1;
+    grid-row: auto;
+    order: 1;
+  }
+
   .lp-row2 {
     grid-template-columns: 1fr;
   }
@@ -1160,7 +1285,8 @@
 
 @media (max-width: 767px) {
   .lp-top,
-  .lp-lower__right {
+  .lp-lower__right,
+  .lp-monitors {
     grid-template-columns: 1fr;
   }
 
@@ -1433,4 +1559,11 @@
   .lp-rail__track { animation: none; flex-wrap: wrap; justify-content: center; width: auto; row-gap: 14px; }
   .lp-rail__track [aria-hidden='true'] { display: none; }
   .lp-rail { -webkit-mask-image: none; mask-image: none; }
+}
+
+/* Tablets: the three homepage cards stack (too narrow for three side by side). */
+@media (max-width: 1023px) {
+  .lp-monitors {
+    grid-template-columns: 1fr;
+  }
 }
