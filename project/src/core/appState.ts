@@ -585,7 +585,12 @@ export const useAppStore = create<AppState>((set, getState) => ({
       persistMessages(messages, state.authUser?.id);
       const active = { ...state.activeThreadIds };
       delete active[workspaceId];
-      return { messages, ...persistThreads({ threads: state.chatThreads, active }, state.authUser?.id) };
+      return {
+        messages,
+        // A fresh chat starts without the previous chat's error banner.
+        chatErrors: { ...state.chatErrors, [workspaceId]: null },
+        ...persistThreads({ threads: state.chatThreads, active }, state.authUser?.id),
+      };
     }),
 
   openThread: (threadId) => {
@@ -596,6 +601,7 @@ export const useAppStore = create<AppState>((set, getState) => ({
     persistMessages(messages, state.authUser?.id);
     set({
       messages,
+      chatErrors: { ...state.chatErrors, [thread.workspaceId]: null },
       ...persistThreads(
         { threads: state.chatThreads, active: { ...state.activeThreadIds, [thread.workspaceId]: thread.id } },
         state.authUser?.id,

@@ -94,6 +94,7 @@ export const GeneralWorkspace = () => {
               'Weather forecast today',
             ]}
             loadingLabel="SG16 AI is thinking..."
+            sidePanelHistory
           />
         </div>
       </div>
