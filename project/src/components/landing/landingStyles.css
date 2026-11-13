@@ -318,7 +318,44 @@
 }
 .lp-top--robot .lp-top__side--open {
   grid-column: 1;
-  grid-row: 1 / span 2;
+  grid-row: 1;
+  align-self: center;
+  margin-top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* Official Saif Tech Global LLC logo in the top-left space (robot layout). */
+.lp-owner-logo {
+  display: block;
+  width: min(100%, 236px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  filter: drop-shadow(0 0 18px rgba(255, 184, 46, 0.32)) drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55));
+  animation: lp-owner-logo-glow 6s ease-in-out infinite;
+  transition: transform 0.3s ease;
+}
+.lp-owner-logo:hover,
+.lp-owner-logo:focus-visible {
+  transform: scale(1.03);
+  outline: none;
+}
+.lp-owner-logo img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+}
+@keyframes lp-owner-logo-glow {
+  0%, 100% { filter: drop-shadow(0 0 14px rgba(255, 184, 46, 0.26)) drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55)); }
+  50% { filter: drop-shadow(0 0 24px rgba(255, 196, 70, 0.45)) drop-shadow(0 10px 26px rgba(0, 0, 0, 0.55)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lp-owner-logo {
+    animation: none;
+  }
 }
 .lp-top--robot .lp-top__hero {
   grid-column: 2;
@@ -1242,7 +1279,8 @@
     margin-top: 16px;
   }
 
-  .lp-top__side--open {
+  .lp-top__side--open,
+  .lp-top--robot .lp-top__side--open {
     display: none;
   }
 

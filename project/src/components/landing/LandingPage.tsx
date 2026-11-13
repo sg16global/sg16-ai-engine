@@ -16,6 +16,7 @@ import {
 import type { CSSProperties } from 'react';
 import { useAppStore } from '../../core/appState';
 import type { WorkspaceType } from '../../core/types';
+import { SG16_BRAND } from '../../core/branding';
 import { Flag, type FlagCode } from './Flag';
 import { HeroStage, LandingNeonBackdrop } from './LandingNeonBackdrop';
 import { PioneersRail, WorldAiRail } from './LandingRails';
@@ -107,7 +108,18 @@ export function LandingPage() {
           */}
           <div className={`lp-top${robotOn ? ' lp-top--robot' : ''}`}>
             {robotOn ? (
-              <div className="lp-top__side lp-top__side--open" aria-hidden />
+              <div className="lp-top__side lp-top__side--open">
+                {/* Official company logo — owner of SG16 AI Engine */}
+                <a
+                  className="lp-owner-logo"
+                  href={SG16_BRAND.companyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={`${SG16_BRAND.company} — official website`}
+                >
+                  <img src="/brand/saif-tech-global-logo.png" alt={SG16_BRAND.company} width={480} height={480} decoding="async" draggable={false} />
+                </a>
+              </div>
             ) : (
               <div className="lp-top__side">
                 <GeoMonitorCard />
